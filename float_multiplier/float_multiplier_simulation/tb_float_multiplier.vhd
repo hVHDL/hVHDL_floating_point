@@ -24,9 +24,39 @@ architecture vunit_simulation of tb_float_multiplier is
     -----------------------------------
     -- simulation specific signals ----
 
-    signal test_1 : float_record := float(2.0);
+    signal test_1 : float_record := float(0.57);
     signal test_2 : float_record := float(3.0);
     signal test_3 : float_record := float(-3.0);
+
+    signal test_mantissa : unsigned(22 downto 0) := get_mantissa(1.3);
+    signal test_real : real := 1.5-floor(1.5);
+
+    signal test_exponent : t_exponent := get_exponent(-2.5);
+    signal real_exponent : real := log2(2.0**(-15)*1.999999999999999);
+
+    signal real_result : real := to_real(test_1);
+
+
+------------------------------------------------------------------------
+    function "+"
+    (
+        left, right : float_record
+    )
+    return float_record
+    is
+        variable result : float_record := float(1.0);
+        variable result_mantissa : unsigned(t_mantissa'length+1 downto 0);
+    begin
+        if left.exponent = right.exponent then
+            result.mantissa := left.mantissa + right.mantissa;
+            result.exponent := left.exponent + to_integer(result_mantissa(result_mantissa'left downto result_mantissa'left-2));
+        end if;
+
+        return result;
+
+    end "+";
+------------------------------------------------------------------------
+
 
 begin
 
@@ -60,6 +90,8 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
+            test_3 <= test_1 + test_1;
+            real_result <= to_real(test_3);
 
         end if; -- rising_edge
     end process stimulus;	
