@@ -46,8 +46,8 @@ architecture vunit_simulation of tb_float_multiplier is
         variable number_of_zeroes : natural := 0;
     begin
         for i in 0 to t_mantissa'length loop
-            if float_number.mantissa > 2**i then
-                number_of_zeroes := t_mantissa'high-1-i;
+            if float_number.mantissa >= 2**i then
+                number_of_zeroes := t_mantissa'high-i;
             end if;
         end loop;
 
@@ -59,11 +59,11 @@ architecture vunit_simulation of tb_float_multiplier is
     signal test_normalization : float_record := 
         normalize((sign     => "0"             ,
                    exponent => (others => '0') ,
-                   mantissa => (20 => '0' ,
-                                19 => '1' ,
-                                18 => '0' ,
-                                10 => '1' ,
-                                others => '0'
+                   mantissa => (
+                                22 => '0',
+                                8 => '0',
+                                12 => '0',
+                                others => '1'
                                 )));
 ------------------------------------------------------------------------
     function "+"
