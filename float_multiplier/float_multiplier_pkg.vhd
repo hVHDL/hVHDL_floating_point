@@ -51,7 +51,11 @@ package body float_multiplier_pkg is
     is
         variable result : real := 0.0;
     begin
-        result := floor(log2((abs(number))));
+        if abs(number) > 0.0 then
+            result := floor(log2((abs(number))));
+        else
+            result := 0.0;
+        end if;
         
         return to_signed(integer(result),t_exponent'length);
     end get_exponent;

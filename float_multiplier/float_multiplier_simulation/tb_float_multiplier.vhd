@@ -36,6 +36,9 @@ architecture vunit_simulation of tb_float_multiplier is
 
     signal real_result : real := to_real(test_1);
 
+    signal sum_result_float : float_record := to_float(0.0);
+    signal sum_result_real : real := 0.0;
+
 ------------------------------------------------------------------------
     function normalize
     (
@@ -84,6 +87,7 @@ architecture vunit_simulation of tb_float_multiplier is
 
     end "+";
 ------------------------------------------------------------------------
+    signal test_sum_mantissa : t_mantissa := test_1.mantissa + test_1.mantissa;
 
 
 begin
@@ -118,7 +122,8 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
-            test_3 <= test_1 + test_1;
+            sum_result_float <= (test_1 + test_1);
+            sum_result_real <= to_real(test_1 + test_1);
             real_result <= to_real(test_3);
 
         end if; -- rising_edge
