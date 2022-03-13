@@ -15,7 +15,7 @@ package float_multiplier_pkg is
     end record;
 
 ------------------------------------------------------------------------
-    function float ( real_number : real)
+    function to_float ( real_number : real)
         return float_record;
 ------------------------------------------------------------------------
     function get_mantissa ( number : real)
@@ -94,7 +94,7 @@ package body float_multiplier_pkg is
 
     end get_data;
 ------------------------------------------------------------------------
-    function float
+    function to_float
     (
         real_number : real
     )
@@ -105,13 +105,13 @@ package body float_multiplier_pkg is
 
     begin
 
-        -- returned_float.sign     := get_exponent(real_number);
+        returned_float.sign     := get_sign(real_number);
         returned_float.exponent := get_exponent(real_number);
         returned_float.mantissa := get_mantissa(real_number);
 
         return returned_float;
         
-    end float;
+    end to_float;
 ------------------------------------------------------------------------
     function to_real
     (
