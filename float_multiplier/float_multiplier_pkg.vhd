@@ -27,6 +27,9 @@ package float_multiplier_pkg is
     function to_real ( float_number : float_record)
         return real;
 ------------------------------------------------------------------------
+    function normalize ( float_number : float_record)
+        return float_record;
+------------------------------------------------------------------------
 
 end package float_multiplier_pkg;
 
@@ -130,5 +133,24 @@ package body float_multiplier_pkg is
         return result;
         
     end to_real;
+------------------------------------------------------------------------
+    function normalize
+    (
+        float_number : float_record
+    )
+    return float_record
+    is
+        variable number_of_zeroes : natural := 0;
+    begin
+        for i in 0 to t_mantissa'length loop
+            if float_number.mantissa >= 2**i then
+                number_of_zeroes := t_mantissa'high-i;
+            end if;
+        end loop;
+
+        return (sign     => float_number.sign,
+                exponent => float_number.exponent + number_of_zeroes,
+                mantissa => shift_left(float_number.mantissa, number_of_zeroes));
+    end normalize;
 ------------------------------------------------------------------------
 end package body float_multiplier_pkg;

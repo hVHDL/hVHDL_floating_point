@@ -24,7 +24,8 @@ architecture vunit_simulation of tb_float_multiplier is
     -----------------------------------
     -- simulation specific signals ----
 
-    signal test_1 : float_record := to_float(0.57);
+    signal test_1_real : real := 1.57;
+    signal test_1 : float_record := to_float(1.57);
     signal test_2 : float_record := to_float(3.0);
     signal test_3 : float_record := to_float(-3.0);
 
@@ -38,26 +39,9 @@ architecture vunit_simulation of tb_float_multiplier is
 
     signal sum_result_float : float_record := to_float(0.0);
     signal sum_result_real : real := 0.0;
+    signal sum_result_reference : real := 0.57+ 0.57;
+    signal float_reference : float_record := (to_float(0.57+ 0.57));
 
-------------------------------------------------------------------------
-    function normalize
-    (
-        float_number : float_record
-    )
-    return float_record
-    is
-        variable number_of_zeroes : natural := 0;
-    begin
-        for i in 0 to t_mantissa'length loop
-            if float_number.mantissa >= 2**i then
-                number_of_zeroes := t_mantissa'high-i;
-            end if;
-        end loop;
-
-        return (sign     => float_number.sign,
-                exponent => float_number.exponent + number_of_zeroes,
-                mantissa => shift_left(float_number.mantissa, number_of_zeroes));
-    end normalize;
 ------------------------------------------------------------------------
     signal test_normalization : float_record := 
         normalize((sign     => "0"             ,
@@ -75,19 +59,21 @@ architecture vunit_simulation of tb_float_multiplier is
     )
     return float_record
     is
-        variable result : float_record := to_float(1.0);
-        variable result_mantissa : unsigned(t_mantissa'length+1 downto 0);
+        constant mantissa_left : integer := t_mantissa'length;
+        variable result : float_record := to_float(0.0);
+        variable result_mantissa : unsigned(t_mantissa'length downto 0);
     begin
         if left.exponent = right.exponent then
-            result_mantissa := resize(left.mantissa, result_mantissa'length) + resize(right.mantissa, result_mantissa'length);
-            result.exponent := left.exponent + to_integer(result_mantissa(result_mantissa'left downto result_mantissa'left));
+            result_mantissa := resize(left.mantissa,t_mantissa'length+1) + resize(right.mantissa,t_mantissa'length+1);
+            result.exponent := left.exponent;
+            result.mantissa := result_mantissa(result.mantissa'left+1 downto 1);
         end if;
 
         return normalize(result);
 
     end "+";
 ------------------------------------------------------------------------
-    signal test_sum_mantissa : t_mantissa := test_1.mantissa + test_1.mantissa;
+    signal test_sum_mantissa : unsigned(t_mantissa'length downto 0) := resize(test_1.mantissa,t_mantissa'length+1) + resize(test_1.mantissa,t_mantissa'length+1);
 
 
 begin
@@ -122,9 +108,10 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
+            sum_result_reference <= test_1_real+test_1_real;
             sum_result_float <= (test_1 + test_1);
-            sum_result_real <= to_real(test_1 + test_1);
-            real_result <= to_real(test_3);
+            sum_result_real <= to_real(sum_result_float);
+            real_result <= to_real(float_reference);
 
         end if; -- rising_edge
     end process stimulus;	
