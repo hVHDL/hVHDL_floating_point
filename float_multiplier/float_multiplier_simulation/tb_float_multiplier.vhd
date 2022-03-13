@@ -45,30 +45,26 @@ architecture vunit_simulation of tb_float_multiplier is
     is
         variable number_of_zeroes : natural := 0;
     begin
-        if float_number.mantissa > 2**18 then
-            number_of_zeroes := 3;
-        end if;
-        if float_number.mantissa > 2**19 then
-            number_of_zeroes := 2;
-        end if;
-        if float_number.mantissa > 2**20 then
-            number_of_zeroes := 1;
-        end if;
-        if float_number.mantissa > 2**21 then
-            number_of_zeroes := 0;
-        end if;
-        if float_number.mantissa > 2**22 then
-            number_of_zeroes := 22-22;
-        end if;
+        for i in 0 to t_mantissa'length loop
+            if float_number.mantissa > 2**i then
+                number_of_zeroes := t_mantissa'high-1-i;
+            end if;
+        end loop;
+
         return (sign     => float_number.sign,
                 exponent => float_number.exponent + number_of_zeroes,
                 mantissa => shift_left(float_number.mantissa, number_of_zeroes));
     end normalize;
 ------------------------------------------------------------------------
     signal test_normalization : float_record := 
-        normalize(("0", (others => '0'), (19 => '1' ,others => '0')));
-
-
+        normalize((sign     => "0"             ,
+                   exponent => (others => '0') ,
+                   mantissa => (20 => '0' ,
+                                19 => '1' ,
+                                18 => '0' ,
+                                10 => '1' ,
+                                others => '0'
+                                )));
 ------------------------------------------------------------------------
     function "+"
     (
@@ -80,11 +76,11 @@ architecture vunit_simulation of tb_float_multiplier is
         variable result_mantissa : unsigned(t_mantissa'length+1 downto 0);
     begin
         if left.exponent = right.exponent then
-            result.mantissa := left.mantissa + right.mantissa;
-            result.exponent := left.exponent + to_integer(result_mantissa(result_mantissa'left downto result_mantissa'left-2));
+            result_mantissa := resize(left.mantissa, result_mantissa'length) + resize(right.mantissa, result_mantissa'length);
+            result.exponent := left.exponent + to_integer(result_mantissa(result_mantissa'left downto result_mantissa'left));
         end if;
 
-        return result;
+        return normalize(result);
 
     end "+";
 ------------------------------------------------------------------------
