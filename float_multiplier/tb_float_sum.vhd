@@ -60,6 +60,25 @@ architecture vunit_simulation of tb_float_sum is
         
     end denormalize_float;
 ------------------------------------------------------------------------
+    function ">"
+    (
+        left, right : float_record
+    )
+    return float_record
+    is
+        variable returned_float : float_record;
+    begin
+        if left.sign > right.sign then
+            returned_float := left;
+        else
+            -- add additional functions here
+            returned_float := right;
+        end if;
+
+        return returned_float;
+        
+    end ">";
+------------------------------------------------------------------------
     signal test_denormalization : float_record := denormalize_float(test_float, 4);
 
 begin
