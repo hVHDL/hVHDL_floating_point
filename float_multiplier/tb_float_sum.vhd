@@ -55,11 +55,12 @@ architecture vunit_simulation of tb_float_sum is
     begin
         float := ("0",
                   exponent => to_signed(set_exponent_to, right.exponent'length),
-                  mantissa => shift_right(right.mantissa,to_integer(right.exponent) - set_exponent_to));
+                  mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent) ));
         return float;
         
     end denormalize_float;
 ------------------------------------------------------------------------
+    signal test_denormalization : float_record := denormalize_float(test_float, 4);
 
 begin
 
