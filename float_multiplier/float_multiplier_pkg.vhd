@@ -14,6 +14,8 @@ package float_multiplier_pkg is
         mantissa : t_mantissa;
     end record;
 
+    constant zero : float_record := ((others => '0'), (others => '0'), (others => '0'));
+
 ------------------------------------------------------------------------
     function to_float ( real_number : real)
         return float_record;
