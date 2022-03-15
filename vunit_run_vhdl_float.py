@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parent
 VU = VUnit.from_argv()
 
 mathlib = VU.add_library("math_library")
+mathlib.add_source_files(ROOT / "*.vhd")
 mathlib.add_source_files(ROOT / "float_multiplier" / "*.vhd")
 mathlib.add_source_files(ROOT / "float_multiplier/float_multiplier_simulation" / "*.vhd")
 

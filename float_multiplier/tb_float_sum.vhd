@@ -4,6 +4,7 @@ LIBRARY ieee  ;
     use ieee.math_real.all;
 
     use work.float_multiplier_pkg.all;
+    use work.float_arithmetic_operations_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
@@ -24,60 +25,12 @@ architecture vunit_simulation of tb_float_sum is
     -----------------------------------
     -- simulation specific signals ----
 
-    constant test_float : float_record := ("0", (others => '0'), (21 => '1', others => '0'));
-    signal number1 : float_record := test_float;
-    signal number2 : float_record := test_float;
-    signal result : float_record := zero;
+    constant test_float : float_record := ("0", to_signed(-5,8), (22 => '0', others => '1'));
+    signal number1      : float_record := test_float;
+    signal number2      : float_record := test_float;
+    signal result       : float_record := zero;
 
 ------------------------------------------------------------------------
-    function "+"
-    (
-        left, right : float_record
-    )
-    return float_record
-    is
-        variable res : unsigned(left.mantissa'high+1 downto 0);
-    begin
-        res := resize(left.mantissa, res'length) + resize(right.mantissa, res'length);
-        return ("0",
-                left.exponent + to_integer(resize(res(res'high downto res'high),left.exponent'length)),
-                res(left.mantissa'range));
-    end "+";
-------------------------------------------------------------------------
-    function denormalize_float
-    (
-        right           : float_record;
-        set_exponent_to : integer
-    )
-    return float_record
-    is
-        variable float : float_record := zero;
-    begin
-        float := ("0",
-                  exponent => to_signed(set_exponent_to, right.exponent'length),
-                  mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent) ));
-        return float;
-        
-    end denormalize_float;
-------------------------------------------------------------------------
-    function ">"
-    (
-        left, right : float_record
-    )
-    return float_record
-    is
-        variable returned_float : float_record;
-    begin
-        if left.sign > right.sign then
-            returned_float := left;
-        else
-            -- add additional functions here
-            returned_float := right;
-        end if;
-
-        return returned_float;
-        
-    end ">";
 ------------------------------------------------------------------------
     signal test_denormalization : float_record := denormalize_float(test_float, 4);
 
@@ -113,9 +66,13 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
-            if simulation_counter = 1 then
-                result <=  number1 + number2;
-            end if;
+            CASE simulation_counter is
+                WHEN 0 => 
+                    result <= number1 + number2;
+                WHEN 1 => 
+
+                WHEN others => -- do nothing
+            end case;
 
         end if; -- rising_edge
     end process stimulus;	
