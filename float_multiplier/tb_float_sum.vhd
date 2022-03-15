@@ -25,15 +25,13 @@ architecture vunit_simulation of tb_float_sum is
     -----------------------------------
     -- simulation specific signals ----
 
-    constant test_float  : float_record := ("0", to_signed(0,8), (22 => '1', others => '1'));
-    constant test_float1 : float_record := ("0", to_signed(1,8), (22 => '1', others => '1'));
-    signal number1       : float_record := test_float;
-    signal number2       : float_record := test_float1;
+    signal number2       : float_record :=("0", to_signed(0,8), (22 => '1', others => '0'));
+    signal number1       : float_record :=("0", to_signed(22,8), (22 => '1', others => '0'));
     signal result        : float_record := zero;
 
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
-    signal test_denormalization : float_record := denormalize_float(test_float, 4);
+    signal test_denormalization : float_record := denormalize_float(number1, 4);
 
 begin
 
@@ -69,7 +67,11 @@ begin
 
             CASE simulation_counter is
                 WHEN 0 => 
-                    result <= number1 + number2;
+                    if number2.exponent > number1.exponent then
+                        result <= number2 + denormalize_float(number1, to_integer(number2.exponent));
+                    else
+                        result <= number1 + denormalize_float(number2, to_integer(number1.exponent));
+                    end if;
                 WHEN 1 => 
 
                 WHEN others => -- do nothing
