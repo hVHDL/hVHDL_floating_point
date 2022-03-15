@@ -25,10 +25,11 @@ architecture vunit_simulation of tb_float_sum is
     -----------------------------------
     -- simulation specific signals ----
 
-    constant test_float : float_record := ("0", to_signed(-5,8), (22 => '0', others => '1'));
-    signal number1      : float_record := test_float;
-    signal number2      : float_record := test_float;
-    signal result       : float_record := zero;
+    constant test_float  : float_record := ("0", to_signed(0,8), (22 => '1', others => '1'));
+    constant test_float1 : float_record := ("0", to_signed(1,8), (22 => '1', others => '1'));
+    signal number1       : float_record := test_float;
+    signal number2       : float_record := test_float1;
+    signal result        : float_record := zero;
 
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
