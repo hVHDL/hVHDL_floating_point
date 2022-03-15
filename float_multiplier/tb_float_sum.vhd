@@ -43,10 +43,10 @@ architecture vunit_simulation of tb_float_sum is
     (
         signal adder_object : inout float_adder_record
     ) is
-        alias larger        is adder_object.larger       ;
-        alias smaller       is adder_object.smaller      ;
-        alias result        is adder_object.result       ;
-        alias adder_counter is adder_object.adder_counter;
+        alias larger        is adder_object.larger        ;
+        alias smaller       is adder_object.smaller       ;
+        alias result        is adder_object.result        ;
+        alias adder_counter is adder_object.adder_counter ;
     begin
 
         CASE adder_counter is
@@ -64,6 +64,8 @@ architecture vunit_simulation of tb_float_sum is
             WHEN others => -- do nothing
         end CASE;
     end create_adder;
+
+    signal adder : float_adder_record := init_adder;
 
 begin
 
@@ -96,6 +98,8 @@ begin
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
+
+            create_adder(adder);
 
             CASE simulation_counter is
                 WHEN 0 => 
