@@ -26,17 +26,17 @@ architecture vunit_simulation of tb_float_sum is
     -----------------------------------
     -- simulation specific signals ----
 
-    signal number2       : float_record :=("0", to_signed(0,8), (22 => '0', others => '0'));
-    signal number1       : float_record :=("0", to_signed(-6,8), (22 => '1', others => '1'));
+    signal number1       : float_record :=("0", to_signed(-6,8), (22 => '1', others => '0'));
     signal result        : float_record := zero;
-
-    signal testaa_jakoa : float_record := number2/2;
 
 ------------------------------------------------------------------------
     signal adder : float_adder_record := init_adder;
-    signal should_be_true : boolean := false;
 
 ------------------------------------------------------------------------
+    signal res : unsigned(number1.mantissa'high+1 downto 0) :=
+    (resize(number1.mantissa, 24) + resize(number1.mantissa, 24));
+
+    signal leading_zeroes_in_res : integer := number_of_leading_zeroes(std_logic_vector(res));
 
 begin
 
@@ -73,25 +73,13 @@ begin
             create_adder(adder);
 
             if simulation_counter = 0 then
-                request_add(adder, number1, number2);
+                request_add(adder, number1, number1);
             end if;
 
             if adder_is_ready(adder) then
-                should_be_true <= get_result(adder) = result;
+                request_add(adder, result, result);
+                result <= get_result(adder);
             end if;
-
-            CASE simulation_counter is
-                WHEN 0 => 
-                    if number2.exponent > number1.exponent then
-                        result <= number2 + denormalize_float(number1, to_integer(number2.exponent));
-                    else
-                        result <= number1 + denormalize_float(number2, to_integer(number1.exponent));
-                    end if;
-                WHEN 1 => 
-                    result <= normalize(result);
-
-                WHEN others => -- do nothing
-            end case;
 
         end if; -- rising_edge
     end process stimulus;	

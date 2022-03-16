@@ -51,20 +51,20 @@ package body float_arithmetic_operations_pkg is
     )
     return float_record
     is
-        variable res : unsigned(left.mantissa'high+1 downto 0);
-        variable result_exponent : signed(left.exponent'high+1 downto 0) := resize(left.exponent, left.exponent'length+1);
+        variable res : unsigned(t_mantissa'high+1 downto 0);
+        variable result_exponent : signed(t_exponent'high+1 downto 0) := resize(left.exponent, t_exponent'length+1);
     begin
         res := resize(left.mantissa, res'length) + resize(right.mantissa, res'length);
 
-        -- if exponent needs to be incremented
-        if res(res'left) = '1' then
+        if res(res'high) = '1' then
             result_exponent := result_exponent + 1;
             res := shift_right(res,1);
+            report "jihuu";
         end if;
 
         return ("0",
-                result_exponent(left.exponent'range),
-                res(left.mantissa'range));
+                result_exponent(t_exponent'range),
+                res(t_mantissa'range));
     end "+";
 ------------------------------------------------------------------------
     function "/"

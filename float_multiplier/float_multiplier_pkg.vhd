@@ -5,14 +5,22 @@ library ieee;
 
 package float_multiplier_pkg is
 
-    subtype t_mantissa is unsigned(22 downto 0);
-    subtype t_exponent is signed(7 downto 0);
+    constant mantissa_high : integer := 22;
+    constant exponent_high : integer := 7;
+
+    constant mantissa_length : integer := mantissa_high + 1;
+    constant exponent_length : integer := exponent_high + 1;
+
+    subtype t_mantissa is unsigned(mantissa_high downto 0);
+    subtype t_exponent is signed(exponent_high downto 0);
 
     type float_record is record
         sign : signed(0 downto 0);
         exponent : t_exponent;
         mantissa : t_mantissa;
     end record;
+
+    type float_array is array (integer range <>) of float_record;
 
     constant zero : float_record := ((others => '0'), (others => '0'), (others => '0'));
 
@@ -37,6 +45,9 @@ package float_multiplier_pkg is
         set_exponent_to : integer)
     return float_record;
 ------------------------------------------------------------------------
+    function number_of_leading_zeroes ( data : std_logic_vector )
+        return integer ;
+------------------------------------------------------------------------
 
 end package float_multiplier_pkg;
 
@@ -50,7 +61,7 @@ package body float_multiplier_pkg is
     return unsigned
     is
     begin
-        return to_unsigned(integer((number-floor(number))* 2.0**t_mantissa'length), t_mantissa'length);
+        return to_unsigned(integer((number-floor(number))* 2.0**mantissa_length), mantissa_length);
     end get_mantissa;
 ------------------------------------------------------------------------
     function get_exponent
@@ -67,7 +78,7 @@ package body float_multiplier_pkg is
             result := 0.0;
         end if;
         
-        return to_signed(integer(result),t_exponent'length);
+        return to_signed(integer(result),exponent_length);
     end get_exponent;
 ------------------------------------------------------------------------
     function get_sign
@@ -96,12 +107,12 @@ package body float_multiplier_pkg is
     )
     return signed 
     is
-        variable returned_signed : signed(7 downto 0);
+        variable returned_signed : t_exponent;
     begin
         if real_number >= 0.0 then 
-            returned_signed := to_signed(int_number, t_exponent'length);
+            returned_signed := to_signed(int_number, exponent_length);
         else
-            returned_signed := -to_signed(int_number, t_exponent'length);
+            returned_signed := -to_signed(int_number, exponent_length);
         end if;
 
         return returned_signed;
@@ -115,7 +126,7 @@ package body float_multiplier_pkg is
     return float_record
     is
         variable returned_float : float_record := ("0", (others => '0'), (others => '0'));
-        constant exp_width : integer := returned_float.exponent'high + 1;
+        constant exp_width : integer := exponent_high + 1;
 
     begin
 
@@ -136,10 +147,43 @@ package body float_multiplier_pkg is
         variable result : real := 1.0;
     begin
 
-        result := (2.0**real(to_integer(float_number.exponent))) * real(to_integer(float_number.mantissa))/2.0**(t_mantissa'length-1);
+        result := (2.0**real(to_integer(float_number.exponent))) * real(to_integer(float_number.mantissa))/2.0**(mantissa_high);
         return result;
         
     end to_real;
+------------------------------------------------------------------------
+    function number_of_leading_zeroes
+    (
+        data : std_logic_vector 
+    )
+    return integer 
+    is
+        variable number_of_zeroes : integer := 0;
+    begin
+        for i in data'range loop
+            if data(data'high-i) = '0' then
+                number_of_zeroes := number_of_zeroes + 1;
+            else
+                number_of_zeroes := 0;
+            end if;
+        end loop;
+
+        return number_of_zeroes;
+        
+    end number_of_leading_zeroes;
+
+------------------------------------------------------------------------
+    function number_of_leading_zeroes
+    (
+        data : unsigned 
+    )
+    return integer 
+    is
+    begin
+
+        return number_of_leading_zeroes(std_logic_vector(data));
+        
+    end number_of_leading_zeroes;
 ------------------------------------------------------------------------
     function normalize
     (
@@ -149,14 +193,10 @@ package body float_multiplier_pkg is
     is
         variable number_of_zeroes : natural := 0;
     begin
-        for i in 0 to t_mantissa'length loop
-            if float_number.mantissa >= 2**i then
-                number_of_zeroes := t_mantissa'high-i;
-            end if;
-        end loop;
+        number_of_zeroes := number_of_leading_zeroes(float_number.mantissa);
 
         return (sign     => float_number.sign,
-                exponent => float_number.exponent + number_of_zeroes,
+                exponent => float_number.exponent - number_of_zeroes,
                 mantissa => shift_left(float_number.mantissa, number_of_zeroes));
     end normalize;
 ------------------------------------------------------------------------
@@ -171,11 +211,11 @@ package body float_multiplier_pkg is
     begin
         if set_exponent_to - right.exponent > 0 then
             float := ("0",
-                      exponent => to_signed(set_exponent_to, right.exponent'length),
+                      exponent => to_signed(set_exponent_to, exponent_high+1),
                       mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent) ));
         else
             float := ("0",
-                      exponent => to_signed(set_exponent_to, right.exponent'length),
+                      exponent => to_signed(set_exponent_to, exponent_length),
                       mantissa => (others => '0'));
         end if;
 
