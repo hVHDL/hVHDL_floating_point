@@ -12,7 +12,7 @@ package float_adder_pkg is
         smaller : float_record;
         result  : float_record;
         adder_counter : integer range 0 to 7;
-        adder_is_ready : boolean;
+        adder_is_done : boolean;
     end record;
 
     constant init_adder : float_adder_record := (zero,zero,zero, 7, false);
@@ -24,7 +24,7 @@ package float_adder_pkg is
         signal adder_object : out float_adder_record;
         left, right : float_record);
 ------------------------------------------------------------------------
-    function float_adder_is_ready (float_adder_object : float_adder_record)
+    function adder_is_ready (float_adder_object : float_adder_record)
         return boolean;
 ------------------------------------------------------------------------
     function get_result ( adder_object : float_adder_record)
@@ -42,7 +42,9 @@ package body float_adder_pkg is
         alias smaller       is adder_object.smaller       ;
         alias result        is adder_object.result        ;
         alias adder_counter is adder_object.adder_counter ;
+        alias adder_is_done is adder_object.adder_is_done;
     begin
+        adder_is_done <= false;
         CASE adder_counter is
             WHEN 0 => 
                 if larger.exponent < smaller.exponent then
@@ -59,6 +61,7 @@ package body float_adder_pkg is
             WHEN 3 =>
                 result <= normalize(result);
                 adder_counter <= adder_counter + 1;
+                adder_is_done <= true;
             WHEN others => -- do nothing
         end CASE;
 
@@ -77,15 +80,15 @@ package body float_adder_pkg is
     end request_add;
 
 ------------------------------------------------------------------------
-    function float_adder_is_ready
+    function adder_is_ready
     (
         float_adder_object : float_adder_record
     )
     return boolean
     is
     begin
-        return float_adder_object.adder_is_ready;
-    end float_adder_is_ready;
+        return float_adder_object.adder_is_done;
+    end adder_is_ready;
 
 ------------------------------------------------------------------------
     function get_result

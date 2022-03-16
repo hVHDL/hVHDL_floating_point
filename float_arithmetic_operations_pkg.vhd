@@ -15,6 +15,9 @@ package float_arithmetic_operations_pkg is
         constant right : integer)
     return float_record;
 ------------------------------------------------------------------------
+    function "=" ( left, right : float_record)
+        return boolean;
+------------------------------------------------------------------------
 end package float_arithmetic_operations_pkg;
 
 
@@ -77,5 +80,17 @@ package body float_arithmetic_operations_pkg is
                 left.exponent-1,
                 left.mantissa);
     end "/";
+------------------------------------------------------------------------
+    function "="
+    (
+        left, right : float_record
+    )
+    return boolean
+    is
+    begin
+        return left.sign = right.sign          and
+                left.exponent = right.exponent and
+                left.mantissa = right.mantissa;
+    end "=";
 ------------------------------------------------------------------------
 end package body float_arithmetic_operations_pkg;

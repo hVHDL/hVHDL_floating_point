@@ -34,6 +34,7 @@ architecture vunit_simulation of tb_float_sum is
 
 ------------------------------------------------------------------------
     signal adder : float_adder_record := init_adder;
+    signal should_be_true : boolean := false;
 
 ------------------------------------------------------------------------
 
@@ -75,6 +76,10 @@ begin
                 request_add(adder, number1, number2);
             end if;
 
+            if adder_is_ready(adder) then
+                should_be_true <= get_result(adder) = result;
+            end if;
+
             CASE simulation_counter is
                 WHEN 0 => 
                     if number2.exponent > number1.exponent then
@@ -83,7 +88,7 @@ begin
                         result <= number1 + denormalize_float(number2, to_integer(number1.exponent));
                     end if;
                 WHEN 1 => 
-                    -- result <= normalize(result);
+                    result <= normalize(result);
 
                 WHEN others => -- do nothing
             end case;
