@@ -2,53 +2,79 @@ library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
 
+    use work.float_multiplier_pkg.all;
+    use work.float_arithmetic_operations_pkg.all;
+
 package float_adder_pkg is
 ------------------------------------------------------------------------
     type float_adder_record is record
-        float_adder_is_done : boolean;
-        float_adder_is_requested : boolean;
+        larger  : float_record;
+        smaller : float_record;
+        result  : float_record;
+        adder_counter : integer range 0 to 7;
+        adder_is_ready : boolean;
     end record;
 
-    constant init_float_adder : float_adder_record := (false, false);
+    constant init_adder : float_adder_record := (zero,zero,zero, 7, false);
 ------------------------------------------------------------------------
-    procedure create_float_adder (
-        signal float_adder_object : inout float_adder_record);
+    procedure create_adder (
+        signal adder_object : inout float_adder_record);
 ------------------------------------------------------------------------
-    procedure request_float_adder (
-        signal float_adder_object : out float_adder_record);
+    procedure request_add (
+        signal adder_object : out float_adder_record;
+        left, right : float_record);
 ------------------------------------------------------------------------
     function float_adder_is_ready (float_adder_object : float_adder_record)
         return boolean;
+------------------------------------------------------------------------
+    function get_result ( adder_object : float_adder_record)
+        return float_record;
 ------------------------------------------------------------------------
 end package float_adder_pkg;
 
 package body float_adder_pkg is
 ------------------------------------------------------------------------
-    procedure create_float_adder 
+    procedure create_adder
     (
-        signal float_adder_object : inout float_adder_record
-    ) 
-    is
-        alias float_adder_is_requested is float_adder_object.float_adder_is_requested;
-        alias float_adder_is_done is float_adder_object.float_adder_is_done;
+        signal adder_object : inout float_adder_record
+    ) is
+        alias larger        is adder_object.larger        ;
+        alias smaller       is adder_object.smaller       ;
+        alias result        is adder_object.result        ;
+        alias adder_counter is adder_object.adder_counter ;
     begin
-        float_adder_is_requested <= false;
-        if float_adder_is_requested then
-            float_adder_is_done <= true;
-        else
-            float_adder_is_done <= false;
-        end if;
-    end procedure;
+        CASE adder_counter is
+            WHEN 0 => 
+                if larger.exponent < smaller.exponent then
+                    larger  <= smaller;
+                    smaller <= larger;
+                end if;
+                adder_counter <= adder_counter + 1;
+            WHEN 1 => 
+                smaller <= denormalize_float(smaller, to_integer(larger.exponent));
+                adder_counter <= adder_counter + 1;
+            WHEN 2 =>
+                result <= larger + smaller;
+                adder_counter <= adder_counter + 1;
+            WHEN 3 =>
+                result <= normalize(result);
+                adder_counter <= adder_counter + 1;
+            WHEN others => -- do nothing
+        end CASE;
+
+    end create_adder;
 
 ------------------------------------------------------------------------
-    procedure request_float_adder
+    procedure request_add
     (
-        signal float_adder_object : out float_adder_record
+        signal adder_object : out float_adder_record;
+        left, right : float_record
     ) is
     begin
-        float_adder_object.float_adder_is_requested <= true;
-        
-    end request_float_adder;
+        adder_object.adder_counter <= 0;
+        adder_object.smaller <= left;
+        adder_object.larger <= right;
+    end request_add;
 
 ------------------------------------------------------------------------
     function float_adder_is_ready
@@ -58,8 +84,18 @@ package body float_adder_pkg is
     return boolean
     is
     begin
-        return float_adder_object.float_adder_is_done;
+        return float_adder_object.adder_is_ready;
     end float_adder_is_ready;
 
+------------------------------------------------------------------------
+    function get_result
+    (
+        adder_object : float_adder_record
+    )
+    return float_record
+    is
+    begin
+        return adder_object.result;
+    end get_result;
 ------------------------------------------------------------------------
 end package body float_adder_pkg;

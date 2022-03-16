@@ -7,43 +7,19 @@ library ieee;
 package float_arithmetic_operations_pkg is
 
 ------------------------------------------------------------------------
-    function denormalize_float (
-        right           : float_record;
-        set_exponent_to : integer)
-    return float_record;
-------------------------------------------------------------------------
     function "+" ( left, right : float_record)
         return float_record;
 ------------------------------------------------------------------------
-
+    function "/" (
+        left : float_record;
+        constant right : integer)
+    return float_record;
+------------------------------------------------------------------------
 end package float_arithmetic_operations_pkg;
 
 
 package body float_arithmetic_operations_pkg is
 
-------------------------------------------------------------------------
-    function denormalize_float
-    (
-        right           : float_record;
-        set_exponent_to : integer
-    )
-    return float_record
-    is
-        variable float : float_record := zero;
-    begin
-        if set_exponent_to - right.exponent > 0 then
-            float := ("0",
-                      exponent => to_signed(set_exponent_to, right.exponent'length),
-                      mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent) ));
-        else
-            float := ("0",
-                      exponent => to_signed(set_exponent_to, right.exponent'length),
-                      mantissa => (others => '0'));
-        end if;
-
-        return float;
-        
-    end denormalize_float;
 ------------------------------------------------------------------------
 
     function ">"
@@ -88,5 +64,18 @@ package body float_arithmetic_operations_pkg is
                 res(left.mantissa'range));
     end "+";
 ------------------------------------------------------------------------
+    function "/"
+    (
+        left : float_record;
+        constant right : integer
+    )
+    return float_record
+    is
+    begin
+        assert right - 2 = 0 report "only division by 2 allowed in floats" severity failure;
+        return (left.sign,
+                left.exponent-1,
+                left.mantissa);
+    end "/";
+------------------------------------------------------------------------
 end package body float_arithmetic_operations_pkg;
-

@@ -5,6 +5,7 @@ LIBRARY ieee  ;
 
     use work.float_multiplier_pkg.all;
     use work.float_arithmetic_operations_pkg.all;
+    use work.float_adder_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
@@ -29,43 +30,12 @@ architecture vunit_simulation of tb_float_sum is
     signal number1       : float_record :=("0", to_signed(-6,8), (22 => '1', others => '1'));
     signal result        : float_record := zero;
 
+    signal testaa_jakoa : float_record := number2/2;
+
 ------------------------------------------------------------------------
-    type float_adder_record is record
-        larger  : float_record;
-        smaller : float_record;
-        result  : float_record;
-        adder_counter : integer range 0 to 3;
-    end record;
-
-    constant init_adder : float_adder_record := (zero,zero,zero, 3);
-
-    procedure create_adder
-    (
-        signal adder_object : inout float_adder_record
-    ) is
-        alias larger        is adder_object.larger        ;
-        alias smaller       is adder_object.smaller       ;
-        alias result        is adder_object.result        ;
-        alias adder_counter is adder_object.adder_counter ;
-    begin
-
-        CASE adder_counter is
-            WHEN 0 => 
-                if larger.exponent < smaller.exponent then
-                    larger <= smaller;
-                    smaller <= larger;
-                end if;
-                adder_counter <= adder_counter + 1;
-            WHEN 1 => 
-                larger <= denormalize_float(larger, to_integer(smaller.exponent));
-                adder_counter <= adder_counter + 1;
-            WHEN 2 =>
-                result <= larger + smaller;
-            WHEN others => -- do nothing
-        end CASE;
-    end create_adder;
-
     signal adder : float_adder_record := init_adder;
+
+------------------------------------------------------------------------
 
 begin
 
@@ -101,6 +71,10 @@ begin
 
             create_adder(adder);
 
+            if simulation_counter = 0 then
+                request_add(adder, number1, number2);
+            end if;
+
             CASE simulation_counter is
                 WHEN 0 => 
                     if number2.exponent > number1.exponent then
@@ -109,6 +83,7 @@ begin
                         result <= number1 + denormalize_float(number2, to_integer(number1.exponent));
                     end if;
                 WHEN 1 => 
+                    -- result <= normalize(result);
 
                 WHEN others => -- do nothing
             end case;

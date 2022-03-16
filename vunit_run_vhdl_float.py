@@ -11,5 +11,6 @@ mathlib = VU.add_library("math_library")
 mathlib.add_source_files(ROOT / "*.vhd")
 mathlib.add_source_files(ROOT / "float_multiplier" / "*.vhd")
 mathlib.add_source_files(ROOT / "float_multiplier/float_multiplier_simulation" / "*.vhd")
+mathlib.add_source_files(ROOT / "float_adder/*.vhd")
 
 VU.main()

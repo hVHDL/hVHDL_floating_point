@@ -32,6 +32,11 @@ package float_multiplier_pkg is
     function normalize ( float_number : float_record)
         return float_record;
 ------------------------------------------------------------------------
+    function denormalize_float (
+        right           : float_record;
+        set_exponent_to : integer)
+    return float_record;
+------------------------------------------------------------------------
 
 end package float_multiplier_pkg;
 
@@ -155,4 +160,26 @@ package body float_multiplier_pkg is
                 mantissa => shift_left(float_number.mantissa, number_of_zeroes));
     end normalize;
 ------------------------------------------------------------------------
+    function denormalize_float
+    (
+        right           : float_record;
+        set_exponent_to : integer
+    )
+    return float_record
+    is
+        variable float : float_record := zero;
+    begin
+        if set_exponent_to - right.exponent > 0 then
+            float := ("0",
+                      exponent => to_signed(set_exponent_to, right.exponent'length),
+                      mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent) ));
+        else
+            float := ("0",
+                      exponent => to_signed(set_exponent_to, right.exponent'length),
+                      mantissa => (others => '0'));
+        end if;
+
+        return float;
+        
+    end denormalize_float;
 end package body float_multiplier_pkg;
