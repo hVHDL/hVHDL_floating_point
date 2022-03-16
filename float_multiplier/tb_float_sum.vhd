@@ -77,7 +77,7 @@ begin
             end if;
 
             if adder_is_ready(adder) then
-                request_add(adder, result, result);
+                request_add(adder, get_result(adder), get_result(adder));
                 result <= get_result(adder);
             end if;
 
