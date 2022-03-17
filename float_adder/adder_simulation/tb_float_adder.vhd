@@ -3,18 +3,18 @@ LIBRARY ieee  ;
     USE ieee.std_logic_1164.all  ; 
     use ieee.math_real.all;
 
-    use work.float_multiplier_pkg.all;
+    use work.register_operations_pkg.all;
     use work.float_arithmetic_operations_pkg.all;
     use work.float_adder_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
 
-entity tb_float_sum is
+entity tb_float_adder is
   generic (runner_cfg : string);
 end;
 
-architecture vunit_simulation of tb_float_sum is
+architecture vunit_simulation of tb_float_adder is
 
     signal simulation_running : boolean;
     signal simulator_clock : std_logic;
@@ -26,7 +26,7 @@ architecture vunit_simulation of tb_float_sum is
     -----------------------------------
     -- simulation specific signals ----
 
-    signal number1       : float_record :=("0", to_signed(-6,8), (22 => '1', others => '0'));
+    signal number1       : float_record := normalize(("0", to_signed(-6,8), (9 => '1', others => '0')));
     signal result        : float_record := zero;
 
 ------------------------------------------------------------------------
