@@ -17,4 +17,5 @@ mathlib.add_source_files(ROOT / "float_to_real_conversions/float_to_real_simulat
 mathlib.add_source_files(ROOT / "float_adder/*.vhd")
 mathlib.add_source_files(ROOT / "float_adder/adder_simulation/*.vhd")
 
+mathlib.add_source_files(ROOT / "float_multiplier/float_multiplier_simulation/*.vhd")
 VU.main()
