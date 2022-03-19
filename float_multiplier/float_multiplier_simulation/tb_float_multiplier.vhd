@@ -57,11 +57,23 @@ architecture vunit_simulation of tb_float_multiplier is
         return normalize(result);
         
     end function;
+------------------------------------------------------------------------
+    function "-"
+    (
+        right : float_record
+    )
+    return float_record
+    is
+    begin
+        return (sign => not right.sign,
+                exponent => right.exponent,
+                mantissa => right.mantissa);
+    end "-";
 
 ------------------------------------------------------------------------
     signal test : unsigned(22 downto 0) := mult(2**24-1, (2**23));
     signal float1 : float_record := ("0", to_signed(0,8), (22 => '1', others => '0'));
-    signal float2 : float_record := float1 * float1;
+    signal float2 : float_record := (-float1) * float1;
 
 ------------------------------------------------------------------------
 begin
