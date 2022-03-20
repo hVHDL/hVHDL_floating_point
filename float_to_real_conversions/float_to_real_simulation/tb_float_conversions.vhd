@@ -27,12 +27,13 @@ architecture vunit_simulation of tb_float_conversions is
     -- simulation specific signals ----
 
     signal test_1 : float_record := to_float(568996.25);
-    signal test_2 : float_record := to_float(3.1);
+    signal test_2 : float_record := to_float(4.0);
     signal test_3 : float_record := to_float(-3.2);
 
     signal test_1_real: real := to_real(test_1);
     signal test_2_real: real := to_real(test_2);
     signal test_3_real: real := to_real(test_3);
+
 
 ------------------------------------------------------------------------
 
