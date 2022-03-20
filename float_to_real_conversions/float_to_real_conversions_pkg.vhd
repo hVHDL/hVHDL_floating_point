@@ -20,6 +20,8 @@ package float_to_real_conversions_pkg is
     function to_real ( float_number : float_record)
         return real;
 ------------------------------------------------------------------------
+    function get_exponent ( number : real)
+        return real;
 
 end package float_to_real_conversions_pkg;
 
@@ -33,7 +35,7 @@ package body float_to_real_conversions_pkg is
     return real
     is
     begin
-        return 2**(floor(log2(abs(number)))+1.0);
+        return floor(log2(abs(number)))+1.0;
     end get_exponent;
 ------------------------------------------------------------------------
     function get_mantissa
@@ -43,7 +45,7 @@ package body float_to_real_conversions_pkg is
     return real
     is
     begin
-        return (abs(number)/get_exponent(number));
+        return (abs(number)/2**get_exponent(number));
     end get_mantissa;
 ------------------------------------------------------------------------
 
@@ -115,7 +117,6 @@ package body float_to_real_conversions_pkg is
     return float_record
     is
         variable returned_float : float_record := ("0", (others => '0'), (others => '0'));
-        constant exp_width : integer := exponent_high + 1;
 
     begin
 
@@ -136,7 +137,7 @@ package body float_to_real_conversions_pkg is
         variable result : real := 1.0;
     begin
 
-        result := (2.0**real(to_integer(float_number.exponent-2))) * real(to_integer(float_number.mantissa))/2.0**(mantissa_high+1);
+        result := (2.0**real(to_integer(float_number.exponent))) * real(to_integer(float_number.mantissa))/2.0**(mantissa_length);
         return result;
         
     end to_real;
