@@ -99,16 +99,11 @@ package body float_type_definitions_pkg is
     is
         variable float : float_record := zero;
     begin
-        if set_exponent_to < right.exponent then
+        if set_exponent_to <= right.exponent then
             float := ("0",
                       exponent => to_signed(set_exponent_to, exponent_length),
                       mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent) ));
-        else
-            float := ("0",
-                      exponent => to_signed(set_exponent_to, exponent_length),
-                      mantissa => right.mantissa);
         end if;
-
         return float;
         
     end denormalize_float;

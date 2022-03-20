@@ -47,7 +47,7 @@ package body float_adder_pkg is
         adder_is_done <= false;
         CASE adder_counter is
             WHEN 0 => 
-                if larger.exponent <= smaller.exponent then
+                if larger.exponent < smaller.exponent then
                     larger  <= smaller;
                     smaller <= larger;
                 end if;

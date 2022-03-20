@@ -76,7 +76,7 @@ begin
             create_adder(adder);
 
             if simulation_counter = 0 then
-                request_add(adder, to_float(4.0), to_float(5.0));
+                request_add(adder, to_float(1.99), to_float(6.0));
             end if;
 
             if adder_is_ready(adder) then
