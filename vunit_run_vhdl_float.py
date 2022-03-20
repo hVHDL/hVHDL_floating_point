@@ -11,6 +11,9 @@ mathlib = VU.add_library("math_library")
 mathlib.add_source_files(ROOT / "float_arithmetic_operations/*.vhd")
 mathlib.add_source_files(ROOT / "register_operations" / "*.vhd")
 
+mathlib.add_source_files(ROOT / "normalizer/*.vhd")
+mathlib.add_source_files(ROOT / "normalizer/simulate_normalizer/*.vhd")
+
 mathlib.add_source_files(ROOT / "float_to_real_conversions" / "*.vhd")
 mathlib.add_source_files(ROOT / "float_to_real_conversions/float_to_real_simulation" / "*.vhd")
 
