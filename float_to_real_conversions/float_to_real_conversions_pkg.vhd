@@ -5,7 +5,6 @@ library ieee;
 
     use work.register_operations_pkg.all;
 
-
 package float_to_real_conversions_pkg is
 ------------------------------------------------------------------------
     function to_float ( real_number : real)

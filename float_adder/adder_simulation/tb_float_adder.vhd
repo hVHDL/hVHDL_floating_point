@@ -6,6 +6,7 @@ LIBRARY ieee  ;
     use work.register_operations_pkg.all;
     use work.float_arithmetic_operations_pkg.all;
     use work.float_adder_pkg.all;
+    use work.float_to_real_conversions_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
@@ -37,6 +38,8 @@ architecture vunit_simulation of tb_float_adder is
     (resize(number1.mantissa, 24) + resize(number1.mantissa, 24));
 
     signal leading_zeroes_in_res : integer := number_of_leading_zeroes(std_logic_vector(res));
+
+    signal real_result : real := 0.0;
 
 begin
 
@@ -73,13 +76,15 @@ begin
             create_adder(adder);
 
             if simulation_counter = 0 then
-                request_add(adder, number1, number1);
+                request_add(adder, to_float(1.0), to_float(1.0));
             end if;
 
             if adder_is_ready(adder) then
-                request_add(adder, get_result(adder), get_result(adder));
+                request_add(adder, to_float(100.986), to_float(358.368));
                 result <= normalize(get_result(adder));
             end if;
+
+            real_result <= to_real(result);
 
         end if; -- rising_edge
     end process stimulus;	
