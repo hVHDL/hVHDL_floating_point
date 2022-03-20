@@ -42,7 +42,6 @@ architecture vunit_simulation of tb_float_multiplier is
     end mult;
 
 ------------------------------------------------------------------------
-
     function "*"
     (
         left, right : float_record
@@ -51,12 +50,13 @@ architecture vunit_simulation of tb_float_multiplier is
         variable result : float_record := zero;
     begin
 
-        result.sign     := left.sign xnor right.sign;
+        result.sign     := left.sign xor right.sign;
         result.exponent := left.exponent + right.exponent;
         result.mantissa := mult(to_integer(left.mantissa) , to_integer(right.mantissa));
-        return normalize(result);
+        return result;
         
     end function;
+
 ------------------------------------------------------------------------
     function "-"
     (
@@ -64,16 +64,21 @@ architecture vunit_simulation of tb_float_multiplier is
     )
     return float_record
     is
+        variable returned_float : float_record;
     begin
-        return (sign => not right.sign,
-                exponent => right.exponent,
-                mantissa => right.mantissa);
+         returned_float := (sign     => not right.sign,
+                            exponent => right.exponent,
+                            mantissa => right.mantissa);
+        return returned_float;
     end "-";
 
 ------------------------------------------------------------------------
     signal test : unsigned(22 downto 0) := mult(2**24-1, (2**23));
     signal float1 : float_record := ("0", to_signed(0,8), (22 => '1', others => '0'));
-    signal float2 : float_record := (-float1) * float1;
+    signal float2 : float_record := ("0", to_signed(0,8), (22 => '1', others => '0'));
+    signal float_resutl : float_record := normalize(-float1 * (-float2));
+
+------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
 begin
