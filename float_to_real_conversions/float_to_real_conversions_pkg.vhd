@@ -26,6 +26,28 @@ end package float_to_real_conversions_pkg;
 package body float_to_real_conversions_pkg is
 
 ------------------------------------------------------------------------
+    function get_exponent
+    (
+        number : real
+    )
+    return real
+    is
+    begin
+        return 2**(floor(log2(abs(number)))+1.0);
+    end get_exponent;
+------------------------------------------------------------------------
+    function get_mantissa
+    (
+        number : real
+    )
+    return real
+    is
+    begin
+        return (abs(number)/get_exponent(number));
+    end get_mantissa;
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
     function get_mantissa
     (
         number : real
@@ -33,7 +55,7 @@ package body float_to_real_conversions_pkg is
     return unsigned
     is
     begin
-        return to_unsigned(integer((number-floor(number))* 2.0**mantissa_length), mantissa_length);
+        return to_unsigned(integer(get_mantissa(number) * 2.0**mantissa_length), mantissa_length);
     end get_mantissa;
 ------------------------------------------------------------------------
     function get_exponent
@@ -44,12 +66,7 @@ package body float_to_real_conversions_pkg is
     is
         variable result : real := 0.0;
     begin
-        if abs(number) > 0.0 then
-            result := floor(log2((abs(number))));
-        else
-            result := 0.0;
-        end if;
-        
+        result := get_exponent(number);
         return to_signed(integer(result),exponent_length);
     end get_exponent;
 ------------------------------------------------------------------------
@@ -62,7 +79,7 @@ package body float_to_real_conversions_pkg is
         variable result : signed(0 downto 0);
     begin
 
-        if number > 0.0 then
+        if number >= 0.0 then
             result := "0";
         else
             result := "1";
@@ -119,7 +136,7 @@ package body float_to_real_conversions_pkg is
         variable result : real := 1.0;
     begin
 
-        result := (2.0**real(to_integer(float_number.exponent))) * real(to_integer(float_number.mantissa))/2.0**(mantissa_high);
+        result := (2.0**real(to_integer(float_number.exponent-2))) * real(to_integer(float_number.mantissa))/2.0**(mantissa_high+1);
         return result;
         
     end to_real;

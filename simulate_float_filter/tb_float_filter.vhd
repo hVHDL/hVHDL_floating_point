@@ -71,7 +71,6 @@ begin
             --             multiply(multiplier, get_result(adder), filter_gain);
             --             filter_counter <= filter_counter + 1;
             --         end if;
-            --
             --     WHEN 2 =>
             --         if multiplier_is_ready(multiplier) then
             --             add(adder, get_multiplier_result(multiplier), y);
