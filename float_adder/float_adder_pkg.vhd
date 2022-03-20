@@ -59,7 +59,6 @@ package body float_adder_pkg is
                 result <= larger + smaller;
                 adder_counter <= adder_counter + 1;
             WHEN 3 =>
-                result <= normalize(result);
                 adder_counter <= adder_counter + 1;
                 adder_is_done <= true;
             WHEN others => -- do nothing
