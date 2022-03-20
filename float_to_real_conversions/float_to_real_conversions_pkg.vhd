@@ -3,7 +3,7 @@ library ieee;
     use ieee.numeric_std.all;
     use ieee.math_real.all;
 
-    use work.register_operations_pkg.all;
+    use work.float_type_definitions_pkg.all;
 
 package float_to_real_conversions_pkg is
 ------------------------------------------------------------------------

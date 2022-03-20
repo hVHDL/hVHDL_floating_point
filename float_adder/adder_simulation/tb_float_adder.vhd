@@ -3,7 +3,7 @@ LIBRARY ieee  ;
     USE ieee.std_logic_1164.all  ; 
     use ieee.math_real.all;
 
-    use work.register_operations_pkg.all;
+    use work.float_type_definitions_pkg.all;
     use work.float_arithmetic_operations_pkg.all;
     use work.float_adder_pkg.all;
     use work.float_to_real_conversions_pkg.all;
@@ -21,7 +21,7 @@ architecture vunit_simulation of tb_float_adder is
     signal simulator_clock : std_logic;
     constant clock_per : time := 1 ns;
     constant clock_half_per : time := 0.5 ns;
-    constant simtime_in_clocks : integer := 350;
+    constant simtime_in_clocks : integer := 50;
 
     signal simulation_counter : natural := 0;
     -----------------------------------
@@ -76,7 +76,7 @@ begin
             create_adder(adder);
 
             if simulation_counter = 0 then
-                request_add(adder, to_float(0.00010), to_float(0.00010));
+                request_add(adder, to_float(4.0), to_float(5.0));
             end if;
 
             if adder_is_ready(adder) then

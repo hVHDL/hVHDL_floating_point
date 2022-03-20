@@ -3,7 +3,7 @@ LIBRARY ieee  ;
     USE ieee.std_logic_1164.all  ; 
     use ieee.math_real.all;
 
-    use work.register_operations_pkg.all;
+    use work.float_type_definitions_pkg.all;
     use work.float_arithmetic_operations_pkg.all;
     use work.float_to_real_conversions_pkg.all;
 

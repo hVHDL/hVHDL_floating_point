@@ -1,7 +1,7 @@
 echo off
 set source=./
 
-ghdl -a --ieee=synopsys --std=08 %source%/register_operations/register_operations_pkg.vhd
+ghdl -a --ieee=synopsys --std=08 %source%/float_type_definitions/float_type_definitions_pkg.vhd
 
 ghdl -a --ieee=synopsys --std=08 %source%/normalizer/normalizer_pkg.vhd
 

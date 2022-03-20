@@ -2,6 +2,8 @@ LIBRARY ieee  ;
     USE ieee.NUMERIC_STD.all  ; 
     USE ieee.std_logic_1164.all  ; 
     use ieee.math_real.all;
+    
+    use work.float_type_definitions_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;

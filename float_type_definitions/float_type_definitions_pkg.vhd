@@ -3,7 +3,7 @@ library ieee;
     use ieee.numeric_std.all;
     use ieee.math_real.all;
 
-package register_operations_pkg is
+package float_type_definitions_pkg is
 
     constant mantissa_high : integer := 22;
     constant exponent_high : integer := 7;
@@ -37,9 +37,9 @@ package register_operations_pkg is
         return integer ;
 ------------------------------------------------------------------------
 
-end package register_operations_pkg;
+end package float_type_definitions_pkg;
 
-package body register_operations_pkg is
+package body float_type_definitions_pkg is
 
 ------------------------------------------------------------------------
     function number_of_leading_zeroes
@@ -112,4 +112,4 @@ package body register_operations_pkg is
         return float;
         
     end denormalize_float;
-end package body register_operations_pkg;
+end package body float_type_definitions_pkg;
