@@ -2,22 +2,26 @@ library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
 
-    use work.float_type_definitions_pkg.all;
+    use work.float_type_definitions_pkg.float_record;
+    use work.float_type_definitions_pkg.normalize;
+    use work.float_type_definitions_pkg.zero;
 
 package normalizer_pkg is
 ------------------------------------------------------------------------
     type normalizer_record is record
-        normalizer_is_done : boolean;
+        normalizer_is_done      : boolean;
         normalizer_is_requested : boolean;
+        normalized_data         : float_record;
     end record;
 
-    constant init_normalizer : normalizer_record := (false, false);
+    constant init_normalizer : normalizer_record := (false, false, zero);
 ------------------------------------------------------------------------
     procedure create_normalizer (
         signal normalizer_object : inout normalizer_record);
 ------------------------------------------------------------------------
     procedure request_normalizer (
-        signal normalizer_object : out normalizer_record);
+        signal normalizer_object : out normalizer_record;
+        float_input : in float_record);
 ------------------------------------------------------------------------
     function normalizer_is_ready (normalizer_object : normalizer_record)
         return boolean;
@@ -40,15 +44,18 @@ package body normalizer_pkg is
         else
             normalizer_is_done <= false;
         end if;
+
     end procedure;
 
 ------------------------------------------------------------------------
     procedure request_normalizer
     (
-        signal normalizer_object : out normalizer_record
+        signal normalizer_object : out normalizer_record;
+        float_input              : in float_record
     ) is
     begin
         normalizer_object.normalizer_is_requested <= true;
+        normalizer_object.normalized_data <= normalize(float_input);
         
     end request_normalizer;
 

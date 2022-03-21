@@ -5,6 +5,7 @@ LIBRARY ieee  ;
     
     use work.float_type_definitions_pkg.all;
     use work.float_to_real_conversions_pkg.all;
+    use work.normalizer_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
@@ -27,6 +28,11 @@ architecture vunit_simulation of tb_normalizer is
 
     signal smaller : float_record := to_float(0.5);
     signal larger : float_record := to_float(6.0);
+
+    signal normalizer : normalizer_record := init_normalizer;
+
+    signal test_float_normalization : float_record := 
+        ("0", to_signed(0, 8), (21 => '1', others => '0'));
 
 begin
 
@@ -60,10 +66,17 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
+            create_normalizer(normalizer);
+
+            CASE simulation_counter is 
+                WHEN 0 => 
+                    request_normalizer(normalizer, test_float_normalization);
+                WHEN others => -- do nothing
+            end CASE;
+
             smaller <= ("0",
                        exponent => to_signed(3, exponent_length),
                        mantissa => shift_right(smaller.mantissa,3 - to_integer(smaller.exponent)));
-
 
         end if; -- rising_edge
     end process stimulus;	
