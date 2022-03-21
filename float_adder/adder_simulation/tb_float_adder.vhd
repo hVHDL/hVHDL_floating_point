@@ -34,19 +34,14 @@ architecture vunit_simulation of tb_float_adder is
     signal adder : float_adder_record := init_adder;
 
 ------------------------------------------------------------------------
-    signal res : unsigned(number1.mantissa'high+1 downto 0) :=
-    (resize(number1.mantissa, 24) + resize(number1.mantissa, 24));
 
-    signal leading_zeroes_in_res : integer := number_of_leading_zeroes(std_logic_vector(res));
+    signal real_result     : real := 0.0;
+    signal random_value    : real := 0.0;
+    signal random_value1   : real := 1.0;
+    signal test_random_sum : real := 0.0;
+    signal difference      : real := 0.0;
 
-    signal real_result : real := 0.0;
-
-    signal random_value : real := 1.0;
-    signal random_value1 : real := 1.0;
-    signal test_random_sum : real := 1.0;
-    signal difference : real := 0.0;
-
-    signal max_value : real := -10.0;
+    signal max_value : real := 0.0;
 
 begin
 
@@ -85,7 +80,7 @@ begin
             simulation_counter <= simulation_counter + 1;
 
             uniform(seed1, seed2, rand_out);
-            random_value <= rand_out*10.0e6;
+            random_value <= rand_out*10.0e-20;
             random_value1 <= random_value;
 
             create_adder(adder);

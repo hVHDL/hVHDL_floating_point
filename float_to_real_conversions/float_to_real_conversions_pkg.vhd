@@ -34,7 +34,11 @@ package body float_to_real_conversions_pkg is
     return real
     is
     begin
-        return floor(log2(abs(number)))+1.0;
+        if number = 0.0 then
+            return 0.0;
+        else
+            return floor(log2(abs(number)))+1.0;
+        end if;
     end get_exponent;
 ------------------------------------------------------------------------
     function get_mantissa
