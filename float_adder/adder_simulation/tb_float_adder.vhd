@@ -21,7 +21,7 @@ architecture vunit_simulation of tb_float_adder is
     signal simulator_clock : std_logic;
     constant clock_per : time := 1 ns;
     constant clock_half_per : time := 0.5 ns;
-    constant simtime_in_clocks : integer := 50;
+    constant simtime_in_clocks : integer := 5000;
 
     signal simulation_counter : natural := 0;
     -----------------------------------
@@ -40,6 +40,13 @@ architecture vunit_simulation of tb_float_adder is
     signal leading_zeroes_in_res : integer := number_of_leading_zeroes(std_logic_vector(res));
 
     signal real_result : real := 0.0;
+
+    signal random_value : real := 1.0;
+    signal random_value1 : real := 1.0;
+    signal test_random_sum : real := 1.0;
+    signal difference : real := 0.0;
+
+    signal max_value : real := -10.0;
 
 begin
 
@@ -69,20 +76,33 @@ begin
 
     stimulus : process(simulator_clock)
 
+        variable seed1 : integer := 1359;
+        variable seed2 : integer := 1;
+        variable rand_out : real := 0.0;
+
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
+            uniform(seed1, seed2, rand_out);
+            random_value <= rand_out*10.0e6;
+            random_value1 <= random_value;
+
             create_adder(adder);
 
-            if simulation_counter = 0 then
-                request_add(adder, to_float(6.4), to_float(0.99));
+            if simulation_counter = 0 or adder_is_ready(adder) then
+                request_add(adder, to_float(random_value1), to_float(random_value));
+                test_random_sum <= random_value1 + random_value;
             end if;
 
             if adder_is_ready(adder) then
-                request_add(adder, normalize(get_result(adder)), normalize(get_result(adder)));
                 result      <= normalize(get_result(adder));
                 real_result <= to_real(normalize(get_result(adder)));
+
+                difference <= (test_random_sum - to_real(normalize(get_result(adder))))/test_random_sum;
+                if (test_random_sum - to_real(normalize(get_result(adder))))/test_random_sum > max_value then
+                    max_value <= (test_random_sum - to_real(normalize(get_result(adder))))/test_random_sum;
+                end if;
             end if;
 
         end if; -- rising_edge
