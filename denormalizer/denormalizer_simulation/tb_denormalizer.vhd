@@ -4,18 +4,17 @@ LIBRARY ieee  ;
     use ieee.math_real.all;
 
     use work.float_type_definitions_pkg.all;
-    use work.float_arithmetic_operations_pkg.all;
-    use work.float_adder_pkg.all;
+    use work.denormalizer_pkg.all;
     use work.float_to_real_conversions_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
 
-entity tb_float_adder is
+entity tb_denormalizer is
   generic (runner_cfg : string);
 end;
 
-architecture vunit_simulation of tb_float_adder is
+architecture vunit_simulation of tb_denormalizer is
 
     signal simulation_running : boolean;
     signal simulator_clock : std_logic;
@@ -27,19 +26,8 @@ architecture vunit_simulation of tb_float_adder is
     -----------------------------------
     -- simulation specific signals ----
 
-    signal number1       : float_record := normalize(("0", to_signed(-6,8), (9 => '1', others => '0')));
-    signal result        : float_record := zero;
-
-------------------------------------------------------------------------
-    signal adder : float_adder_record := init_adder;
-
-------------------------------------------------------------------------
-    signal res : unsigned(number1.mantissa'high+1 downto 0) :=
-    (resize(number1.mantissa, 24) + resize(number1.mantissa, 24));
-
-    signal leading_zeroes_in_res : integer := number_of_leading_zeroes(std_logic_vector(res));
-
-    signal real_result : real := 0.0;
+    signal test_float : float_record := to_float(1.65);
+    signal test_denormalizer : float_record := denormalize_float(test_float,3);
 
 begin
 
@@ -72,18 +60,6 @@ begin
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
-
-            create_adder(adder);
-
-            if simulation_counter = 0 then
-                request_add(adder, to_float(6.4), to_float(0.99));
-            end if;
-
-            if adder_is_ready(adder) then
-                request_add(adder, normalize(get_result(adder)), normalize(get_result(adder)));
-                result      <= normalize(get_result(adder));
-                real_result <= to_real(normalize(get_result(adder)));
-            end if;
 
         end if; -- rising_edge
     end process stimulus;	

@@ -34,6 +34,8 @@ architecture vunit_simulation of tb_normalizer is
     signal test_float_normalization : float_record := 
         ("0", to_signed(0, 8), (21 => '1', others => '0'));
 
+    signal normalizer_result : float_record := zero;
+
 begin
 
 ------------------------------------------------------------------------
@@ -74,9 +76,11 @@ begin
                 WHEN others => -- do nothing
             end CASE;
 
-            smaller <= ("0",
-                       exponent => to_signed(3, exponent_length),
-                       mantissa => shift_right(smaller.mantissa,3 - to_integer(smaller.exponent)));
+            if normalizer_is_ready(normalizer) then
+                normalizer_result <= get_normalizer_result(normalizer);
+            end if;
+
+            smaller <= normalize(smaller);
 
         end if; -- rising_edge
     end process stimulus;	

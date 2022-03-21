@@ -102,7 +102,7 @@ package body float_type_definitions_pkg is
         if set_exponent_to <= right.exponent then
             float := ("0",
                       exponent => to_signed(set_exponent_to, exponent_length),
-                      mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent) ));
+                      mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent)));
         end if;
         return float;
         

@@ -26,6 +26,9 @@ package normalizer_pkg is
     function normalizer_is_ready (normalizer_object : normalizer_record)
         return boolean;
 ------------------------------------------------------------------------
+    function get_normalizer_result ( normalizer_object : normalizer_record)
+        return float_record;
+------------------------------------------------------------------------
 end package normalizer_pkg;
 
 package body normalizer_pkg is
@@ -51,7 +54,7 @@ package body normalizer_pkg is
     ) is
     begin
         normalizer_object.normalizer_is_requested(normalizer_object.normalizer_is_requested'low) <= '1';
-        normalizer_object.normalized_data(normalizer_object.normalized_data'low) <= normalize(float_input);
+        normalizer_object.normalized_data(normalizer_object.normalized_data'low) <= float_input;
         
     end request_normalizer;
 
@@ -66,5 +69,15 @@ package body normalizer_pkg is
         return normalizer_object.normalizer_is_requested(normalizer_object.normalizer_is_requested'high) = '1';
     end normalizer_is_ready;
 
+------------------------------------------------------------------------
+    function get_normalizer_result
+    (
+        normalizer_object : normalizer_record
+    )
+    return float_record
+    is
+    begin
+        return normalizer_object.normalized_data(normalizer_object.normalized_data'high);
+    end get_normalizer_result;
 ------------------------------------------------------------------------
 end package body normalizer_pkg;
