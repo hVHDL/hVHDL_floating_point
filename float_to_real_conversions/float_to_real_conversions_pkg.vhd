@@ -51,6 +51,22 @@ package body float_to_real_conversions_pkg is
         return (abs(number)/2**get_exponent(number));
     end get_mantissa;
 ------------------------------------------------------------------------
+    function get_sign
+    (
+        number : float_record
+    )
+    return real
+    is
+        variable returned_real : real;
+    begin
+        if number.sign = "1" then
+            returned_real := -1.0;
+        else
+            returned_real := 1.0;
+        end if;
+
+        return returned_real;
+    end get_sign;
 
 ------------------------------------------------------------------------
     function get_mantissa
@@ -140,7 +156,7 @@ package body float_to_real_conversions_pkg is
         variable result : real := 1.0;
     begin
 
-        result := (2.0**real(to_integer(float_number.exponent))) * real(to_integer(float_number.mantissa))/2.0**(mantissa_length);
+        result := get_sign(float_number) * (2.0**real(to_integer(float_number.exponent))) * real(to_integer(float_number.mantissa))/2.0**(mantissa_length);
         return result;
         
     end to_real;

@@ -32,8 +32,11 @@ architecture vunit_simulation of tb_subtract is
 
     signal signed_mantissa : signed(mantissa_length+1 downto 0) := get_signed_mantissa(test2);
 
-    signal testjee : signed(5 downto 0) := to_signed(-2, 6);
-    signal logiikka : std_logic := testjee(5) xor testjee(5);
+    signal testjee : signed(t_mantissa'length+1 downto 0) := get_signed_mantissa(to_float(-2.5));
+
+    signal test3 : float_record := to_float(2.5) + to_float(-3.0);
+    signal test3_real : real := to_real(test3);
+
 
 begin
 
