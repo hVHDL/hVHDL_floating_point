@@ -4,15 +4,18 @@ LIBRARY ieee  ;
     use ieee.math_real.all;
 
     use work.float_type_definitions_pkg.all;
+    use work.float_arithmetic_operations_pkg.all;
+    use work.float_adder_pkg.all;
+    use work.float_to_real_conversions_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
 
-entity tb_float_multiplier is
+entity tb_subtract is
   generic (runner_cfg : string);
 end;
 
-architecture vunit_simulation of tb_float_multiplier is
+architecture vunit_simulation of tb_subtract is
 
     signal simulation_running : boolean;
     signal simulator_clock : std_logic;
@@ -24,48 +27,14 @@ architecture vunit_simulation of tb_float_multiplier is
     -----------------------------------
     -- simulation specific signals ----
 
-    constant bit_width : integer := 23;
+    signal test1 : float_record := to_float(0.0);
+    signal test2 : float_record := to_float(2.0);
 
-------------------------------------------------------------------------
-    function mult
-    (
-        left,right : natural
-    )
-    return unsigned 
-    is
-        variable result : unsigned(bit_width*2+1 downto 0) := (others => '0');
+    signal signed_mantissa : signed(mantissa_length+1 downto 0) := get_signed_mantissa(test2);
 
-    begin
-        result := to_unsigned(left, bit_width+1) * to_unsigned(right,bit_width+1);
-        
-        return result(45 downto 23);
-    end mult;
+    signal testjee : signed(5 downto 0) := to_signed(-2, 6);
+    signal logiikka : std_logic := testjee(5) xor testjee(5);
 
-------------------------------------------------------------------------
-    function "*"
-    (
-        left, right : float_record
-    ) return float_record
-    is
-        variable result : float_record := zero;
-    begin
-
-        result.sign     := left.sign xor right.sign;
-        result.exponent := left.exponent + right.exponent;
-        result.mantissa := mult(to_integer(left.mantissa) , to_integer(right.mantissa));
-        return result;
-        
-    end function;
-
-------------------------------------------------------------------------
-    signal test : unsigned(22 downto 0) := mult(2**24-1, (2**23));
-    signal float1 : float_record := ("0", to_signed(0,8), (22 => '1', others => '0'));
-    signal float2 : float_record := ("0", to_signed(0,8), (22 => '1', others => '0'));
-    signal float_resutl : float_record := normalize(-float1 * (-float2));
-
-------------------------------------------------------------------------
-
-------------------------------------------------------------------------
 begin
 
 ------------------------------------------------------------------------

@@ -36,7 +36,10 @@ package float_type_definitions_pkg is
     function number_of_leading_zeroes ( data : std_logic_vector )
         return integer ;
 ------------------------------------------------------------------------
+    function "-" ( right : float_record)
+        return float_record;
 
+------------------------------------------------------------------------
 end package float_type_definitions_pkg;
 
 package body float_type_definitions_pkg is
@@ -106,4 +109,19 @@ package body float_type_definitions_pkg is
         return float;
         
     end denormalize_float;
+------------------------------------------------------------------------
+    function "-"
+    (
+        right : float_record
+    )
+    return float_record
+    is
+        variable returned_float : float_record;
+    begin
+         returned_float := (sign     => not right.sign,
+                            exponent => right.exponent,
+                            mantissa => right.mantissa);
+        return returned_float;
+    end "-";
+------------------------------------------------------------------------
 end package body float_type_definitions_pkg;
