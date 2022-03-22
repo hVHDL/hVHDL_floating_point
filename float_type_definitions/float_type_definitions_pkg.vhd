@@ -102,7 +102,7 @@ package body float_type_definitions_pkg is
     is
         variable float : float_record := zero;
     begin
-        float := ("0",
+        float := (right.sign,
                   exponent => to_signed(set_exponent_to, exponent_length),
                   mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent)));
 

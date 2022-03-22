@@ -34,7 +34,7 @@ architecture vunit_simulation of tb_subtract is
 
     signal testjee : signed(t_mantissa'length+1 downto 0) := get_signed_mantissa(to_float(-2.5));
 
-    signal test3 : float_record := to_float(2.5) + to_float(-3.0);
+    signal test3 : float_record := to_float(0.0001) + to_float(3.0);
     signal test3_real : real := to_real(test3);
 
 

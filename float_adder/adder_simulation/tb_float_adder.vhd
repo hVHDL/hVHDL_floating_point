@@ -21,7 +21,7 @@ architecture vunit_simulation of tb_float_adder is
     signal simulator_clock : std_logic;
     constant clock_per : time := 1 ns;
     constant clock_half_per : time := 0.5 ns;
-    constant simtime_in_clocks : integer := 5000;
+    constant simtime_in_clocks : integer := 500000;
 
     signal simulation_counter : natural := 0;
     -----------------------------------
@@ -40,6 +40,9 @@ architecture vunit_simulation of tb_float_adder is
     signal random_value1   : real := 1.0;
     signal test_random_sum : real := 0.0;
     signal difference      : real := 0.0;
+
+    signal input1   : real := 0.0;
+    signal input2   : real := 0.0;
 
     signal max_value : real := 0.0;
 
@@ -80,7 +83,7 @@ begin
             simulation_counter <= simulation_counter + 1;
 
             uniform(seed1, seed2, rand_out);
-            random_value <= rand_out*10.0e-20;
+            random_value <= (rand_out-0.5)*2.0e5;
             random_value1 <= random_value;
 
             create_adder(adder);
@@ -88,6 +91,9 @@ begin
             if simulation_counter = 0 or adder_is_ready(adder) then
                 request_add(adder, to_float(random_value1), to_float(random_value));
                 test_random_sum <= random_value1 + random_value;
+                input1 <= (random_value1);
+                input2 <= (random_value);
+
             end if;
 
             if adder_is_ready(adder) then
