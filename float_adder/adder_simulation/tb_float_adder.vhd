@@ -9,7 +9,7 @@ LIBRARY ieee  ;
     use work.float_to_real_conversions_pkg.all;
 
 library vunit_lib;
-    use vunit_lib.run_pkg.all;
+    context vunit_lib.vunit_context;
 
 entity tb_float_adder is
   generic (runner_cfg : string);
@@ -54,6 +54,7 @@ begin
         test_runner_setup(runner, runner_cfg);
         simulation_running <= true;
         wait for simtime_in_clocks*clock_per;
+        check(abs(max_value) < 1.0e-2, "error larger than 0.001");
         simulation_running <= false;
         test_runner_cleanup(runner); -- Simulation ends here
         wait;
@@ -77,6 +78,8 @@ begin
         variable seed1 : integer := 1359;
         variable seed2 : integer := 1;
         variable rand_out : real := 0.0;
+
+        constant my_checker : checker_t := new_checker("my_checker");
 
     begin
         if rising_edge(simulator_clock) then
@@ -105,6 +108,7 @@ begin
                     max_value <= (test_random_sum - to_real(normalize(get_result(adder))))/test_random_sum;
                 end if;
             end if;
+
 
         end if; -- rising_edge
     end process stimulus;	

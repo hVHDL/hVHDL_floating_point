@@ -37,6 +37,8 @@ architecture vunit_simulation of tb_subtract is
     signal test3 : float_record := to_float(0.0001) + to_float(3.0);
     signal test3_real : real := to_real(test3);
 
+    signal test5_real : real := 0.13835682354689 - 0.13835682354688;
+
 
 begin
 
