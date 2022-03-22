@@ -92,8 +92,8 @@ begin
             create_adder(adder);
 
             if simulation_counter = 0 or adder_is_ready(adder) then
-                request_add(adder, to_float(random_value1), to_float(random_value));
-                test_random_sum <= random_value1 + random_value;
+                request_subtraction(adder, to_float(random_value1), to_float(random_value));
+                test_random_sum <= random_value1 - random_value;
                 input1 <= (random_value1);
                 input2 <= (random_value);
 

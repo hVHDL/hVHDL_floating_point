@@ -30,6 +30,10 @@ package float_adder_pkg is
     function get_result ( adder_object : float_adder_record)
         return float_record;
 ------------------------------------------------------------------------
+    procedure request_subtraction (
+        signal adder_object : out float_adder_record;
+        left, right : float_record);
+------------------------------------------------------------------------
 end package float_adder_pkg;
 
 package body float_adder_pkg is
@@ -76,6 +80,17 @@ package body float_adder_pkg is
         adder_object.larger <= right;
     end request_add;
 
+------------------------------------------------------------------------
+    procedure request_subtraction
+    (
+        signal adder_object : out float_adder_record;
+        left, right : float_record
+    ) is
+    begin
+        adder_object.adder_counter <= 0;
+        adder_object.smaller <= left;
+        adder_object.larger <= -right;
+    end request_subtraction;
 ------------------------------------------------------------------------
     function adder_is_ready
     (

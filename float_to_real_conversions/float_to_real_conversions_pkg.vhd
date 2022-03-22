@@ -21,7 +21,7 @@ package float_to_real_conversions_pkg is
 ------------------------------------------------------------------------
     function get_exponent ( number : real)
         return real;
-
+------------------------------------------------------------------------
 end package float_to_real_conversions_pkg;
 
 package body float_to_real_conversions_pkg is
@@ -160,5 +160,23 @@ package body float_to_real_conversions_pkg is
         return result;
         
     end to_real;
+------------------------------------------------------------------------
+    function to_integer
+    (
+        float_number : float_record
+    )
+    return integer
+    is
+        variable result : integer;
+    begin
+
+        if float_number.sign = "1" then
+            result := -to_integer(float_number.mantissa);
+        else
+            result := to_integer(float_number.mantissa);
+        end if;
+
+        return result;
+    end to_integer;
 ------------------------------------------------------------------------
 end package body float_to_real_conversions_pkg;
