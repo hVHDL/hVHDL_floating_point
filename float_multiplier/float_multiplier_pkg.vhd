@@ -23,10 +23,47 @@ package float_multiplier_pkg is
     function float_multiplier_is_ready (float_multiplier_object : float_multiplier_record)
         return boolean;
 ------------------------------------------------------------------------
+    function mult ( left,right : natural)
+        return unsigned;
+------------------------------------------------------------------------
+    function "*" ( left, right : float_record)
+        return float_record;
+------------------------------------------------------------------------
 end package float_multiplier_pkg;
 
 package body float_multiplier_pkg is
 ------------------------------------------------------------------------
+    function mult
+    (
+        left,right : natural
+    )
+    return unsigned 
+    is
+        variable result : unsigned(mantissa_length*2+1 downto 0) := (others => '0');
+
+    begin
+        result := to_unsigned(left, mantissa_length+1) * to_unsigned(right,mantissa_length+1);
+        
+        return result(mantissa_high*2+1 downto mantissa_high+1);
+    end mult;
+
+------------------------------------------------------------------------
+    function "*"
+    (
+        left, right : float_record
+    ) return float_record
+    is
+        variable result : float_record := zero;
+    begin
+
+        result.sign     := left.sign xor right.sign;
+        result.exponent := left.exponent + right.exponent;
+        result.mantissa := mult(to_integer(left.mantissa) , to_integer(right.mantissa));
+        return result;
+        
+    end function;
+------------------------------------------------------------------------
+
     procedure create_float_multiplier 
     (
         signal float_multiplier_object : inout float_multiplier_record

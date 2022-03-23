@@ -4,10 +4,11 @@ LIBRARY ieee  ;
     use ieee.math_real.all;
 
     use work.float_type_definitions_pkg.all;
+    use work.float_multiplier_pkg.all;
     use work.float_to_real_conversions_pkg.all;
 
 library vunit_lib;
-    use vunit_lib.run_pkg.all;
+    context vunit_lib.vunit_context;
 
 entity tb_float_multiplier is
   generic (runner_cfg : string);
@@ -26,44 +27,15 @@ architecture vunit_simulation of tb_float_multiplier is
     -- simulation specific signals ----
 
 ------------------------------------------------------------------------
-    function mult
-    (
-        left,right : natural
-    )
-    return unsigned 
-    is
-        variable result : unsigned(mantissa_length*2+1 downto 0) := (others => '0');
-
-    begin
-        result := to_unsigned(left, mantissa_length+1) * to_unsigned(right,mantissa_length+1);
-        
-        return result(mantissa_high*2+1 downto mantissa_high+1);
-    end mult;
-
-------------------------------------------------------------------------
-    function "*"
-    (
-        left, right : float_record
-    ) return float_record
-    is
-        variable result : float_record := zero;
-    begin
-
-        result.sign     := left.sign xor right.sign;
-        result.exponent := left.exponent + right.exponent;
-        result.mantissa := mult(to_integer(left.mantissa) , to_integer(right.mantissa));
-        return result;
-        
-    end function;
-
-------------------------------------------------------------------------
-    signal test : unsigned(22 downto 0) := mult(2**24-1, (2**23));
-    signal float1 : float_record := to_float(3.0);
-    signal float2 : float_record := to_float(2.5/1000.0);
+    constant left_multiplier : real := 3.0;
+    constant right_multiplier : real := 2.5/1000.0;
+    signal float1 : float_record := to_float(left_multiplier);
+    signal float2 : float_record := to_float(right_multiplier);
     signal float_resutl : float_record := normalize(float1 * (float2));
 
-    signal real_result : real := to_real(float_resutl);
-    signal float_reference : real := 3.0*2.5;
+    signal real_result      : real := to_real(float_resutl);
+    signal float_reference  : real := left_multiplier*right_multiplier;
+    signal multiplier_error : real := 1.0-abs(real_result/float_reference);
 ------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
@@ -76,6 +48,7 @@ begin
         simulation_running <= true;
         wait for simtime_in_clocks*clock_per;
         simulation_running <= false;
+        check(1.0-abs(real_result/float_reference) < 1.0e-3, "float multiplier error higher than 1.0e-3");
         test_runner_cleanup(runner); -- Simulation ends here
         wait;
     end process simtime;	

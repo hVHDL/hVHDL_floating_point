@@ -102,6 +102,7 @@ begin
                 real_result <= to_real(normalize(get_result(adder)));
 
                 difference <= (test_random_sum - to_real(normalize(get_result(adder))))/test_random_sum;
+
                 if (test_random_sum - to_real(normalize(get_result(adder))))/test_random_sum > max_value then
                     max_value <= (test_random_sum - to_real(normalize(get_result(adder))))/test_random_sum;
                 end if;
