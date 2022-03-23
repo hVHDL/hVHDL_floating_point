@@ -8,20 +8,29 @@ library ieee;
 package float_multiplier_pkg is
 ------------------------------------------------------------------------
     type float_multiplier_record is record
-        float_multiplier_is_done : boolean;
-        float_multiplier_is_requested : boolean;
+        shift_register : std_logic_vector(2 downto 0);
+
+        mantissa_multiplicaion_result : unsigned(mantissa_length*2-1 downto 0);
+
+        left   : float_record;
+        right  : float_record;
+        result : float_record;
     end record;
 
-    constant init_float_multiplier : float_multiplier_record := (false, false);
+    constant init_float_multiplier : float_multiplier_record := ((others => '0'), (others => '0'), zero, zero, zero);
 ------------------------------------------------------------------------
     procedure create_float_multiplier (
         signal float_multiplier_object : inout float_multiplier_record);
 ------------------------------------------------------------------------
     procedure request_float_multiplier (
-        signal float_multiplier_object : out float_multiplier_record);
+        signal float_multiplier_object : out float_multiplier_record;
+        left, right : float_record);
 ------------------------------------------------------------------------
     function float_multiplier_is_ready (float_multiplier_object : float_multiplier_record)
         return boolean;
+------------------------------------------------------------------------
+    function get_multiplier_result ( float_multiplier_object : float_multiplier_record)
+        return float_record;
 ------------------------------------------------------------------------
     function mult ( left,right : natural)
         return unsigned;
@@ -69,24 +78,35 @@ package body float_multiplier_pkg is
         signal float_multiplier_object : inout float_multiplier_record
     ) 
     is
-        alias float_multiplier_is_requested is float_multiplier_object.float_multiplier_is_requested;
-        alias float_multiplier_is_done is float_multiplier_object.float_multiplier_is_done;
+
+        alias shift_register                is float_multiplier_object.shift_register;
+        alias mantissa_multiplicaion_result is float_multiplier_object.mantissa_multiplicaion_result;
+        alias left                          is float_multiplier_object.left;
+        alias right                         is float_multiplier_object.right;
+        alias result                        is float_multiplier_object.result ;
     begin
-        float_multiplier_is_requested <= false;
-        if float_multiplier_is_requested then
-            float_multiplier_is_done <= true;
-        else
-            float_multiplier_is_done <= false;
-        end if;
+
+        shift_register <= shift_register(shift_register'left-1 downto 0) & '0';
+
+        result.sign     <= left.sign xor right.sign;
+        result.exponent <= left.exponent + right.exponent;
+        
+        mantissa_multiplicaion_result <= left.mantissa * right.mantissa;
+        result.mantissa <= mantissa_multiplicaion_result(mantissa_high*2+1 downto mantissa_high+1);
+
+
     end procedure;
 
 ------------------------------------------------------------------------
     procedure request_float_multiplier
     (
-        signal float_multiplier_object : out float_multiplier_record
+        signal float_multiplier_object : out float_multiplier_record;
+        left, right : float_record
     ) is
     begin
-        float_multiplier_object.float_multiplier_is_requested <= true;
+        float_multiplier_object.shift_register(0) <= '1';
+        float_multiplier_object.left <= left;
+        float_multiplier_object.right <= right;
         
     end request_float_multiplier;
 
@@ -98,8 +118,18 @@ package body float_multiplier_pkg is
     return boolean
     is
     begin
-        return float_multiplier_object.float_multiplier_is_done;
+        return float_multiplier_object.shift_register(float_multiplier_object.shift_register'left) = '1';
     end float_multiplier_is_ready;
 
+------------------------------------------------------------------------
+    function get_multiplier_result
+    (
+        float_multiplier_object : float_multiplier_record
+    )
+    return float_record
+    is
+    begin
+        return float_multiplier_object.result;
+    end get_multiplier_result;
 ------------------------------------------------------------------------
 end package body float_multiplier_pkg;

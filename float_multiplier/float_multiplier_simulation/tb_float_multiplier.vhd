@@ -37,6 +37,9 @@ architecture vunit_simulation of tb_float_multiplier is
     signal float_reference  : real := left_multiplier*right_multiplier;
     signal multiplier_error : real := 1.0-abs(real_result/float_reference);
 ------------------------------------------------------------------------
+    signal float_multiplier : float_multiplier_record := init_float_multiplier;
+    signal multiplier_result : real := 0.0;
+    signal multiplier_reference_result : real := 0.0;
 
 ------------------------------------------------------------------------
 begin
@@ -71,6 +74,16 @@ begin
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
+
+            create_float_multiplier(float_multiplier);
+
+            if simulation_counter = 0 then
+                request_float_multiplier(float_multiplier, to_float(1.5), to_float(3.5));
+            end if;
+            if float_multiplier_is_ready(float_multiplier) then
+                multiplier_result <= to_real(get_multiplier_result(float_multiplier));
+                multiplier_reference_result <= 1.5 * 3.5;
+            end if;
 
 
         end if; -- rising_edge
