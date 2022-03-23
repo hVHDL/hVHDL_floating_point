@@ -39,7 +39,6 @@ architecture vunit_simulation of tb_subtract is
 
     signal test5_real : real := 0.13835682354689 - 0.13835682354688;
 
-
 begin
 
 ------------------------------------------------------------------------

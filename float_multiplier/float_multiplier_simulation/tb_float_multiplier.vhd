@@ -4,6 +4,7 @@ LIBRARY ieee  ;
     use ieee.math_real.all;
 
     use work.float_type_definitions_pkg.all;
+    use work.float_to_real_conversions_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
@@ -24,8 +25,6 @@ architecture vunit_simulation of tb_float_multiplier is
     -----------------------------------
     -- simulation specific signals ----
 
-    constant bit_width : integer := 23;
-
 ------------------------------------------------------------------------
     function mult
     (
@@ -33,12 +32,12 @@ architecture vunit_simulation of tb_float_multiplier is
     )
     return unsigned 
     is
-        variable result : unsigned(bit_width*2+1 downto 0) := (others => '0');
+        variable result : unsigned(mantissa_length*2+1 downto 0) := (others => '0');
 
     begin
-        result := to_unsigned(left, bit_width+1) * to_unsigned(right,bit_width+1);
+        result := to_unsigned(left, mantissa_length+1) * to_unsigned(right,mantissa_length+1);
         
-        return result(45 downto 23);
+        return result(mantissa_high*2+1 downto mantissa_high+1);
     end mult;
 
 ------------------------------------------------------------------------
@@ -59,10 +58,12 @@ architecture vunit_simulation of tb_float_multiplier is
 
 ------------------------------------------------------------------------
     signal test : unsigned(22 downto 0) := mult(2**24-1, (2**23));
-    signal float1 : float_record := ("0", to_signed(0,8), (22 => '1', others => '0'));
-    signal float2 : float_record := ("0", to_signed(0,8), (22 => '1', others => '0'));
-    signal float_resutl : float_record := normalize(-float1 * (-float2));
+    signal float1 : float_record := to_float(3.0);
+    signal float2 : float_record := to_float(2.5/1000.0);
+    signal float_resutl : float_record := normalize(float1 * (float2));
 
+    signal real_result : real := to_real(float_resutl);
+    signal float_reference : real := 3.0*2.5;
 ------------------------------------------------------------------------
 
 ------------------------------------------------------------------------

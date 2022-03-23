@@ -79,14 +79,12 @@ begin
         variable seed2 : integer := 1;
         variable rand_out : real := 0.0;
 
-        constant my_checker : checker_t := new_checker("my_checker");
-
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
             uniform(seed1, seed2, rand_out);
-            random_value <= (rand_out-0.5)*2.0e5;
+            random_value  <= (rand_out-0.5)*2.0e25;
             random_value1 <= random_value;
 
             create_adder(adder);
