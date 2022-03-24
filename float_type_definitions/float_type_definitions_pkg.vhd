@@ -15,14 +15,14 @@ package float_type_definitions_pkg is
     subtype t_exponent is signed(exponent_high downto 0);
 
     type float_record is record
-        sign : signed(0 downto 0);
+        sign : std_logic;
         exponent : t_exponent;
         mantissa : t_mantissa;
     end record;
 
     type float_array is array (integer range <>) of float_record;
 
-    constant zero : float_record := ((others => '0'), (others => '0'), (others => '0'));
+    constant zero : float_record := ('0', (others => '0'), (others => '0'));
 
 ------------------------------------------------------------------------
     function normalize ( float_number : float_record)

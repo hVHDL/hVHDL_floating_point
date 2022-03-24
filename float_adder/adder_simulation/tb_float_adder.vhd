@@ -27,7 +27,7 @@ architecture vunit_simulation of tb_float_adder is
     -----------------------------------
     -- simulation specific signals ----
 
-    signal number1       : float_record := normalize(("0", to_signed(-6,8), (9 => '1', others => '0')));
+    signal number1       : float_record := normalize(('0', to_signed(-6,8), (9 => '1', others => '0')));
     signal result        : float_record := zero;
 
 ------------------------------------------------------------------------

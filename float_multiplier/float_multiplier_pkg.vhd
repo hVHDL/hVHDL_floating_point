@@ -7,17 +7,21 @@ library ieee;
 
 package float_multiplier_pkg is
 ------------------------------------------------------------------------
+    type exponent_array is array (integer range <>) of t_exponent;
+------------------------------------------------------------------------
     type float_multiplier_record is record
-        shift_register : std_logic_vector(2 downto 0);
-
-        mantissa_multiplicaion_result : unsigned(mantissa_length*2-1 downto 0);
 
         left   : float_record;
         right  : float_record;
-        result : float_record;
+
+        shift_register    : std_logic_vector(1 downto 0);
+        sign_pipeline     : signed(1 downto 0);
+        exponent_pipeline : exponent_array(1 downto 0);
+
+        mantissa_multiplicaion_result : unsigned(mantissa_length*2-1 downto 0);
     end record;
 
-    constant init_float_multiplier : float_multiplier_record := ((others => '0'), (others => '0'), zero, zero, zero);
+    constant init_float_multiplier : float_multiplier_record := (zero, zero, (others => '0'), (("0"),("0")), ((others => '0'), (others => '0')), (others => '0'));
 ------------------------------------------------------------------------
     procedure create_float_multiplier (
         signal float_multiplier_object : inout float_multiplier_record);
@@ -83,16 +87,15 @@ package body float_multiplier_pkg is
         alias mantissa_multiplicaion_result is float_multiplier_object.mantissa_multiplicaion_result;
         alias left                          is float_multiplier_object.left;
         alias right                         is float_multiplier_object.right;
-        alias result                        is float_multiplier_object.result ;
     begin
 
         shift_register <= shift_register(shift_register'left-1 downto 0) & '0';
 
-        result.sign     <= left.sign xor right.sign;
-        result.exponent <= left.exponent + right.exponent;
-        
-        mantissa_multiplicaion_result <= left.mantissa * right.mantissa;
-        result.mantissa <= mantissa_multiplicaion_result(mantissa_high*2+1 downto mantissa_high+1);
+        -- result.sign                   <= left.sign xor right.sign;
+        -- result.exponent               <= left.exponent + right.exponent;
+        -- mantissa_multiplicaion_result <= left.mantissa * right.mantissa;
+
+        -- result.mantissa <= mantissa_multiplicaion_result(mantissa_high*2+1 downto mantissa_high+1);
 
 
     end procedure;
@@ -129,7 +132,7 @@ package body float_multiplier_pkg is
     return float_record
     is
     begin
-        return float_multiplier_object.result;
+        return zero;
     end get_multiplier_result;
 ------------------------------------------------------------------------
 end package body float_multiplier_pkg;

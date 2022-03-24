@@ -56,7 +56,7 @@ package body float_arithmetic_operations_pkg is
 
     begin
         signed_mantissa(t_mantissa'range) := signed(float_object.mantissa);
-        if float_object.sign = "1" then
+        if float_object.sign = '1' then
             signed_mantissa := -signed_mantissa;
         end if;
 
@@ -86,7 +86,7 @@ package body float_arithmetic_operations_pkg is
             abs_res := shift_right(abs_res,1);
         end if;
 
-        return ( res(res'high downto res'high), 
+        return ( res(res'high), 
                 result_exponent(t_exponent'range),
                 unsigned(abs_res(t_mantissa'range)));
     end "+";

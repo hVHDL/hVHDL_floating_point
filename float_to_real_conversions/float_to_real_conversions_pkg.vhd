@@ -59,7 +59,7 @@ package body float_to_real_conversions_pkg is
     is
         variable returned_real : real;
     begin
-        if number.sign = "1" then
+        if number.sign = '1' then
             returned_real := -1.0;
         else
             returned_real := 1.0;
@@ -95,15 +95,15 @@ package body float_to_real_conversions_pkg is
     (
         number : real
     )
-    return signed
+    return std_logic
     is
-        variable result : signed(0 downto 0);
+        variable result : std_logic;
     begin
 
         if number >= 0.0 then
-            result := "0";
+            result := '0';
         else
-            result := "1";
+            result := '1';
         end if;
 
         return result;
@@ -135,7 +135,7 @@ package body float_to_real_conversions_pkg is
     )
     return float_record
     is
-        variable returned_float : float_record := ("0", (others => '0'), (others => '0'));
+        variable returned_float : float_record := ('0', (others => '0'), (others => '0'));
 
     begin
 
@@ -170,7 +170,7 @@ package body float_to_real_conversions_pkg is
         variable result : integer;
     begin
 
-        if float_number.sign = "1" then
+        if float_number.sign = '1' then
             result := -to_integer(float_number.mantissa);
         else
             result := to_integer(float_number.mantissa);
