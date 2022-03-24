@@ -15,7 +15,10 @@ package float_multiplier_pkg is
         right  : float_record;
         result  : float_record;
 
-        shift_register    : std_logic_vector(1 downto 0);
+        sign : std_logic;
+        exponent : t_exponent;
+        mantissa_multiplication_result : unsigned(mantissa_high*2+1 downto 0);
+        shift_register    : std_logic_vector(2 downto 0);
     end record;
 
     -- constant init_pipeline : std_logic_vector(2 downto 0) := "000";
@@ -23,7 +26,7 @@ package float_multiplier_pkg is
     -- constant init_exponent_pipeline : exponent_array(0 downto 0) := (0=>zero_exponent);
 
     -- constant init_float_multiplier : float_multiplier_record := (zero, zero, zero, init_pipeline, init_pipeline, init_exponent_pipeline, (others => '0'));
-    constant init_float_multiplier : float_multiplier_record := (zero, zero, zero, (others => '0'));
+    constant init_float_multiplier : float_multiplier_record := (zero, zero, zero, '0', (others => '0'),(others => '0'), (others => '0'));
 ------------------------------------------------------------------------
     procedure create_float_multiplier (
         signal float_multiplier_object : inout float_multiplier_record);
@@ -88,19 +91,23 @@ package body float_multiplier_pkg is
         -- alias exponent_pipeline is float_multiplier_object.exponent_pipeline;
         alias shift_register                is float_multiplier_object.shift_register;
         -- alias sign_pipeline                is float_multiplier_object.sign_pipeline;
-        -- alias mantissa_multiplicaion_result is float_multiplier_object.mantissa_multiplicaion_result;
+        alias mantissa_multiplication_result is float_multiplier_object.mantissa_multiplication_result;
         alias left                          is float_multiplier_object.left;
         alias right                         is float_multiplier_object.right;
         alias result                         is float_multiplier_object.result;
+        alias sign is float_multiplier_object.sign;
+        alias exponent is float_multiplier_object.exponent;
     begin
 
         shift_register                    <= shift_register(shift_register'left-1 downto 0) & '0';
         -- sign_pipeline(sign_pipeline'left) <= (left.sign xor right.sign);
         -- exponent_pipeline(exponent_pipeline'left) <= (left.exponent + right.exponent);
 
-        -- mantissa_multiplicaion_result <= left.mantissa * right.mantissa;
+        sign <= left.sign xor right.sign;
+        exponent <= left.exponent + right.exponent;
+        mantissa_multiplication_result <= left.mantissa * right.mantissa;
 
-        result <= left * right;
+        result <= (sign, exponent, mantissa_multiplication_result(mantissa_high*2+1 downto mantissa_high+1));
 
     end procedure;
 
