@@ -83,7 +83,6 @@ package body float_multiplier_pkg is
         signal float_multiplier_object : inout float_multiplier_record
     ) 
     is
-
         alias shift_register                 is  float_multiplier_object.shift_register;
         alias mantissa_multiplication_result is  float_multiplier_object.mantissa_multiplication_result;
         alias left                           is  float_multiplier_object.left;
@@ -91,7 +90,6 @@ package body float_multiplier_pkg is
         alias result                         is  float_multiplier_object.result;
         alias sign                           is  float_multiplier_object.sign;
         alias exponent                       is  float_multiplier_object.exponent;
-
     begin
 
         shift_register                 <= shift_register(shift_register'left-1 downto 0) & '0';
@@ -99,11 +97,10 @@ package body float_multiplier_pkg is
         exponent                       <= left.exponent + right.exponent;
         mantissa_multiplication_result <= left.mantissa * right.mantissa;
 
-        result <= normalize((sign       => sign,
-                               exponent => exponent,
-                               mantissa => (mantissa_multiplication_result(mantissa_high*2+1 downto mantissa_high+1))
-                              ));
-
+        result <= normalize((sign     => sign,
+                             exponent => exponent,
+                             mantissa => (mantissa_multiplication_result(mantissa_high*2+1 downto mantissa_high+1))
+                            ));
     end procedure;
 
 ------------------------------------------------------------------------
