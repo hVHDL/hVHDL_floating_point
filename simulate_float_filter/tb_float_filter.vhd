@@ -31,12 +31,12 @@ architecture vunit_simulation of tb_float_filter is
     signal y : float_record := zero;
     signal filter_gain : float_record := to_float(0.04);
 
-    signal adder : float_adder_record := init_adder;
     signal filter_out : real := 0.0;
 
     signal u : float_record := to_float(-1.0);
 
     signal float_multiplier : float_multiplier_record := init_float_multiplier;
+    signal adder : float_adder_record := init_adder;
 
 begin
 
