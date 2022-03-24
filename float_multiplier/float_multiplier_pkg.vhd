@@ -112,11 +112,10 @@ package body float_multiplier_pkg is
         exponent                       <= left.exponent + right.exponent;
         mantissa_multiplication_result <= left.mantissa * right.mantissa;
 
-        result <= normalize((sign     => sign,
-                   -- this will keep normalized numbers normalized
-                   exponent => exponent,
-                   mantissa => (mantissa_multiplication_result(mantissa_high*2+1 downto mantissa_high+1))
-                  ));
+        result <= normalize((sign       => sign,
+                               exponent => exponent,
+                               mantissa => (mantissa_multiplication_result(mantissa_high*2+1 downto mantissa_high+1))
+                              ));
 
     end procedure;
 
