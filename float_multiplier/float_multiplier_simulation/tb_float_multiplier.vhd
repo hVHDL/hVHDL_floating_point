@@ -77,12 +77,17 @@ begin
 
             create_float_multiplier(float_multiplier);
 
-            if simulation_counter = 0 then
-                request_float_multiplier(float_multiplier, to_float(1.5), to_float(3.5));
-            end if;
+            CASE simulation_counter is
+                WHEN 3 => request_float_multiplier(float_multiplier, to_float(1.5), to_float(1.0));
+                WHEN 4 => request_float_multiplier(float_multiplier, to_float(2.5), to_float(-1.0));
+                WHEN 5 => request_float_multiplier(float_multiplier, to_float(3.5), to_float(1.0));
+                WHEN 7 => request_float_multiplier(float_multiplier, to_float(4.5), to_float(-1.0));
+                WHEN 8 => request_float_multiplier(float_multiplier, to_float(5.5), to_float(-1.0));
+                WHEN others => -- do nothing
+            end CASE;
+
             if float_multiplier_is_ready(float_multiplier) then
                 multiplier_result <= to_real(get_multiplier_result(float_multiplier));
-                multiplier_reference_result <= 1.5 * 3.5;
             end if;
 
 
