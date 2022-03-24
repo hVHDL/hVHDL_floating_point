@@ -5,11 +5,11 @@ library ieee;
 
 package float_type_definitions_pkg is
 
-    constant mantissa_high : integer := 22;
-    constant exponent_high : integer := 7;
+    constant mantissa_length : integer := 23;
+    constant exponent_length : integer := 8;
 
-    constant mantissa_length : integer := mantissa_high + 1;
-    constant exponent_length : integer := exponent_high + 1;
+    constant mantissa_high : integer := mantissa_length - 1;
+    constant exponent_high : integer := exponent_length - 1;
 
     subtype t_mantissa is unsigned(mantissa_high downto 0);
     subtype t_exponent is signed(exponent_high downto 0);
