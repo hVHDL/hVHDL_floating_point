@@ -91,6 +91,20 @@ package body float_multiplier_pkg is
         alias result                         is  float_multiplier_object.result;
         alias sign                           is  float_multiplier_object.sign;
         alias exponent                       is  float_multiplier_object.exponent;
+        function "+"
+        (
+            left : integer;
+            right : std_logic 
+        )
+        return integer
+        is
+        begin
+            if right = '1' then
+                return left + 1;
+            else
+                return left;
+            end if;
+        end "+";
     begin
 
         shift_register                 <= shift_register(shift_register'left-1 downto 0) & '0';
@@ -100,8 +114,8 @@ package body float_multiplier_pkg is
 
         result <= (sign     => sign,
                    -- this will keep normalized numbers normalized
-                   exponent => exponent-1,
-                   mantissa => shift_left(mantissa_multiplication_result(mantissa_high*2+1 downto mantissa_high+1),1)
+                   exponent => exponent + 0 + mantissa_multiplication_result(mantissa_multiplication_result'left),
+                   mantissa => (mantissa_multiplication_result(mantissa_high*2+1 downto mantissa_high+1))
                   );
 
     end procedure;

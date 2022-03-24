@@ -38,6 +38,7 @@ architecture vunit_simulation of tb_float_filter is
     signal float_multiplier : float_multiplier_record := init_float_multiplier;
     signal adder : float_adder_record := init_adder;
 
+
 begin
 
 ------------------------------------------------------------------------
@@ -79,11 +80,11 @@ begin
 
             CASE filter_counter is
                 WHEN 0 => 
-                    request_subtraction(adder, to_float(to_real(u) + 1.0), y);
+                    request_subtraction(adder, to_float(to_real(u) + 1.0e10), y);
                     filter_counter <= filter_counter + 1;
                 WHEN 1 =>
                     if adder_is_ready(adder) then
-                        request_float_multiplier(float_multiplier, get_result(adder), filter_gain);
+                        request_float_multiplier(float_multiplier  , get_result(adder) , filter_gain);
                         filter_counter <= filter_counter + 1;
                     end if;
 

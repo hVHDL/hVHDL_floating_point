@@ -20,7 +20,7 @@ architecture vunit_simulation of tb_float_multiplier is
     signal simulator_clock : std_logic;
     constant clock_per : time := 1 ns;
     constant clock_half_per : time := 0.5 ns;
-    constant simtime_in_clocks : integer := 50;
+    constant simtime_in_clocks : integer := 500;
 
     signal simulation_counter : natural := 0;
     -----------------------------------
@@ -40,6 +40,10 @@ architecture vunit_simulation of tb_float_multiplier is
     signal float_multiplier : float_multiplier_record := init_float_multiplier;
     signal multiplier_result : real := 0.0;
     signal multiplier_reference_result : real := 0.0;
+
+    signal float_multiplier2 : float_multiplier_record := init_float_multiplier;
+    signal float_test : float_record := to_float(1.0);
+    signal real_test : real := 0.0;
 
 ------------------------------------------------------------------------
 begin
@@ -76,6 +80,7 @@ begin
             simulation_counter <= simulation_counter + 1;
 
             create_float_multiplier(float_multiplier);
+            create_float_multiplier(float_multiplier2);
 
             CASE simulation_counter is
                 WHEN 3 => request_float_multiplier(float_multiplier, to_float(1.5), to_float(1.0));
@@ -85,6 +90,16 @@ begin
                 WHEN 8 => request_float_multiplier(float_multiplier, to_float(5.5), to_float(-1.0));
                 WHEN others => -- do nothing
             end CASE;
+
+            if simulation_counter = 0 then
+                request_float_multiplier(float_multiplier2 , float_test , to_float(1.1));
+            end if;
+
+            if float_multiplier_is_ready(float_multiplier2) then
+                request_float_multiplier(float_multiplier2 , float_test , to_float(1.1));
+                float_test <= get_multiplier_result(float_multiplier2);
+                real_test <= to_real(get_multiplier_result(float_multiplier2));
+            end if;
 
             if float_multiplier_is_ready(float_multiplier) then
                 multiplier_result <= to_real(get_multiplier_result(float_multiplier));
