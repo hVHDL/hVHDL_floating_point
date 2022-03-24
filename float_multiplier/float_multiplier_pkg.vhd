@@ -91,20 +91,7 @@ package body float_multiplier_pkg is
         alias result                         is  float_multiplier_object.result;
         alias sign                           is  float_multiplier_object.sign;
         alias exponent                       is  float_multiplier_object.exponent;
-        function "+"
-        (
-            left : integer;
-            right : std_logic 
-        )
-        return integer
-        is
-        begin
-            if right = '1' then
-                return left + 1;
-            else
-                return left;
-            end if;
-        end "+";
+
     begin
 
         shift_register                 <= shift_register(shift_register'left-1 downto 0) & '0';
