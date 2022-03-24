@@ -7,6 +7,7 @@ LIBRARY ieee  ;
     use work.float_to_real_conversions_pkg.all;
     use work.float_multiplier_pkg.all;
     use work.float_adder_pkg.all;
+    use work.float_first_order_filter_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
@@ -27,16 +28,12 @@ architecture vunit_simulation of tb_float_filter is
     -----------------------------------
     -- simulation specific signals ----
 
-    signal filter_counter : integer := 0; 
-    signal y : float_record := zero;
-    signal filter_gain : float_record := to_float(0.04);
 
-    signal filter_out : real := 0.0;
-
-    signal u : float_record := to_float(-1.0);
-
-    signal float_multiplier : float_multiplier_record := init_float_multiplier;
+    signal first_order_filter : first_order_filter_record := init_first_order_filter;
     signal adder : float_adder_record := init_adder;
+    signal float_multiplier : float_multiplier_record := init_float_multiplier;
+    signal filter_out : real := 0.0;
+    signal u : float_record := to_float(1.0);
 
 
 begin
@@ -78,30 +75,18 @@ begin
                 u <= -u;
             end if;
 
-            CASE filter_counter is
-                WHEN 0 => 
-                    request_subtraction(adder, to_float(to_real(u) + 1.0e10), y);
-                    filter_counter <= filter_counter + 1;
-                WHEN 1 =>
-                    if adder_is_ready(adder) then
-                        request_float_multiplier(float_multiplier  , get_result(adder) , filter_gain);
-                        filter_counter <= filter_counter + 1;
-                    end if;
+            create_first_order_filter(first_order_filter, float_multiplier, adder);
 
-                WHEN 2 =>
-                    if float_multiplier_is_ready(float_multiplier) then
-                        request_add(adder, get_multiplier_result(float_multiplier), y);
-                        filter_counter <= filter_counter + 1;
-                    end if;
-                WHEN 3 => 
-                    if adder_is_ready(adder) then
-                        y <= get_result(adder);
-                        filter_out <= to_real(get_result(adder));
-                        filter_counter <= filter_counter + 1;
-                    end if;
-                WHEN others =>  -- filter is ready
-                    filter_counter <= 0;
-            end CASE;
+            if simulation_counter = 0 then
+                request_float_filter(first_order_filter, to_float(25.0));
+            end if;
+
+            if float_filter_is_ready(first_order_filter) then
+                request_float_filter(first_order_filter, to_float(25.0));
+            end if;
+
+
+            filter_out <= to_real(get_filter_output(first_order_filter));
 
         end if; -- rising_edge
     end process stimulus;	

@@ -26,5 +26,6 @@ mathlib.add_source_files(ROOT / "float_adder/adder_simulation/*.vhd")
 mathlib.add_source_files(ROOT / "float_multiplier/*.vhd")
 mathlib.add_source_files(ROOT / "float_multiplier/float_multiplier_simulation/*.vhd")
 
-mathlib.add_source_files(ROOT / "simulate_float_filter/*.vhd")
+mathlib.add_source_files(ROOT / "float_first_order_filter/*.vhd")
+mathlib.add_source_files(ROOT / "float_first_order_filter/simulate_float_filter/*.vhd")
 VU.main()
