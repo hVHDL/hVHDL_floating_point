@@ -4,7 +4,6 @@ LIBRARY ieee  ;
     use ieee.math_real.all;
 
     use work.float_type_definitions_pkg.all;
-    use work.float_arithmetic_operations_pkg.all;
     use work.float_to_real_conversions_pkg.all;
     use work.float_multiplier_pkg.all;
     use work.float_adder_pkg.all;
@@ -22,7 +21,7 @@ architecture vunit_simulation of tb_float_filter is
     signal simulator_clock : std_logic;
     constant clock_per : time := 1 ns;
     constant clock_half_per : time := 0.5 ns;
-    constant simtime_in_clocks : integer := 1500;
+    constant simtime_in_clocks : integer := 2500;
 
     signal simulation_counter : natural := 0;
     -----------------------------------
@@ -30,12 +29,14 @@ architecture vunit_simulation of tb_float_filter is
 
     signal filter_counter : integer := 0; 
     signal y : float_record := zero;
-    signal filter_gain : float_record := to_float(0.05);
+    signal filter_gain : float_record := to_float(0.04);
 
     signal adder : float_adder_record := init_adder;
     signal filter_out : real := 0.0;
 
     signal u : float_record := to_float(-1.0);
+
+    signal float_multiplier : float_multiplier_record := init_float_multiplier;
 
 begin
 
@@ -70,6 +71,7 @@ begin
             simulation_counter <= simulation_counter + 1;
 
             create_adder(adder);
+            create_float_multiplier(float_multiplier);
 
             if simulation_counter mod 100 = 0 then
                 u <= -u;
@@ -81,10 +83,16 @@ begin
                     filter_counter <= filter_counter + 1;
                 WHEN 1 =>
                     if adder_is_ready(adder) then
-                        request_add(adder, get_result(adder)*filter_gain, y);
+                        request_float_multiplier(float_multiplier, get_result(adder), filter_gain);
                         filter_counter <= filter_counter + 1;
                     end if;
-                WHEN 2 => 
+
+                WHEN 2 =>
+                    if float_multiplier_is_ready(float_multiplier) then
+                        request_add(adder, get_multiplier_result(float_multiplier), y);
+                        filter_counter <= filter_counter + 1;
+                    end if;
+                WHEN 3 => 
                     if adder_is_ready(adder) then
                         y <= get_result(adder);
                         filter_out <= to_real(get_result(adder));
