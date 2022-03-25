@@ -31,8 +31,7 @@ architecture vunit_simulation of tb_normalizer is
 
     signal normalizer : normalizer_record := init_normalizer;
 
-    signal test_float_normalization : float_record := 
-        ('0', to_signed(0, 8), (21 => '1', others => '0'));
+    signal test_float_normalization : float_record := ('0', to_signed(0, exponent_length), (mantissa_high-1 => '1', others => '0'));
 
     signal normalizer_result : float_record := zero;
 

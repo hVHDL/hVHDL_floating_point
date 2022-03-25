@@ -22,7 +22,7 @@ architecture vunit_simulation of tb_float_filter is
     signal simulator_clock : std_logic;
     constant clock_per : time := 1 ns;
     constant clock_half_per : time := 0.5 ns;
-    constant simtime_in_clocks : integer := 2500;
+    constant simtime_in_clocks : integer := 6500;
 
     signal simulation_counter : natural := 0;
     -----------------------------------
@@ -70,19 +70,19 @@ begin
 
             create_adder(adder);
             create_float_multiplier(float_multiplier);
+            create_first_order_filter(first_order_filter, float_multiplier, adder);
 
             if simulation_counter mod 100 = 0 then
                 u <= -u;
             end if;
 
-            create_first_order_filter(first_order_filter, float_multiplier, adder);
 
             if simulation_counter = 0 then
-                request_float_filter(first_order_filter, to_float(25.0));
+                request_float_filter(first_order_filter, to_float(1.0));
             end if;
 
             if float_filter_is_ready(first_order_filter) then
-                request_float_filter(first_order_filter, to_float(25.0));
+                request_float_filter(first_order_filter, to_float(1.0));
             end if;
 
 
