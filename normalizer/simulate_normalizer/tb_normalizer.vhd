@@ -31,8 +31,11 @@ architecture vunit_simulation of tb_normalizer is
 
     signal normalizer : normalizer_record := init_normalizer;
 
-    signal test_float_normalization : float_record := ('0', to_signed(0, exponent_length), (mantissa_high-1 => '1', others => '0'));
+    signal test_float_normalization : float_record := ('0', to_signed(0, exponent_length), (0 => '1', others => '0'));
 
+    signal number_zeroes : integer := number_of_leading_zeroes(test_float_normalization.mantissa, 5);
+
+    signal normalizer_array : float_array(0 to 3) := (zero,zero,zero,zero);
     signal normalizer_result : float_record := zero;
 
 begin
@@ -74,6 +77,12 @@ begin
                     request_normalizer(normalizer, test_float_normalization);
                 WHEN others => -- do nothing
             end CASE;
+
+            normalizer_array(0) <= normalize(test_float_normalization , mantissa_high/4);
+            normalizer_array(1) <= normalize(normalizer_array(0)      , mantissa_high/4);
+            normalizer_array(2) <= normalize(normalizer_array(1)      , mantissa_high/4);
+            normalizer_array(3) <= normalize(normalizer_array(2)      , mantissa_high/4);
+
 
             if normalizer_is_ready(normalizer) then
                 normalizer_result <= get_normalizer_result(normalizer);

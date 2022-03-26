@@ -5,7 +5,7 @@ library ieee;
 
 package float_type_definitions_pkg is
 
-    constant mantissa_length : integer := 23;
+    constant mantissa_length : integer := 24;
     constant exponent_length : integer := 8;
 
     constant mantissa_high : integer := mantissa_length - 1;
@@ -15,7 +15,7 @@ package float_type_definitions_pkg is
     subtype t_exponent is signed(exponent_high downto 0);
 
     type float_record is record
-        sign : std_logic;
+        sign     : std_logic;
         exponent : t_exponent;
         mantissa : t_mantissa;
     end record;
@@ -33,12 +33,21 @@ package float_type_definitions_pkg is
         set_exponent_to : integer)
     return float_record;
 ------------------------------------------------------------------------
-    function number_of_leading_zeroes ( data : std_logic_vector )
-        return integer ;
-------------------------------------------------------------------------
     function "-" ( right : float_record)
         return float_record;
 
+------------------------------------------------------------------------
+    function number_of_leading_zeroes (
+        data : unsigned;
+        max_shift : integer)
+    return integer;
+------------------------------------------------------------------------
+    function normalize
+    (
+        float_number : float_record;
+        max_shift : integer
+    )
+    return float_record;
 ------------------------------------------------------------------------
 end package float_type_definitions_pkg;
 
@@ -47,14 +56,15 @@ package body float_type_definitions_pkg is
 ------------------------------------------------------------------------
     function number_of_leading_zeroes
     (
-        data : std_logic_vector 
+        data : std_logic_vector;
+        max_shift : integer
     )
     return integer 
     is
         variable number_of_zeroes : integer := 0;
     begin
-        for i in data'range loop
-            if data(data'high-i) = '0' then
+        for i in data'high - max_shift to data'high loop
+            if data(i) = '0' then
                 number_of_zeroes := number_of_zeroes + 1;
             else
                 number_of_zeroes := 0;
@@ -68,15 +78,34 @@ package body float_type_definitions_pkg is
 ------------------------------------------------------------------------
     function number_of_leading_zeroes
     (
-        data : unsigned 
+        data : unsigned;
+        max_shift : integer
     )
     return integer 
     is
     begin
 
-        return number_of_leading_zeroes(std_logic_vector(data));
+        return number_of_leading_zeroes(std_logic_vector(data), max_shift);
         
     end number_of_leading_zeroes;
+
+------------------------------------------------------------------------
+    function normalize
+    (
+        float_number : float_record;
+        max_shift : integer
+    )
+    return float_record
+    is
+        variable number_of_zeroes : natural := 0;
+    begin
+        number_of_zeroes := number_of_leading_zeroes(float_number.mantissa, max_shift);
+
+        return (sign     => float_number.sign,
+                exponent => float_number.exponent - number_of_zeroes,
+                mantissa => shift_left(float_number.mantissa, number_of_zeroes));
+    end normalize;
+
 ------------------------------------------------------------------------
     function normalize
     (
@@ -86,11 +115,8 @@ package body float_type_definitions_pkg is
     is
         variable number_of_zeroes : natural := 0;
     begin
-        number_of_zeroes := number_of_leading_zeroes(float_number.mantissa);
 
-        return (sign     => float_number.sign,
-                exponent => float_number.exponent - number_of_zeroes,
-                mantissa => shift_left(float_number.mantissa, number_of_zeroes));
+        return normalize(float_number, mantissa_high);
     end normalize;
 ------------------------------------------------------------------------
     function denormalize_float
