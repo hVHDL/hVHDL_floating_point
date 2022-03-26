@@ -2,10 +2,7 @@ library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
 
-    use work.float_type_definitions_pkg.float_record;
-    use work.float_type_definitions_pkg.normalize;
-    use work.float_type_definitions_pkg.zero;
-    use work.float_type_definitions_pkg.float_array;
+    use work.float_type_definitions_pkg.all;
 
 package normalizer_pkg is
 ------------------------------------------------------------------------
@@ -42,8 +39,8 @@ package body normalizer_pkg is
         alias normalized_data         is normalizer_object.normalized_data;
     begin
         normalizer_is_requested <= normalizer_is_requested(normalizer_is_requested'left-1 downto 0) & '0';
-        normalized_data(1)      <= normalize(normalized_data(0));
-        normalized_data(2)      <= normalize(normalized_data(1));
+        normalized_data(1)      <= normalize(normalized_data(0), mantissa_high/normalized_data'high);
+        normalized_data(2)      <= normalize(normalized_data(1), mantissa_high/normalized_data'high);
     end procedure;
 
 ------------------------------------------------------------------------
