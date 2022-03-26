@@ -10,4 +10,4 @@ run all test benches with vunit+ghdl+gtkwave using
 
 python vunit_run_float.py -p 8 --gtkwave-fmt ghw
 
-Multiplier has been tested successfully on efinix trion fpga
+An iir low pass filter which uses the Multiplier and adder has been tested successfully on efinix trion fpga
