@@ -72,7 +72,7 @@ begin
             denormalizer_array(2) <= denormalize_float(denormalizer_array(1), target_scale);
 
             CASE simulation_counter is
-                WHEN 0 => 
+                WHEN 3 => 
                     shift_register(0) <= '1';
                     if get_exponent(larger) < get_exponent(smaller) then
                         denormalizer_array(0) <= smaller;

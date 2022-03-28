@@ -135,15 +135,12 @@ package body float_to_real_conversions_pkg is
     )
     return float_record
     is
-        variable returned_float : float_record := ('0', (others => '0'), (others => '0'));
 
     begin
 
-        returned_float.sign     := get_sign(real_number);
-        returned_float.exponent := get_exponent(real_number);
-        returned_float.mantissa := get_mantissa(real_number);
-
-        return returned_float;
+        return (sign     => get_sign(real_number),
+                exponent => get_exponent(real_number),
+                mantissa => get_mantissa(real_number));
         
     end to_float;
 ------------------------------------------------------------------------
