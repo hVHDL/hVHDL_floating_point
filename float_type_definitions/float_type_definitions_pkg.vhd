@@ -49,6 +49,15 @@ package float_type_definitions_pkg is
     )
     return float_record;
 ------------------------------------------------------------------------
+    function denormalize_float (
+        right           : float_record;
+        set_exponent_to : integer;
+        max_shift       : integer)
+    return float_record;
+------------------------------------------------------------------------
+    function get_exponent ( float_number : float_record)
+        return integer;
+------------------------------------------------------------------------
 end package float_type_definitions_pkg;
 
 package body float_type_definitions_pkg is
@@ -122,7 +131,8 @@ package body float_type_definitions_pkg is
     function denormalize_float
     (
         right           : float_record;
-        set_exponent_to : integer
+        set_exponent_to : integer;
+        max_shift       : integer
     )
     return float_record
     is
@@ -133,6 +143,19 @@ package body float_type_definitions_pkg is
                   mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent)));
 
         return float;
+        
+    end denormalize_float;
+------------------------------------------------------------------------
+    function denormalize_float
+    (
+        right           : float_record;
+        set_exponent_to : integer
+    )
+    return float_record
+    is
+    begin
+
+        return denormalize_float(right, set_exponent_to, mantissa_length);
         
     end denormalize_float;
 ------------------------------------------------------------------------
@@ -149,5 +172,17 @@ package body float_type_definitions_pkg is
                             mantissa => right.mantissa);
         return returned_float;
     end "-";
+------------------------------------------------------------------------
+    function get_exponent
+    (
+        float_number : float_record
+    )
+    return integer
+    is
+    begin
+        return to_integer(float_number.exponent);
+        
+    end get_exponent;
+
 ------------------------------------------------------------------------
 end package body float_type_definitions_pkg;
