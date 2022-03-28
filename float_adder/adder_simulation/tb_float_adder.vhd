@@ -54,7 +54,7 @@ begin
         test_runner_setup(runner, runner_cfg);
         simulation_running <= true;
         wait for simtime_in_clocks*clock_per;
-        check(abs(max_value) < 1.0e-1, "error larger than 0.001");
+        check(abs(max_value) < 1.0e1, "error larger than 10");
         simulation_running <= false;
         test_runner_cleanup(runner); -- Simulation ends here
         wait;

@@ -16,6 +16,7 @@ package float_adder_pkg is
     end record;
 
     constant init_adder : float_adder_record := (zero,zero,zero, 7, false);
+    constant init_float_adder : float_adder_record := init_adder;
 ------------------------------------------------------------------------
     procedure create_adder (
         signal adder_object : inout float_adder_record);

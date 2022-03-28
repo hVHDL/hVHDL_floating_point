@@ -11,7 +11,10 @@ package normalizer_pkg is
         normalized_data         : float_array(0 to 2);
     end record;
 
+    subtype float_normalizer_record is normalizer_record;
+
     constant init_normalizer : normalizer_record := ((others => '0'), (zero, zero, zero));
+    constant init_float_normalizer : float_normalizer_record := init_normalizer;
 ------------------------------------------------------------------------
     procedure create_normalizer (
         signal normalizer_object : inout normalizer_record);

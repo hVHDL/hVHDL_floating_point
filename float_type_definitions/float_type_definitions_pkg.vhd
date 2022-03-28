@@ -5,7 +5,7 @@ library ieee;
 
 package float_type_definitions_pkg is
 
-    constant mantissa_length : integer := 24;
+    constant mantissa_length : integer := 16;
     constant exponent_length : integer := 8;
 
     constant mantissa_high : integer := mantissa_length - 1;

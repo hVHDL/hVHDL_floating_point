@@ -9,4 +9,6 @@ ghdl -a --ieee=synopsys --std=08 %source%/float_arithmetic_operations/float_arit
 ghdl -a --ieee=synopsys --std=08 %source%/float_adder/float_adder_pkg.vhd
 ghdl -a --ieee=synopsys --std=08 %source%/float_multiplier/float_multiplier_pkg.vhd
 
+ghdl -a --ieee=synopsys --std=08 %source%/float_alu/float_alu_pkg.vhd
+
 ghdl -a --ieee=synopsys --std=08 %source%/float_first_order_filter/float_first_order_filter_pkg.vhd

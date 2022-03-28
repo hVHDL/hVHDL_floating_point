@@ -77,7 +77,7 @@ package body float_first_order_filter_pkg is
             WHEN 3 => 
                 if adder_is_ready(float_adder) then
                     filter_is_ready <= true;
-                    y <= get_result(float_adder);
+                    y <= normalize(get_result(float_adder));
                     filter_counter <= filter_counter + 1;
                 end if;
             WHEN others =>  -- filter is ready
