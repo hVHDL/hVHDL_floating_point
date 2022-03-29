@@ -58,6 +58,9 @@ package float_type_definitions_pkg is
     function get_exponent ( float_number : float_record)
         return integer;
 ------------------------------------------------------------------------
+    function get_mantissa ( float_number : float_record)
+        return integer;
+------------------------------------------------------------------------
 end package float_type_definitions_pkg;
 
 package body float_type_definitions_pkg is
@@ -183,6 +186,18 @@ package body float_type_definitions_pkg is
         return to_integer(float_number.exponent);
         
     end get_exponent;
+
+------------------------------------------------------------------------
+    function get_mantissa
+    (
+        float_number : float_record
+    )
+    return integer
+    is
+    begin
+        return to_integer(float_number.exponent);
+        
+    end get_mantissa;
 
 ------------------------------------------------------------------------
 end package body float_type_definitions_pkg;

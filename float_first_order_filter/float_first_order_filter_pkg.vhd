@@ -13,11 +13,11 @@ package float_first_order_filter_pkg is
 ------------------------------------------------------------------------
     type first_order_filter_record is record
         filter_counter   : integer range 0 to 7 ;
-        y                : float_record         ;
-        filter_gain      : float_record         ;
-        u                : float_record         ;
-        filter_is_ready : boolean               ;
-    end record                                  ;
+        filter_gain      : float_record;
+        u                : float_record;
+        y                : float_record;
+        filter_is_ready : boolean;
+    end record;
 
     constant init_first_order_filter : first_order_filter_record := (
         0, zero, to_float(0.004), to_float(-1.0), false);

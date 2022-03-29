@@ -25,15 +25,15 @@ package float_adder_pkg is
         signal adder_object : out float_adder_record;
         left, right : float_record);
 ------------------------------------------------------------------------
+    procedure request_subtraction (
+        signal adder_object : out float_adder_record;
+        left, right : float_record);
+------------------------------------------------------------------------
     function adder_is_ready (float_adder_object : float_adder_record)
         return boolean;
 ------------------------------------------------------------------------
     function get_result ( adder_object : float_adder_record)
         return float_record;
-------------------------------------------------------------------------
-    procedure request_subtraction (
-        signal adder_object : out float_adder_record;
-        left, right : float_record);
 ------------------------------------------------------------------------
 end package float_adder_pkg;
 
