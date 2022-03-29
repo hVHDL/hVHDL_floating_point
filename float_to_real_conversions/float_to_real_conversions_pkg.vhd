@@ -146,7 +146,7 @@ package body float_to_real_conversions_pkg is
         variable exponent : real;
     begin
 
-        sign := get_sign(float_number);
+        sign     := get_sign(float_number);
         mantissa := real(to_integer(float_number.mantissa))/2.0**(mantissa_length);
         exponent := (2.0**real(to_integer(float_number.exponent)));
 
