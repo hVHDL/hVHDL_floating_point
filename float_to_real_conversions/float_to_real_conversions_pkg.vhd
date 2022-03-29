@@ -10,16 +10,7 @@ package float_to_real_conversions_pkg is
     function to_float ( real_number : real)
         return float_record;
 ------------------------------------------------------------------------
-    function get_mantissa ( number : real)
-        return unsigned;
-------------------------------------------------------------------------
-    function get_exponent ( number : real)
-        return t_exponent;
-------------------------------------------------------------------------
     function to_real ( float_number : float_record)
-        return real;
-------------------------------------------------------------------------
-    function get_exponent ( number : real)
         return real;
 ------------------------------------------------------------------------
 end package float_to_real_conversions_pkg;
@@ -150,11 +141,16 @@ package body float_to_real_conversions_pkg is
     )
     return real
     is
-        variable result : real := 1.0;
+        variable mantissa : real;
+        variable sign     : real;
+        variable exponent : real;
     begin
 
-        result := get_sign(float_number) * (2.0**real(to_integer(float_number.exponent))) * real(to_integer(float_number.mantissa))/2.0**(mantissa_length);
-        return result;
+        sign := get_sign(float_number);
+        mantissa := real(to_integer(float_number.mantissa))/2.0**(mantissa_length);
+        exponent := (2.0**real(to_integer(float_number.exponent)));
+
+        return sign * exponent * mantissa;
         
     end to_real;
 ------------------------------------------------------------------------
