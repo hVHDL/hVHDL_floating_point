@@ -13,20 +13,20 @@ package float_first_order_filter_pkg is
 ------------------------------------------------------------------------
     type first_order_filter_record is record
         filter_counter   : integer range 0 to 7 ;
-        filter_gain      : float_record;
         u                : float_record;
         y                : float_record;
         filter_is_ready : boolean;
     end record;
 
     constant init_first_order_filter : first_order_filter_record := (
-        0, zero, to_float(0.004), to_float(-1.0), false);
+        0, zero, to_float(-1.0), false);
 
 ------------------------------------------------------------------------
     procedure create_first_order_filter (
         signal first_order_filter_object : inout first_order_filter_record;
         signal float_multiplier          : inout float_multiplier_record;
-        signal float_adder               : inout float_adder_record);
+        signal float_adder               : inout float_adder_record;
+        filter_gain : in float_record);
 ------------------------------------------------------------------------
     procedure request_float_filter (
         signal first_order_filter_object : inout first_order_filter_record;
@@ -47,13 +47,13 @@ package body float_first_order_filter_pkg is
     procedure create_first_order_filter
     (
         signal first_order_filter_object : inout first_order_filter_record;
-        signal float_multiplier : inout float_multiplier_record;
-        signal float_adder : inout float_adder_record
+        signal float_multiplier          : inout float_multiplier_record;
+        signal float_adder               : inout float_adder_record;
+        filter_gain                      : in float_record
         
     ) is
         alias filter_counter   is first_order_filter_object.filter_counter  ;
         alias y                is first_order_filter_object.y               ;
-        alias filter_gain      is first_order_filter_object.filter_gain     ;
         alias u                is first_order_filter_object.u               ;
         alias filter_is_ready is first_order_filter_object.filter_is_ready;
     begin

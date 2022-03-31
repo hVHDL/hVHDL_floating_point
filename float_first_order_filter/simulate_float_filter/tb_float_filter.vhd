@@ -70,7 +70,7 @@ begin
 
             create_adder(adder);
             create_float_multiplier(float_multiplier);
-            create_first_order_filter(first_order_filter, float_multiplier, adder);
+            create_first_order_filter(first_order_filter, float_multiplier, adder, to_float(0.004));
 
             if simulation_counter mod 100 = 0 then
                 u <= -u;
@@ -78,11 +78,11 @@ begin
 
 
             if simulation_counter = 0 then
-                request_float_filter(first_order_filter, to_float(1.0));
+                request_float_filter(first_order_filter, to_float(-1.0));
             end if;
 
             if float_filter_is_ready(first_order_filter) then
-                request_float_filter(first_order_filter, to_float(1.0));
+                request_float_filter(first_order_filter, to_float(-1.0));
             end if;
 
 
