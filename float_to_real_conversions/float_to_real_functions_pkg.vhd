@@ -87,7 +87,7 @@ package body float_to_real_functions_pkg is
     return unsigned
     is
     begin
-        return to_unsigned(integer(get_mantissa(number) * 2.0**mantissa_length), mantissa_length);
+        return to_unsigned(integer(get_mantissa(number) * 2.0**mantissa_high), mantissa_length);
     end get_mantissa;
 ------------------------------------------------------------------------
     function get_exponent
@@ -99,7 +99,7 @@ package body float_to_real_functions_pkg is
         variable result : real := 0.0;
     begin
         result := get_exponent(number);
-        return to_signed(integer(result),exponent_length);
+        return to_signed(integer(result),exponent_length) + 1;
     end get_exponent;
 ------------------------------------------------------------------------
     function get_sign

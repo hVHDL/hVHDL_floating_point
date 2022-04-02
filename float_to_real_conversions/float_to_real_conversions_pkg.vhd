@@ -28,9 +28,9 @@ package body float_to_real_conversions_pkg is
 
     begin
 
-        return (sign     => get_sign(real_number),
-                exponent => get_exponent(real_number),
-                mantissa => get_mantissa(real_number));
+        return normalize((sign   => get_sign(real_number),
+                        exponent => get_exponent(real_number),
+                        mantissa => get_mantissa(real_number)));
         
     end to_float;
 ------------------------------------------------------------------------

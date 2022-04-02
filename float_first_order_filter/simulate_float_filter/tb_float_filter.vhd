@@ -86,13 +86,13 @@ begin
 
 
             if simulation_counter = 0 then
-                request_float_filter(first_order_filter, to_float(1.1));
-                request_float_filter(alu_filter, to_float(1.1));
+                request_float_filter(first_order_filter, to_float(8.0));
+                request_float_filter(alu_filter, to_float(8.0));
             end if;
 
             if float_filter_is_ready(first_order_filter) then
-                request_float_filter(first_order_filter, to_float(1.1));
-                request_float_filter(alu_filter, to_float(1.1));
+                request_float_filter(first_order_filter, to_float(8.0));
+                request_float_filter(alu_filter, to_float(8.0));
             end if;
 
 

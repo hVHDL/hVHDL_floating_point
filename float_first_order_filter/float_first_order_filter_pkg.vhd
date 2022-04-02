@@ -20,7 +20,7 @@ package float_first_order_filter_pkg is
     end record;
 
     constant init_first_order_filter : first_order_filter_record := (
-        0, zero, to_float(-1.0), false);
+        7, to_float(0.0), to_float(0.0), false);
 
 ------------------------------------------------------------------------
     procedure create_first_order_filter (

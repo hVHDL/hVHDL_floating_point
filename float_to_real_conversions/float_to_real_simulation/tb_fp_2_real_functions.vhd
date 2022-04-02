@@ -4,6 +4,8 @@ LIBRARY ieee  ;
     use ieee.math_real.all;
 
     use work.float_type_definitions_pkg.all;
+    use work.float_to_real_conversions_pkg.all;
+    use work.float_to_real_functions_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
@@ -23,6 +25,16 @@ architecture vunit_simulation of fp2real_functions_tb is
     signal simulation_counter : natural := 0;
     -----------------------------------
     -- simulation specific signals ----
+    constant tested_number : real := 8.0;
+    signal test_4      : float_record := to_float(tested_number);
+    signal test_4_real : real         := to_real(test_4);
+
+    signal test_5      : float_record := to_float(0.0002);
+    signal test_5_real : real         := to_real(test_4);
+
+    signal test_exponent : t_exponent := get_exponent(tested_number);
+    signal test_mantissa : t_mantissa := get_mantissa(tested_number);
+    signal test_get_mantissa : real := get_mantissa(tested_number);
 
 begin
 
