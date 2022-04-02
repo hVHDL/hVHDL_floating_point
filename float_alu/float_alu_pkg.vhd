@@ -51,9 +51,6 @@ package body float_alu_pkg is
         signal float_alu_object : inout float_alu_record
     ) 
     is
-
-        alias float_adder                 is float_alu_object.float_adder                ;
-        alias float_multiplier            is float_alu_object.float_multiplier           ;
     begin
 
         create_adder(float_alu_object.float_adder);

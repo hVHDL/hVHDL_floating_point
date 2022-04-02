@@ -197,7 +197,7 @@ package body float_type_definitions_pkg is
     return integer
     is
     begin
-        return to_integer(float_number.exponent);
+        return to_integer(float_number.mantissa);
         
     end get_mantissa;
 
