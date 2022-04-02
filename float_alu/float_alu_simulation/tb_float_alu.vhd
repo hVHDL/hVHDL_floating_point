@@ -4,15 +4,17 @@ LIBRARY ieee  ;
     use ieee.math_real.all;
 
     use work.float_alu_pkg.all;
+    use work.float_type_definitions_pkg.all;
+    use work.float_to_real_conversions_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
 
-entity tb_float_alu is
+entity float_alu_tb is
   generic (runner_cfg : string);
 end;
 
-architecture vunit_simulation of tb_float_alu is
+architecture vunit_simulation of float_alu_tb is
 
     signal simulation_running : boolean;
     signal simulator_clock : std_logic;
@@ -25,6 +27,7 @@ architecture vunit_simulation of tb_float_alu is
     -- simulation specific signals ----
 
     signal float_alu : float_alu_record := init_float_alu;
+    signal test_multiplier : real := 0.0;
 
 begin
 
@@ -59,6 +62,18 @@ begin
             simulation_counter <= simulation_counter + 1;
 
             create_float_alu(float_alu);
+            CASE simulation_counter is
+                WHEN 3 => multiply(float_alu, to_float(5.0), to_float(5.0));
+                WHEN 4 => multiply(float_alu, to_float(6.0), to_float(5.0));
+                WHEN 5 => multiply(float_alu, to_float(7.0), to_float(5.0));
+                WHEN 6 => multiply(float_alu, to_float(8.0), to_float(-8.0));
+                WHEN 7 => multiply(float_alu, to_float(9.0), to_float(-9.0));
+                WHEN others => -- do nothing
+            end CASE;
+
+            if multiplier_is_ready(float_alu) then
+                test_multiplier <= to_real(get_multiplier_result(float_alu));
+            end if;
 
 
         end if; -- rising_edge

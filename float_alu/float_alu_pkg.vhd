@@ -16,8 +16,6 @@ package float_alu_pkg is
 
         float_multiplier            : float_multiplier_record ;
         float_multiplier_normalizer : float_normalizer_record ;
-
-        float_alu_is_busy : boolean;
     end record;
 
     constant init_float_alu : float_alu_record := (
@@ -25,13 +23,31 @@ package float_alu_pkg is
             init_float_normalizer ,
 
             init_float_multiplier ,
-            init_float_normalizer ,
-
-            false);
+            init_float_normalizer);
 
 ------------------------------------------------------------------------
     procedure create_float_alu (
         signal float_alu_object : inout float_alu_record);
+------------------------------------------------------------------------
+    procedure multiply (
+        signal alu_object : inout float_alu_record;
+        left, right : float_record);
+------------------------------------------------------------------------
+    function multiplier_is_ready ( alu_object : float_alu_record)
+        return boolean;
+------------------------------------------------------------------------
+    function get_multiplier_result ( alu_object : float_alu_record)
+        return float_record;
+------------------------------------------------------------------------
+    procedure add (
+        signal alu_object : inout float_alu_record;
+        left, right : float_record);
+------------------------------------------------------------------------
+    function add_is_ready ( alu_object : float_alu_record)
+        return boolean;
+------------------------------------------------------------------------
+    function get_add_result ( alu_object : float_alu_record)
+        return float_record;
 ------------------------------------------------------------------------
 end package float_alu_pkg;
 
@@ -87,7 +103,7 @@ package body float_alu_pkg is
     return float_record
     is
     begin
-        return get_multiplier_result(alu_object.float_multiplier);
+        return normalize(get_multiplier_result(alu_object.float_multiplier));
     end get_multiplier_result;
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
@@ -99,5 +115,25 @@ package body float_alu_pkg is
     begin
         request_add(alu_object.float_adder, left, right);
     end add;
+------------------------------------------------------------------------
+    function add_is_ready
+    (
+        alu_object : float_alu_record
+    )
+    return boolean
+    is
+    begin
+        return adder_is_ready(alu_object.float_adder);
+    end add_is_ready;
+------------------------------------------------------------------------
+    function get_add_result
+    (
+        alu_object : float_alu_record
+    )
+    return float_record
+    is
+    begin
+        return get_result(alu_object.float_adder);
+    end get_add_result;
 ------------------------------------------------------------------------
 end package body float_alu_pkg;

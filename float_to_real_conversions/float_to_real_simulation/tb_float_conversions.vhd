@@ -10,11 +10,11 @@ LIBRARY ieee  ;
 library vunit_lib;
     use vunit_lib.run_pkg.all;
 
-entity tb_float_conversions is
+entity float_conversions_tb is
   generic (runner_cfg : string);
 end;
 
-architecture vunit_simulation of tb_float_conversions is
+architecture vunit_simulation of float_conversions_tb is
 
     signal simulation_running : boolean;
     signal simulator_clock : std_logic;
@@ -29,10 +29,12 @@ architecture vunit_simulation of tb_float_conversions is
     signal test_1 : float_record := to_float(568996.25);
     signal test_2 : float_record := to_float(4.0);
     signal test_3 : float_record := to_float(-3.2);
+    signal test_4 : float_record := to_float(8.0);
 
     signal test_1_real: real := to_real(test_1);
     signal test_2_real: real := to_real(test_2);
     signal test_3_real: real := to_real(test_3);
+    signal test_4_real: real := to_real(test_4);
 
     signal test_float : float_record := to_float(22.1346836);
     signal test_real : real := to_real(test_float);
