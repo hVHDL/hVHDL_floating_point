@@ -8,6 +8,7 @@ LIBRARY ieee  ;
     use work.float_multiplier_pkg.all;
     use work.float_adder_pkg.all;
     use work.float_first_order_filter_pkg.all;
+    use work.float_alu_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
@@ -34,6 +35,10 @@ architecture vunit_simulation of tb_float_filter is
     signal float_multiplier : float_multiplier_record := init_float_multiplier;
     signal filter_out : real := 0.0;
     signal u : float_record := to_float(1.0);
+
+    signal float_alu : float_alu_record := init_float_alu;
+    signal alu_filter : first_order_filter_record := init_first_order_filter;
+    signal alu_filter_out : real := 0.0;
 
 
 begin
@@ -72,6 +77,9 @@ begin
             create_float_multiplier(float_multiplier);
             create_first_order_filter(first_order_filter, float_multiplier, adder, to_float(0.004));
 
+            create_float_alu(float_alu);
+            create_first_order_filter(alu_filter, float_alu, to_float(0.004));
+
             if simulation_counter mod 100 = 0 then
                 u <= -u;
             end if;
@@ -79,14 +87,17 @@ begin
 
             if simulation_counter = 0 then
                 request_float_filter(first_order_filter, to_float(-1.0));
+                request_float_filter(alu_filter, to_float(-1.0));
             end if;
 
             if float_filter_is_ready(first_order_filter) then
                 request_float_filter(first_order_filter, to_float(-1.0));
+                request_float_filter(alu_filter, to_float(-1.0));
             end if;
 
 
             filter_out <= to_real(get_filter_output(first_order_filter));
+            alu_filter_out <= to_real(get_filter_output(first_order_filter));
 
         end if; -- rising_edge
     end process stimulus;	

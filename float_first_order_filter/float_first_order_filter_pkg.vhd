@@ -7,6 +7,7 @@ library ieee;
     use work.float_to_real_conversions_pkg.all;
     use work.float_multiplier_pkg.all;
     use work.float_adder_pkg.all;
+    use work.float_alu_pkg.all;
 
 package float_first_order_filter_pkg is
 
@@ -22,6 +23,12 @@ package float_first_order_filter_pkg is
         0, zero, to_float(-1.0), false);
 
 ------------------------------------------------------------------------
+    procedure create_first_order_filter (
+        signal first_order_filter_object : inout first_order_filter_record;
+        signal alu_object                : inout float_alu_record;
+        filter_gain                      : in float_record);
+
+    -- remove this when no longer needed
     procedure create_first_order_filter (
         signal first_order_filter_object : inout first_order_filter_record;
         signal float_multiplier          : inout float_multiplier_record;
@@ -83,6 +90,17 @@ package body float_first_order_filter_pkg is
             WHEN others =>  -- filter is ready
         end CASE;
     end create_first_order_filter;
+------------------------------------------------------------------------
+    procedure create_first_order_filter
+    (
+        signal first_order_filter_object : inout first_order_filter_record;
+        signal alu_object                : inout float_alu_record;
+        filter_gain                      : in float_record
+    ) is
+    begin
+        create_first_order_filter(first_order_filter_object, alu_object.float_multiplier, alu_object.float_adder, filter_gain);
+    end create_first_order_filter;
+
 ------------------------------------------------------------------------
     procedure request_float_filter
     (
