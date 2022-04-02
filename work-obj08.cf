@@ -1,31 +1,33 @@
 v 4
-file . ".//float_to_real_conversions/float_to_real_functions_pkg.vhd" "ef71c6e2f48742951469ab89fc81b5e1f84cc758" "20220402113022.142":
-  package float_to_real_functions_pkg at 1( 0) + 0 on 533 body;
-  package body float_to_real_functions_pkg at 38( 1358) + 0 on 534;
-file . ".//float_alu/float_alu_pkg.vhd" "910d481a3f4772e32f850c082c376e25195c439b" "20220402113022.431":
-  package float_alu_pkg at 1( 0) + 0 on 543 body;
-  package body float_alu_pkg at 54( 2177) + 0 on 544;
-file . ".//float_first_order_filter/float_first_order_filter_pkg.vhd" "632c5623ccf5a380bd6c6e92da00182bf4430d89" "20220402113022.493":
-  package float_first_order_filter_pkg at 1( 0) + 0 on 545 body;
-  package body float_first_order_filter_pkg at 50( 2149) + 0 on 546;
-file . ".//float_adder/float_adder_pkg.vhd" "00c249306230fe6b291fb3990f84cea1ab725e7b" "20220402113022.314":
-  package float_adder_pkg at 1( 0) + 0 on 539 body;
-  package body float_adder_pkg at 40( 1669) + 0 on 540;
-file . ".//float_to_real_conversions/float_to_real_conversions_pkg.vhd" "54269b763882114daea112b5af510cf4847b55c4" "20220402113022.200":
-  package float_to_real_conversions_pkg at 1( 0) + 0 on 535 body;
-  package body float_to_real_conversions_pkg at 19( 666) + 0 on 536;
-file . ".//normalizer/normalizer_pkg.vhd" "4bf8aacba5734f4706fdb0637055f6ea87f8caaf" "20220402113022.029":
-  package normalizer_pkg at 1( 0) + 0 on 529 body;
-  package body normalizer_pkg at 34( 1484) + 0 on 530;
-file . ".//float_type_definitions/float_type_definitions_pkg.vhd" "6e2d397023ef6d1b9b45db23534b63358ca3cd9b" "20220402113021.972":
-  package float_type_definitions_pkg at 1( 0) + 0 on 527 body;
-  package body float_type_definitions_pkg at 66( 2384) + 0 on 528;
-file . ".//denormalizer/denormalizer_pkg.vhd" "0ec24880ccd26268a95125619e5ebf3f5d3a9626" "20220402113022.084":
-  package denormalizer_pkg at 1( 0) + 0 on 531 body;
-  package body denormalizer_pkg at 25( 1043) + 0 on 532;
-file . ".//float_arithmetic_operations/float_arithmetic_operations_pkg.vhd" "3dbb2852d00fefcc59ee84a70ea88ce711ceef5b" "20220402113022.257":
-  package float_arithmetic_operations_pkg at 1( 0) + 0 on 537 body;
-  package body float_arithmetic_operations_pkg at 27( 947) + 0 on 538;
-file . ".//float_multiplier/float_multiplier_pkg.vhd" "f85b46ad4eefa33f1836109de61166b06ec2f2e8" "20220402113022.371":
-  package float_multiplier_pkg at 1( 0) + 0 on 541 body;
-  package body float_multiplier_pkg at 48( 2245) + 0 on 542;
+file . ".//float_type_definitions/float_word_length_16_bit_pkg.vhd" "ea955bf2bd2dbcb854694b3a334c611e2f034233" "20220402123329.118":
+  package float_word_length_pkg at 1( 0) + 0 on 587;
+file . ".//float_multiplier/float_multiplier_pkg.vhd" "f85b46ad4eefa33f1836109de61166b06ec2f2e8" "20220402123329.574":
+  package float_multiplier_pkg at 1( 0) + 0 on 602 body;
+  package body float_multiplier_pkg at 48( 2245) + 0 on 603;
+file . ".//float_arithmetic_operations/float_arithmetic_operations_pkg.vhd" "3dbb2852d00fefcc59ee84a70ea88ce711ceef5b" "20220402123329.459":
+  package float_arithmetic_operations_pkg at 1( 0) + 0 on 598 body;
+  package body float_arithmetic_operations_pkg at 27( 947) + 0 on 599;
+file . ".//denormalizer/denormalizer_pkg.vhd" "0ec24880ccd26268a95125619e5ebf3f5d3a9626" "20220402123329.288":
+  package denormalizer_pkg at 1( 0) + 0 on 592 body;
+  package body denormalizer_pkg at 25( 1043) + 0 on 593;
+file . ".//float_type_definitions/float_type_definitions_pkg.vhd" "bb82a84abb83116747e92e92f70c2f38f483ea2f" "20220402123329.176":
+  package float_type_definitions_pkg at 1( 0) + 0 on 588 body;
+  package body float_type_definitions_pkg at 68( 2490) + 0 on 589;
+file . ".//normalizer/normalizer_pkg.vhd" "4bf8aacba5734f4706fdb0637055f6ea87f8caaf" "20220402123329.234":
+  package normalizer_pkg at 1( 0) + 0 on 590 body;
+  package body normalizer_pkg at 34( 1484) + 0 on 591;
+file . ".//float_to_real_conversions/float_to_real_conversions_pkg.vhd" "54269b763882114daea112b5af510cf4847b55c4" "20220402123329.402":
+  package float_to_real_conversions_pkg at 1( 0) + 0 on 596 body;
+  package body float_to_real_conversions_pkg at 19( 666) + 0 on 597;
+file . ".//float_adder/float_adder_pkg.vhd" "00c249306230fe6b291fb3990f84cea1ab725e7b" "20220402123329.516":
+  package float_adder_pkg at 1( 0) + 0 on 600 body;
+  package body float_adder_pkg at 40( 1669) + 0 on 601;
+file . ".//float_first_order_filter/float_first_order_filter_pkg.vhd" "379d7087465b2917475daa54f090b39b6477741b" "20220402123329.694":
+  package float_first_order_filter_pkg at 1( 0) + 0 on 606 body;
+  package body float_first_order_filter_pkg at 51( 2191) + 0 on 607;
+file . ".//float_alu/float_alu_pkg.vhd" "8e840b7ca772e17ee90da54f43ada42f9375b917" "20220402123329.633":
+  package float_alu_pkg at 1( 0) + 0 on 604 body;
+  package body float_alu_pkg at 47( 1967) + 0 on 605;
+file . ".//float_to_real_conversions/float_to_real_functions_pkg.vhd" "ef71c6e2f48742951469ab89fc81b5e1f84cc758" "20220402123329.345":
+  package float_to_real_functions_pkg at 1( 0) + 0 on 594 body;
+  package body float_to_real_functions_pkg at 38( 1358) + 0 on 595;

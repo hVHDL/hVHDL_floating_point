@@ -13,11 +13,11 @@ LIBRARY ieee  ;
 library vunit_lib;
     use vunit_lib.run_pkg.all;
 
-entity tb_float_filter is
+entity float_filter_tb is
   generic (runner_cfg : string);
 end;
 
-architecture vunit_simulation of tb_float_filter is
+architecture vunit_simulation of float_filter_tb is
 
     signal simulation_running : boolean;
     signal simulator_clock : std_logic;
@@ -75,10 +75,10 @@ begin
 
             create_adder(adder);
             create_float_multiplier(float_multiplier);
-            create_first_order_filter(first_order_filter, float_multiplier, adder, to_float(0.004));
+            create_first_order_filter(first_order_filter, float_multiplier, adder, to_float(0.04));
 
             create_float_alu(float_alu);
-            create_first_order_filter(alu_filter, float_alu, to_float(0.004));
+            create_first_order_filter(alu_filter, float_alu, to_float(0.04));
 
             if simulation_counter mod 100 = 0 then
                 u <= -u;
@@ -86,13 +86,13 @@ begin
 
 
             if simulation_counter = 0 then
-                request_float_filter(first_order_filter, to_float(-1.0));
-                request_float_filter(alu_filter, to_float(-1.0));
+                request_float_filter(first_order_filter, to_float(1.1));
+                request_float_filter(alu_filter, to_float(1.1));
             end if;
 
             if float_filter_is_ready(first_order_filter) then
-                request_float_filter(first_order_filter, to_float(-1.0));
-                request_float_filter(alu_filter, to_float(-1.0));
+                request_float_filter(first_order_filter, to_float(1.1));
+                request_float_filter(alu_filter, to_float(1.1));
             end if;
 
 

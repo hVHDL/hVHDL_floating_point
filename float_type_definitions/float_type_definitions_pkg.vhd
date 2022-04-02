@@ -3,10 +3,12 @@ library ieee;
     use ieee.numeric_std.all;
     use ieee.math_real.all;
 
+    use work.float_word_length_pkg;
+
 package float_type_definitions_pkg is
 
-    constant mantissa_length : integer := 16;
-    constant exponent_length : integer := 8;
+    constant mantissa_length : integer := float_word_length_pkg.mantissa_bits;
+    constant exponent_length : integer := float_word_length_pkg.exponent_bits;
 
     constant mantissa_high : integer := mantissa_length - 1;
     constant exponent_high : integer := exponent_length - 1;
