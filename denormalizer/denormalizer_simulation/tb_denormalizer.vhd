@@ -10,11 +10,11 @@ LIBRARY ieee  ;
 library vunit_lib;
     use vunit_lib.run_pkg.all;
 
-entity tb_denormalizer is
+entity denormalizer_tb is
   generic (runner_cfg : string);
 end;
 
-architecture vunit_simulation of tb_denormalizer is
+architecture vunit_simulation of denormalizer_tb is
 
     signal simulation_running : boolean;
     signal simulator_clock : std_logic;
@@ -34,6 +34,8 @@ architecture vunit_simulation of tb_denormalizer is
     signal denormalizer_array : float_array(0 to 2) := (zero, zero, zero);
     signal target_scale : integer range 0 to mantissa_length := 0;
     signal shift_register : std_logic_vector(2 downto 0) := (others => '0');
+
+    signal denormalizer : denormalizer_record := init_denormalizer;
 
 begin
 
@@ -67,11 +69,16 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
+            create_denormalizer(denormalizer);
+
             shift_register <= shift_register(shift_register'left-1 downto 0) & '0';
-            denormalizer_array(1) <= denormalize_float(denormalizer_array(0), target_scale);
-            denormalizer_array(2) <= denormalize_float(denormalizer_array(1), target_scale);
+            denormalizer_array(1) <= denormalize_float(denormalizer_array(0), target_scale, mantissa_length/2);
+            denormalizer_array(2) <= denormalize_float(denormalizer_array(1), target_scale, mantissa_length/2);
 
             CASE simulation_counter is
+                -- WHEN 0 => request_denormalizer(denormalizer, (to_float(1.5)), 5);
+                -- WHEN 1 => request_denormalizer(denormalizer, (to_float(1.5)), 6);
+                -- WHEN 2 => request_denormalizer(denormalizer, (to_float(1.5)), 7); 
                 WHEN 3 => 
                     shift_register(0) <= '1';
                     if get_exponent(larger) < get_exponent(smaller) then
@@ -83,6 +90,9 @@ begin
                     end if;
                 WHEN others => -- do nothing
             end CASE;
+
+            -- if denormalizer_is_ready(denormalizer) then
+
 
         end if; -- rising_edge
     end process stimulus;	
