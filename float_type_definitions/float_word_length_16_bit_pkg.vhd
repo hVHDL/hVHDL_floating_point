@@ -6,7 +6,7 @@ library ieee;
 
 package float_word_length_pkg is
 
-    constant mantissa_bits : integer := 24;
+    constant mantissa_bits : integer := 16;
     constant exponent_bits : integer := 8;
 
 end package float_word_length_pkg;
