@@ -22,6 +22,7 @@ package float_alu_pkg is
     procedure create_float_alu (
         signal float_alu_object : inout float_alu_record);
 ------------------------------------------------------------------------
+------------------------------------------------------------------------
     procedure multiply (
         signal alu_object : inout float_alu_record;
         left, right : float_record);
@@ -32,6 +33,7 @@ package float_alu_pkg is
     function get_multiplier_result ( alu_object : float_alu_record)
         return float_record;
 ------------------------------------------------------------------------
+------------------------------------------------------------------------
     procedure add (
         signal alu_object : inout float_alu_record;
         left, right : float_record);
@@ -41,6 +43,7 @@ package float_alu_pkg is
 ------------------------------------------------------------------------
     function get_add_result ( alu_object : float_alu_record)
         return float_record;
+------------------------------------------------------------------------
 ------------------------------------------------------------------------
 end package float_alu_pkg;
 

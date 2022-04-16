@@ -7,6 +7,7 @@ library ieee;
 package denormalizer_pkg is
 ------------------------------------------------------------------------
     type intarray is array (integer range 1 downto 0) of integer range -2**exponent_high to 2**exponent_high-1;
+    constant init_intarray : intarray := (0,0);
 ------------------------------------------------------------------------
     type denormalizer_record is record
         denormalizer_pipeline : float_array(2 downto 0);
@@ -14,7 +15,7 @@ package denormalizer_pkg is
         shift_register : std_logic_vector(2 downto 0);
     end record;
 
-    constant init_denormalizer : denormalizer_record := ((zero,zero,zero),(0,0), (others => '0'));
+    constant init_denormalizer : denormalizer_record := ((zero,zero,zero),init_intarray, (others => '0'));
 ------------------------------------------------------------------------
     procedure create_denormalizer (
         signal denormalizer_object : inout denormalizer_record);
@@ -26,6 +27,9 @@ package denormalizer_pkg is
 ------------------------------------------------------------------------
     function denormalizer_is_ready (denormalizer_object : denormalizer_record)
         return boolean;
+------------------------------------------------------------------------
+    function get_denormalized_result ( denormalizer_object : denormalizer_record)
+        return float_record;
 ------------------------------------------------------------------------
 end package denormalizer_pkg;
 
@@ -42,6 +46,7 @@ package body denormalizer_pkg is
     begin
         denormalizer_pipeline(1) <= denormalize_float(denormalizer_pipeline(0), target_scale_pipeline(0), mantissa_length/2);
         denormalizer_pipeline(2) <= denormalize_float(denormalizer_pipeline(1), target_scale_pipeline(1), mantissa_length/2);
+        target_scale_pipeline <= target_scale_pipeline(target_scale_pipeline'left-1 downto 0) & target_scale_pipeline(0);
         shift_register <= shift_register(shift_register'left-1 downto 0) & '0';
 
     end procedure;
