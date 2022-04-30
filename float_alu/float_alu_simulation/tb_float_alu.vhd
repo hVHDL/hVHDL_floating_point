@@ -75,7 +75,6 @@ begin
                 test_multiplier <= to_real(get_multiplier_result(float_alu));
             end if;
 
-
         end if; -- rising_edge
     end process stimulus;	
 ------------------------------------------------------------------------
