@@ -11,12 +11,15 @@ package float_alu_pkg is
 ------------------------------------------------------------------------
     type float_alu_record is record
         float_adder      : float_adder_record      ;
+        adder_normalizer : normalizer_record  ;
+
         float_multiplier : float_multiplier_record ;
-        float_normalizer : normalizer_record       ;
-    end record;
+        multiplier_normalizer : normalizer_record  ;
+    end record                                     ;
 
     constant init_float_alu : float_alu_record := (
             init_float_adder      ,
+            init_normalizer       ,
             init_float_multiplier ,
             init_normalizer);
 
@@ -58,15 +61,21 @@ package body float_alu_pkg is
     is
         alias float_multiplier is float_alu_object.float_multiplier;
         alias float_adder is float_alu_object.float_adder;
-        alias float_normalizer is float_alu_object.float_normalizer;
+        alias multiplier_normalizer is float_alu_object.multiplier_normalizer;
+        alias adder_normalizer is float_alu_object.adder_normalizer;
     begin
 
         create_adder(float_adder);
         create_float_multiplier(float_multiplier);
-        create_normalizer(float_normalizer);
+        create_normalizer(multiplier_normalizer);
+        create_normalizer(adder_normalizer);
 
         if float_multiplier_is_ready(float_multiplier) then
-            request_normalizer(float_normalizer, get_multiplier_result(float_multiplier));
+            request_normalizer(multiplier_normalizer, get_multiplier_result(float_multiplier));
+        end if;
+
+        if float_multiplier_is_ready(float_multiplier) then
+            request_normalizer(multiplier_normalizer, get_multiplier_result(float_multiplier));
         end if;
 
     end procedure;
@@ -91,7 +100,7 @@ package body float_alu_pkg is
     return boolean
     is
     begin
-        return normalizer_is_ready(alu_object.float_normalizer);
+        return normalizer_is_ready(alu_object.multiplier_normalizer);
     end multiplier_is_ready;
 ------------------------------------------------------------------------
     function get_multiplier_result
@@ -101,7 +110,7 @@ package body float_alu_pkg is
     return float_record
     is
     begin
-        return get_normalizer_result(alu_object.float_normalizer);
+        return get_normalizer_result(alu_object.multiplier_normalizer);
     end get_multiplier_result;
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
