@@ -7,11 +7,13 @@ library ieee;
     use work.float_multiplier_pkg.all;
     use work.normalizer_pkg.all;
     use work.denormalizer_pkg.all;
+    use work.float_to_real_conversions_pkg.all;
 
 package float_alu_pkg is
 ------------------------------------------------------------------------
     type float_alu_record is record
         adder_denormalizer : denormalizer_record ;
+        float_left         : float_record;
         float_adder        : float_adder_record  ;
         adder_normalizer   : normalizer_record   ;
 
@@ -22,6 +24,7 @@ package float_alu_pkg is
 
     constant init_float_alu : float_alu_record := (
             init_denormalizer     ,
+            to_float(0.0)         ,
             init_float_adder      ,
             init_normalizer       ,
             init_float_multiplier ,
@@ -67,16 +70,23 @@ package body float_alu_pkg is
         alias float_adder is float_alu_object.float_adder;
         alias multiplier_normalizer is float_alu_object.multiplier_normalizer;
         alias adder_normalizer is float_alu_object.adder_normalizer;
+        alias adder_denormalizer is float_alu_object.adder_denormalizer;
+        alias left is float_alu_object.float_left;
     begin
 
         create_denormalizer(float_alu_object.adder_denormalizer);
         create_adder(float_alu_object.float_adder);
-        create_float_multiplier(float_alu_object.float_multiplier);
-        create_normalizer(float_alu_object.multiplier_normalizer);
         create_normalizer(float_alu_object.adder_normalizer);
 
-        if float_multiplier_is_ready(float_multiplier) then
-            request_normalizer(multiplier_normalizer, get_multiplier_result(float_multiplier));
+        create_float_multiplier(float_alu_object.float_multiplier);
+        create_normalizer(float_alu_object.multiplier_normalizer);
+
+        if denormalizer_is_ready(adder_denormalizer) then
+            request_add(float_adder, left, get_denormalized_result(adder_denormalizer));
+        end if; 
+
+        if adder_is_ready(float_adder) then
+            request_normalizer(adder_normalizer, get_result(float_adder));
         end if;
 
         if float_multiplier_is_ready(float_multiplier) then
@@ -124,8 +134,17 @@ package body float_alu_pkg is
         signal alu_object : inout float_alu_record;
         left, right : float_record
     ) is
+        variable left_mantissa, right_mantissa : integer;
     begin
-        request_add(alu_object.float_adder, left, right);
+        left_mantissa := get_mantissa(left);
+        right_mantissa := get_mantissa(right);
+        if left_mantissa > right_mantissa then
+            request_denormalizer(alu_object.adder_denormalizer, left, right_mantissa);
+            alu_object.float_left <= right;
+        else
+            request_denormalizer(alu_object.adder_denormalizer, right, left_mantissa);
+            alu_object.float_left <= left;
+        end if;
     end add;
 ------------------------------------------------------------------------
     function add_is_ready
