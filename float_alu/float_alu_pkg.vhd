@@ -6,18 +6,22 @@ library ieee;
     use work.float_adder_pkg.all;
     use work.float_multiplier_pkg.all;
     use work.normalizer_pkg.all;
+    use work.denormalizer_pkg.all;
 
 package float_alu_pkg is
 ------------------------------------------------------------------------
     type float_alu_record is record
-        float_adder      : float_adder_record      ;
-        adder_normalizer : normalizer_record  ;
+        adder_denormalizer : denormalizer_record ;
+        float_adder        : float_adder_record  ;
+        adder_normalizer   : normalizer_record   ;
 
         float_multiplier : float_multiplier_record ;
         multiplier_normalizer : normalizer_record  ;
-    end record                                     ;
+
+    end record;
 
     constant init_float_alu : float_alu_record := (
+            init_denormalizer     ,
             init_float_adder      ,
             init_normalizer       ,
             init_float_multiplier ,
@@ -65,10 +69,11 @@ package body float_alu_pkg is
         alias adder_normalizer is float_alu_object.adder_normalizer;
     begin
 
-        create_adder(float_adder);
-        create_float_multiplier(float_multiplier);
-        create_normalizer(multiplier_normalizer);
-        create_normalizer(adder_normalizer);
+        create_denormalizer(float_alu_object.adder_denormalizer);
+        create_adder(float_alu_object.float_adder);
+        create_float_multiplier(float_alu_object.float_multiplier);
+        create_normalizer(float_alu_object.multiplier_normalizer);
+        create_normalizer(float_alu_object.adder_normalizer);
 
         if float_multiplier_is_ready(float_multiplier) then
             request_normalizer(multiplier_normalizer, get_multiplier_result(float_multiplier));
