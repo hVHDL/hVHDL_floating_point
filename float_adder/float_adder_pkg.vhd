@@ -4,20 +4,23 @@ library ieee;
 
     use work.float_type_definitions_pkg.all;
     use work.float_arithmetic_operations_pkg.all;
+    use work.denormalizer_pkg.all;
 
 package float_adder_pkg is
 ------------------------------------------------------------------------
     type float_adder_record is record
         larger        : float_record;
         smaller       : float_record;
-        larger_p1     : float_record;
-        smaller_p2    : float_record;
         result        : float_record;
         adder_counter : integer range 0 to 7;
         adder_is_done : boolean;
+
+        denormalizer : denormalizer_record;
+        test_add : float_record;
+        denormalized_add_is_ready : boolean;
     end record;
 
-    constant init_adder : float_adder_record := (zero,zero,zero,zero, zero, 7, false);
+    constant init_adder : float_adder_record := (zero,zero,zero, 7, false, init_denormalizer, zero, false);
     constant init_float_adder : float_adder_record := init_adder;
 ------------------------------------------------------------------------
     procedure create_adder (
@@ -50,7 +53,14 @@ package body float_adder_pkg is
         alias result        is adder_object.result        ;
         alias adder_counter is adder_object.adder_counter ;
         alias adder_is_done is adder_object.adder_is_done;
+        alias test_add is adder_object.test_add;
+        alias denormalizer is adder_object.denormalizer;
+        alias denormalized_add_is_ready is adder_object.denormalized_add_is_ready;
     begin
+        create_denormalizer(adder_object.denormalizer);
+        test_add <= (denormalizer.feedthrough_pipeline(2) + denormalizer.denormalizer_pipeline(2));
+        denormalized_add_is_ready <= denormalizer_is_ready(denormalizer);
+
         adder_is_done <= false;
         CASE adder_counter is
             WHEN 0 => 
