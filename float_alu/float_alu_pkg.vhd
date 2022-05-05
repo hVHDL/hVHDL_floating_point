@@ -81,9 +81,9 @@ package body float_alu_pkg is
         create_float_multiplier(float_alu_object.float_multiplier);
         create_normalizer(float_alu_object.multiplier_normalizer);
 
-        if denormalizer_is_ready(adder_denormalizer) then
-            request_add(float_adder, left, get_denormalized_result(adder_denormalizer));
-        end if; 
+        -- if denormalizer_is_ready(adder_denormalizer) then
+        --     request_add(float_adder, left, get_denormalized_result(adder_denormalizer));
+        -- end if; 
 
         if adder_is_ready(float_adder) then
             request_normalizer(adder_normalizer, get_result(float_adder));
@@ -134,17 +134,8 @@ package body float_alu_pkg is
         signal alu_object : inout float_alu_record;
         left, right : float_record
     ) is
-        variable left_mantissa, right_mantissa : integer;
     begin
-        left_mantissa := get_mantissa(left);
-        right_mantissa := get_mantissa(right);
-        if left_mantissa > right_mantissa then
-            request_denormalizer(alu_object.adder_denormalizer, left, right_mantissa);
-            alu_object.float_left <= right;
-        else
-            request_denormalizer(alu_object.adder_denormalizer, right, left_mantissa);
-            alu_object.float_left <= left;
-        end if;
+        request_add(alu_object.float_adder, left, right);
     end add;
 ------------------------------------------------------------------------
     function add_is_ready
@@ -154,7 +145,7 @@ package body float_alu_pkg is
     return boolean
     is
     begin
-        return adder_is_ready(alu_object.float_adder);
+        return normalizer_is_ready(alu_object.adder_normalizer);
     end add_is_ready;
 ------------------------------------------------------------------------
     function get_add_result
@@ -164,7 +155,7 @@ package body float_alu_pkg is
     return float_record
     is
     begin
-        return get_result(alu_object.float_adder);
+        return get_normalizer_result(alu_object.adder_normalizer);
     end get_add_result;
 ------------------------------------------------------------------------
 end package body float_alu_pkg;

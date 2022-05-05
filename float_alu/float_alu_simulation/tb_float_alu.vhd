@@ -28,6 +28,8 @@ architecture vunit_simulation of float_alu_tb is
 
     signal float_alu : float_alu_record := init_float_alu;
     signal test_multiplier : real := 0.0;
+    signal add_result : float_record := to_float(0.0);
+    signal add_result_real : real := 0.0;
 
 begin
 
@@ -64,6 +66,7 @@ begin
             create_float_alu(float_alu);
             CASE simulation_counter is
                 WHEN 3 => multiply(float_alu, to_float(5.0), to_float(5.0));
+                          add(float_alu, to_float(0.0), to_float(1.0));
                 WHEN 4 => multiply(float_alu, to_float(6.0), to_float(5.0));
                 WHEN 5 => multiply(float_alu, to_float(7.0), to_float(5.0));
                 WHEN 6 => multiply(float_alu, to_float(8.0), to_float(-8.0));
@@ -73,6 +76,11 @@ begin
 
             if multiplier_is_ready(float_alu) then
                 test_multiplier <= to_real(get_multiplier_result(float_alu));
+            end if;
+
+            if add_is_ready(float_alu) then
+                add_result      <= get_add_result(float_alu);
+                add_result_real <= to_real(get_add_result(float_alu));
             end if;
 
         end if; -- rising_edge

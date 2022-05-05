@@ -8,14 +8,16 @@ library ieee;
 package float_adder_pkg is
 ------------------------------------------------------------------------
     type float_adder_record is record
-        larger  : float_record;
-        smaller : float_record;
-        result  : float_record;
+        larger        : float_record;
+        smaller       : float_record;
+        larger_p1     : float_record;
+        smaller_p2    : float_record;
+        result        : float_record;
         adder_counter : integer range 0 to 7;
         adder_is_done : boolean;
     end record;
 
-    constant init_adder : float_adder_record := (zero,zero,zero, 7, false);
+    constant init_adder : float_adder_record := (zero,zero,zero,zero, zero, 7, false);
     constant init_float_adder : float_adder_record := init_adder;
 ------------------------------------------------------------------------
     procedure create_adder (
