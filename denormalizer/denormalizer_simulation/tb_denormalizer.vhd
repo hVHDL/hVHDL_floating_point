@@ -6,6 +6,7 @@ LIBRARY ieee  ;
     use work.float_type_definitions_pkg.all;
     use work.denormalizer_pkg.all;
     use work.float_to_real_conversions_pkg.all;
+    use work.float_arithmetic_operations_pkg.all;
 
 library vunit_lib;
     use vunit_lib.run_pkg.all;
@@ -34,6 +35,7 @@ architecture vunit_simulation of denormalizer_tb is
     signal denormalizer : denormalizer_record := init_denormalizer;
     signal denormalization_result : float_record := to_float(0.0);
 
+    signal test_add : real := 0.0;
 
 begin
 
@@ -70,16 +72,22 @@ begin
             create_denormalizer(denormalizer);
 
             CASE simulation_counter is
-                WHEN 0 => request_denormalizer(denormalizer, (to_float(1.5)), 5);
-                WHEN 1 => request_denormalizer(denormalizer, (to_float(1.5)), 6);
-                WHEN 2 => request_denormalizer(denormalizer, (to_float(1.5)), 7); 
+                -- WHEN 0 => request_denormalizer(denormalizer, (to_float(1.5)), 5);
+                -- WHEN 1 => request_denormalizer(denormalizer, (to_float(1.5)), 6);
+                -- WHEN 2 => request_denormalizer(denormalizer, (to_float(1.5)), 7); 
+                
+                WHEN 0 => request_scaling(denormalizer , to_float(1.5)    , to_float(7.5));
+                WHEN 1 => request_scaling(denormalizer , to_float(1.5)    , to_float(8.5));
+                WHEN 2 => request_scaling(denormalizer , to_float(-100.5) , to_float(-9.5));
+                WHEN 3 => request_scaling(denormalizer , to_float(0.0)    , to_float(-9.5));
                 WHEN others => -- do nothing
             end CASE;
 
             if denormalizer_is_ready(denormalizer) then
                 denormalization_result <= get_denormalized_result(denormalizer);
             end if;
-
+            
+            test_add <= to_real(denormalizer.feedthrough_pipeline(2) + denormalizer.denormalizer_pipeline(2));
 
         end if; -- rising_edge
     end process stimulus;	

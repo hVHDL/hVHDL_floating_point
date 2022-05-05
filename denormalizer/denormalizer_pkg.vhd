@@ -26,6 +26,10 @@ package denormalizer_pkg is
         denormalized_number : in float_record;
         target_scale : in integer);
 ------------------------------------------------------------------------
+    procedure request_scaling (
+        signal denormalizer_object : out denormalizer_record;
+        left,right : in float_record);
+------------------------------------------------------------------------
     function denormalizer_is_ready (denormalizer_object : denormalizer_record)
         return boolean;
 ------------------------------------------------------------------------

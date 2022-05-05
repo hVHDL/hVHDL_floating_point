@@ -12,7 +12,6 @@ library ieee;
 package float_alu_pkg is
 ------------------------------------------------------------------------
     type float_alu_record is record
-        adder_denormalizer : denormalizer_record ;
         float_left         : float_record;
         float_adder        : float_adder_record  ;
         adder_normalizer   : normalizer_record   ;
@@ -23,7 +22,6 @@ package float_alu_pkg is
     end record;
 
     constant init_float_alu : float_alu_record := (
-            init_denormalizer     ,
             to_float(0.0)         ,
             init_float_adder      ,
             init_normalizer       ,
@@ -70,20 +68,14 @@ package body float_alu_pkg is
         alias float_adder is float_alu_object.float_adder;
         alias multiplier_normalizer is float_alu_object.multiplier_normalizer;
         alias adder_normalizer is float_alu_object.adder_normalizer;
-        alias adder_denormalizer is float_alu_object.adder_denormalizer;
         alias left is float_alu_object.float_left;
     begin
 
-        create_denormalizer(float_alu_object.adder_denormalizer);
         create_adder(float_alu_object.float_adder);
         create_normalizer(float_alu_object.adder_normalizer);
 
         create_float_multiplier(float_alu_object.float_multiplier);
         create_normalizer(float_alu_object.multiplier_normalizer);
-
-        -- if denormalizer_is_ready(adder_denormalizer) then
-        --     request_add(float_adder, left, get_denormalized_result(adder_denormalizer));
-        -- end if; 
 
         if adder_is_ready(float_adder) then
             request_normalizer(adder_normalizer, get_result(float_adder));
