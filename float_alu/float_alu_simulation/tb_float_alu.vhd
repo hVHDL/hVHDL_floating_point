@@ -66,11 +66,19 @@ begin
             create_float_alu(float_alu);
             CASE simulation_counter is
                 WHEN 3 => multiply(float_alu, to_float(5.0), to_float(5.0));
-                          add(float_alu, to_float(0.0), to_float(1.0));
                 WHEN 4 => multiply(float_alu, to_float(6.0), to_float(5.0));
                 WHEN 5 => multiply(float_alu, to_float(7.0), to_float(5.0));
                 WHEN 6 => multiply(float_alu, to_float(8.0), to_float(-8.0));
                 WHEN 7 => multiply(float_alu, to_float(9.0), to_float(-9.0));
+                WHEN others => -- do nothing
+            end CASE;
+
+            CASE simulation_counter is
+                WHEN 3 => add(float_alu, to_float(5.0), to_float(5.0));
+                WHEN 4 => add(float_alu, to_float(6.0), to_float(5.0));
+                WHEN 5 => add(float_alu, to_float(7.0), to_float(5.0));
+                WHEN 6 => add(float_alu, to_float(8.1), to_float(-8.0));
+                WHEN 7 => add(float_alu, to_float(9.0), to_float(-9.1));
                 WHEN others => -- do nothing
             end CASE;
 

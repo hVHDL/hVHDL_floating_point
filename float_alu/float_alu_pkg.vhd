@@ -47,6 +47,10 @@ package float_alu_pkg is
     procedure add (
         signal alu_object : inout float_alu_record;
         left, right : float_record);
+
+    procedure subtract (
+        signal alu_object : inout float_alu_record;
+        left, right : float_record);
 ------------------------------------------------------------------------
     function add_is_ready ( alu_object : float_alu_record)
         return boolean;
@@ -64,11 +68,6 @@ package body float_alu_pkg is
         signal float_alu_object : inout float_alu_record
     ) 
     is
-        alias float_multiplier is float_alu_object.float_multiplier;
-        alias float_adder is float_alu_object.float_adder;
-        alias multiplier_normalizer is float_alu_object.multiplier_normalizer;
-        alias adder_normalizer is float_alu_object.adder_normalizer;
-        alias left is float_alu_object.float_left;
     begin
 
         create_adder(float_alu_object.float_adder);
@@ -77,12 +76,12 @@ package body float_alu_pkg is
         create_float_multiplier(float_alu_object.float_multiplier);
         create_normalizer(float_alu_object.multiplier_normalizer);
 
-        if adder_is_ready(float_adder) then
-            request_normalizer(adder_normalizer, get_result(float_adder));
+        if adder_is_ready(float_alu_object.float_adder) then
+            request_normalizer(float_alu_object.adder_normalizer, get_result(float_alu_object.float_adder));
         end if;
 
-        if float_multiplier_is_ready(float_multiplier) then
-            request_normalizer(multiplier_normalizer, get_multiplier_result(float_multiplier));
+        if float_multiplier_is_ready(float_alu_object.float_multiplier) then
+            request_normalizer(float_alu_object.multiplier_normalizer, get_multiplier_result(float_alu_object.float_multiplier));
         end if;
 
     end procedure;
@@ -129,6 +128,15 @@ package body float_alu_pkg is
     begin
         request_add(alu_object.float_adder, left, right);
     end add;
+------------------------------------------------------------------------
+    procedure subtract
+    (
+        signal alu_object : inout float_alu_record;
+        left, right : float_record
+    ) is
+    begin
+        request_subtraction(alu_object.float_adder, left, right);
+    end subtract;
 ------------------------------------------------------------------------
     function add_is_ready
     (

@@ -29,11 +29,6 @@ architecture vunit_simulation of float_filter_tb is
     -----------------------------------
     -- simulation specific signals ----
 
-
-    signal first_order_filter : first_order_filter_record := init_first_order_filter;
-    signal adder : float_adder_record := init_adder;
-    signal float_multiplier : float_multiplier_record := init_float_multiplier;
-    signal filter_out : real := 0.0;
     signal u : float_record := to_float(1.0);
 
     signal float_alu : float_alu_record := init_float_alu;
@@ -73,10 +68,6 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
-            create_adder(adder);
-            create_float_multiplier(float_multiplier);
-            create_first_order_filter(first_order_filter, float_multiplier, adder, to_float(0.04));
-
             create_float_alu(float_alu);
             create_first_order_filter(alu_filter, float_alu, to_float(0.04));
 
@@ -86,18 +77,15 @@ begin
 
 
             if simulation_counter = 0 then
-                request_float_filter(first_order_filter, to_float(8.0));
                 request_float_filter(alu_filter, to_float(8.0));
             end if;
 
-            if float_filter_is_ready(first_order_filter) then
-                request_float_filter(first_order_filter, to_float(8.0));
+            if float_filter_is_ready(alu_filter) then
                 request_float_filter(alu_filter, to_float(8.0));
             end if;
 
 
-            filter_out <= to_real(get_filter_output(first_order_filter));
-            alu_filter_out <= to_real(get_filter_output(first_order_filter));
+            alu_filter_out <= to_real(get_filter_output(alu_filter));
 
         end if; -- rising_edge
     end process stimulus;	
