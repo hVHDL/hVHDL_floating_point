@@ -5,8 +5,6 @@ library ieee;
 
     use work.float_type_definitions_pkg.all;
     use work.float_to_real_conversions_pkg.all;
-    use work.float_multiplier_pkg.all;
-    use work.float_adder_pkg.all;
     use work.float_alu_pkg.all;
 
 package float_first_order_filter_pkg is
@@ -28,12 +26,6 @@ package float_first_order_filter_pkg is
         signal alu_object                : inout float_alu_record;
         filter_gain                      : in float_record);
 
-    -- remove this when no longer needed
-    procedure create_first_order_filter (
-        signal first_order_filter_object : inout first_order_filter_record;
-        signal float_multiplier          : inout float_multiplier_record;
-        signal float_adder               : inout float_adder_record;
-        filter_gain : in float_record);
 ------------------------------------------------------------------------
     procedure request_float_filter (
         signal first_order_filter_object : inout first_order_filter_record;
@@ -54,8 +46,7 @@ package body float_first_order_filter_pkg is
     procedure create_first_order_filter
     (
         signal first_order_filter_object : inout first_order_filter_record;
-        signal float_multiplier          : inout float_multiplier_record;
-        signal float_adder               : inout float_adder_record;
+        signal alu_object                : inout float_alu_record;
         filter_gain                      : in float_record
         
     ) is
@@ -68,39 +59,28 @@ package body float_first_order_filter_pkg is
         filter_is_ready <= false;
         CASE filter_counter is
             WHEN 0 => 
-                request_subtraction(float_adder, u, y);
+                subtract(alu_object, u, y);
                 filter_counter <= filter_counter + 1;
             WHEN 1 =>
-                if adder_is_ready(float_adder) then
-                    request_float_multiplier(float_multiplier  , get_result(float_adder) , filter_gain);
+                if add_is_ready(alu_object) then
+                    multiply(alu_object  , get_add_result(alu_object) , filter_gain);
                     filter_counter <= filter_counter + 1;
                 end if;
 
             WHEN 2 =>
-                if float_multiplier_is_ready(float_multiplier) then
-                    request_add(float_adder, get_multiplier_result(float_multiplier), y);
+                if multiplier_is_ready(alu_object) then
+                    add(alu_object, get_multiplier_result(alu_object), y);
                     filter_counter <= filter_counter + 1;
                 end if;
             WHEN 3 => 
-                if adder_is_ready(float_adder) then
+                if add_is_ready(alu_object) then
                     filter_is_ready <= true;
-                    y <= normalize(get_result(float_adder));
+                    y <= get_add_result(alu_object);
                     filter_counter <= filter_counter + 1;
                 end if;
             WHEN others =>  -- filter is ready
         end CASE;
     end create_first_order_filter;
-------------------------------------------------------------------------
-    procedure create_first_order_filter
-    (
-        signal first_order_filter_object : inout first_order_filter_record;
-        signal alu_object                : inout float_alu_record;
-        filter_gain                      : in float_record
-    ) is
-    begin
-        create_first_order_filter(first_order_filter_object, alu_object.float_multiplier, alu_object.float_adder, filter_gain);
-    end create_first_order_filter;
-
 ------------------------------------------------------------------------
     procedure request_float_filter
     (

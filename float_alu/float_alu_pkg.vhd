@@ -126,7 +126,7 @@ package body float_alu_pkg is
         left, right : float_record
     ) is
     begin
-        request_add(alu_object.float_adder, left, right);
+        pipelined_add(alu_object.float_adder, left, right);
     end add;
 ------------------------------------------------------------------------
     procedure subtract
