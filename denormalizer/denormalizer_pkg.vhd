@@ -75,7 +75,6 @@ package body denormalizer_pkg is
     ) is
     begin
         denormalizer_object.denormalizer_pipeline(0) <= denormalized_number;
-        denormalizer_object.denormalizer_pipeline(0) <= denormalized_number;
         denormalizer_object.target_scale_pipeline(0) <= target_scale;
         denormalizer_object.shift_register(0) <= '1';
         
