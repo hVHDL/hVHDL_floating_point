@@ -29,7 +29,7 @@ package float_first_order_filter_pkg is
 ------------------------------------------------------------------------
     procedure request_float_filter (
         signal first_order_filter_object : inout first_order_filter_record;
-        filter_data : float_record);
+        filter_data : in float_record);
 
 ------------------------------------------------------------------------
     function float_filter_is_ready ( first_order_filter_object : first_order_filter_record)
@@ -85,7 +85,7 @@ package body float_first_order_filter_pkg is
     procedure request_float_filter
     (
         signal first_order_filter_object : inout first_order_filter_record;
-        filter_data : float_record
+        filter_data : in float_record
     ) is
     begin
 
