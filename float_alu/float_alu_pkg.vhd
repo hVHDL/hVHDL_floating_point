@@ -36,6 +36,11 @@ package float_alu_pkg is
     procedure multiply (
         signal alu_object : inout float_alu_record;
         left, right : float_record);
+
+    procedure multiply_and_increment_counter (
+        signal alu_object : inout float_alu_record;
+        signal counter_to_be_incremented : inout integer;
+        left, right : float_record);
 ------------------------------------------------------------------------
     function multiplier_is_ready ( alu_object : float_alu_record)
         return boolean;
@@ -48,8 +53,19 @@ package float_alu_pkg is
         signal alu_object : inout float_alu_record;
         left, right : float_record);
 
+    procedure add_and_increment_counter (
+        signal alu_object : inout float_alu_record;
+        signal counter_to_be_incremented : inout integer;
+        left, right : float_record);
+
     procedure subtract (
         signal alu_object : inout float_alu_record;
+        left, right : float_record);
+
+    procedure subtract_and_increment_counter
+    (
+        signal alu_object : inout float_alu_record;
+        signal counter_to_be_incremented : inout integer;
         left, right : float_record);
 ------------------------------------------------------------------------
     function add_is_ready ( alu_object : float_alu_record)
@@ -98,6 +114,23 @@ package body float_alu_pkg is
             alu_object.float_multiplier,
             left, right);
     end multiply;
+
+    procedure multiply_and_increment_counter
+    (
+        signal alu_object : inout float_alu_record;
+        signal counter_to_be_incremented : inout integer;
+        left, right : float_record
+    ) is
+    begin
+
+        counter_to_be_incremented <= counter_to_be_incremented + 1;
+
+        request_float_multiplier(
+            alu_object.float_multiplier,
+            left, right);
+
+    end multiply_and_increment_counter;
+------------------------------------------------------------------------
 ------------------------------------------------------------------------
     function multiplier_is_ready
     (
@@ -128,6 +161,17 @@ package body float_alu_pkg is
     begin
         pipelined_add(alu_object.float_adder, left, right);
     end add;
+
+    procedure add_and_increment_counter
+    (
+        signal alu_object : inout float_alu_record;
+        signal counter_to_be_incremented : inout integer;
+        left, right : float_record
+    ) is
+    begin
+        counter_to_be_incremented <= counter_to_be_incremented + 1;
+        pipelined_add(alu_object.float_adder, left, right);
+    end add_and_increment_counter;
 ------------------------------------------------------------------------
     procedure subtract
     (
@@ -137,6 +181,17 @@ package body float_alu_pkg is
     begin
         pipelined_add(alu_object.float_adder, left, -right);
     end subtract;
+
+    procedure subtract_and_increment_counter
+    (
+        signal alu_object : inout float_alu_record;
+        signal counter_to_be_incremented : inout integer;
+        left, right : float_record
+    ) is
+    begin
+        counter_to_be_incremented <= counter_to_be_incremented + 1;
+        pipelined_add(alu_object.float_adder, left, -right);
+    end subtract_and_increment_counter;
 ------------------------------------------------------------------------
     function add_is_ready
     (
