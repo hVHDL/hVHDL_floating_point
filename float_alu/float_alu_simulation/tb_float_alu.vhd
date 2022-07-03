@@ -8,7 +8,7 @@ LIBRARY ieee  ;
     use work.float_to_real_conversions_pkg.all;
 
 library vunit_lib;
-    use vunit_lib.run_pkg.all;
+    context vunit_lib.vunit_context;
 
 entity float_alu_tb is
   generic (runner_cfg : string);
