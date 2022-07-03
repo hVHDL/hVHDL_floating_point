@@ -6,14 +6,16 @@ library ieee;
 
 package normalizer_pkg is
 ------------------------------------------------------------------------
+    constant number_of_normalizer_pipeline_stages : natural := 4;
+
     type normalizer_record is record
-        normalizer_is_requested : std_logic_vector(2 downto 0);
-        normalized_data         : float_array(0 to 2);
+        normalizer_is_requested : std_logic_vector(number_of_normalizer_pipeline_stages downto 0);
+        normalized_data         : float_array(0 to number_of_normalizer_pipeline_stages);
     end record;
 
     subtype float_normalizer_record is normalizer_record;
 
-    constant init_normalizer : normalizer_record := ((others => '0'), (zero, zero, zero));
+    function init_normalizer return normalizer_record;
     constant init_float_normalizer : float_normalizer_record := init_normalizer;
 ------------------------------------------------------------------------
     procedure create_normalizer (
@@ -33,17 +35,35 @@ end package normalizer_pkg;
 
 package body normalizer_pkg is
 ------------------------------------------------------------------------
+    function init_normalizer return normalizer_record
+    is
+        variable init_normalizer_is_requested : std_logic_vector(number_of_normalizer_pipeline_stages downto 0);
+        variable init_normalized_data         : float_array(0 to number_of_normalizer_pipeline_stages);
+    begin
+
+        for i in 0 to number_of_normalizer_pipeline_stages loop
+            init_normalizer_is_requested(i) := '0';
+            init_normalized_data(i) := zero;
+        end loop;
+
+        return (normalizer_is_requested => init_normalizer_is_requested,
+                normalized_data         => init_normalized_data);
+        
+    end init_normalizer;
+------------------------------------------------------------------------
     procedure create_normalizer 
     (
         signal normalizer_object : inout normalizer_record
     ) 
     is
-        alias normalizer_is_requested is normalizer_object.normalizer_is_requested;
-        alias normalized_data         is normalizer_object.normalized_data;
+        alias m is normalizer_object;
     begin
-        normalizer_is_requested <= normalizer_is_requested(normalizer_is_requested'left-1 downto 0) & '0';
-        normalized_data(1)      <= normalize(normalized_data(0), mantissa_high/normalized_data'high);
-        normalized_data(2)      <= normalize(normalized_data(1), mantissa_high/normalized_data'high);
+
+        m.normalizer_is_requested(0) <= '0';
+        for i in 1 to number_of_normalizer_pipeline_stages loop
+            m.normalizer_is_requested(i) <= m.normalizer_is_requested(i-1);
+            m.normalized_data(i)      <= normalize(m.normalized_data(i-1), mantissa_high/number_of_normalizer_pipeline_stages);
+        end loop;
     end procedure;
 
 ------------------------------------------------------------------------

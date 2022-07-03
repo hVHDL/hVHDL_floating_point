@@ -5,18 +5,20 @@ library ieee;
     use work.float_type_definitions_pkg.all;
 
 package denormalizer_pkg is
+
+    constant number_of_denormalizer_pipeline_stages : natural := 4;
 ------------------------------------------------------------------------
-    type intarray is array (integer range 2 downto 0) of integer range -2**exponent_high to 2**exponent_high-1;
-    constant init_intarray : intarray := (0,0,0);
+    type intarray is array (integer range number_of_denormalizer_pipeline_stages downto 0) of integer range -2**exponent_high to 2**exponent_high-1;
 ------------------------------------------------------------------------
     type denormalizer_record is record
-        denormalizer_pipeline : float_array(2 downto 0);
-        feedthrough_pipeline : float_array(2 downto 0);
+        denormalizer_pipeline : float_array(number_of_denormalizer_pipeline_stages downto 0);
+        feedthrough_pipeline  : float_array(number_of_denormalizer_pipeline_stages downto 0);
+        shift_register        : std_logic_vector(number_of_denormalizer_pipeline_stages downto 0);
         target_scale_pipeline : intarray;
-        shift_register : std_logic_vector(2 downto 0);
     end record;
 
-    constant init_denormalizer : denormalizer_record := ((zero,zero,zero), (zero, zero, zero),init_intarray, (others => '0'));
+    function init_denormalizer return denormalizer_record;
+
 ------------------------------------------------------------------------
     procedure create_denormalizer (
         signal denormalizer_object : inout denormalizer_record);
@@ -40,29 +42,44 @@ end package denormalizer_pkg;
 
 package body denormalizer_pkg is
 ------------------------------------------------------------------------
+    function init_denormalizer
+    return denormalizer_record
+    is
+        variable initialized_record : denormalizer_record;
+        variable init_denormalizer_pipeline : float_array(number_of_denormalizer_pipeline_stages downto 0);
+        variable init_feedthrough_pipeline  : float_array(number_of_denormalizer_pipeline_stages downto 0);
+        variable init_shift_register        : std_logic_vector(number_of_denormalizer_pipeline_stages downto 0);
+        variable init_target_scale_pipeline : intarray;
+    begin
+        for i in 0 to number_of_denormalizer_pipeline_stages loop
+            init_denormalizer_pipeline(i) := zero;
+            init_feedthrough_pipeline(i)  := zero;
+            init_target_scale_pipeline(i) := 0;
+            init_shift_register(i)        := '0';
+        end loop;
+        initialized_record := (
+            denormalizer_pipeline => init_denormalizer_pipeline ,
+            feedthrough_pipeline  => init_feedthrough_pipeline  ,
+            shift_register        => init_shift_register        ,
+            target_scale_pipeline => init_target_scale_pipeline);
+        return initialized_record;
+    end init_denormalizer;
+------------------------------------------------------------------------
     procedure create_denormalizer 
     (
         signal denormalizer_object : inout denormalizer_record
     ) 
     is
-        alias denormalizer_pipeline is denormalizer_object.denormalizer_pipeline;
-        alias feedthrough_pipeline is denormalizer_object.feedthrough_pipeline;
-        alias shift_register is denormalizer_object.shift_register;
-        alias target_scale_pipeline is denormalizer_object.target_scale_pipeline;
+        alias m is denormalizer_object;
     begin
 
-        denormalizer_pipeline(1) <= denormalize_float(denormalizer_pipeline(0), target_scale_pipeline(0), mantissa_length/2);
-        denormalizer_pipeline(2) <= denormalize_float(denormalizer_pipeline(1), target_scale_pipeline(1), mantissa_length/2);
-        
-        feedthrough_pipeline(1) <= feedthrough_pipeline(0);
-        feedthrough_pipeline(2) <= feedthrough_pipeline(1);
-
-        target_scale_pipeline(1) <= target_scale_pipeline(0);
-        target_scale_pipeline(2) <= target_scale_pipeline(1);
-
-        shift_register(0) <= '0';
-        shift_register(1) <= shift_register(0);
-        shift_register(2) <= shift_register(1);
+        m.shift_register(0) <= '0';
+        for i in 1 to number_of_denormalizer_pipeline_stages loop
+            m.denormalizer_pipeline(i) <= denormalize_float(m.denormalizer_pipeline(i-1), m.target_scale_pipeline(i-1), mantissa_length/number_of_denormalizer_pipeline_stages);
+            m.feedthrough_pipeline(i)  <= m.feedthrough_pipeline(i-1);
+            m.target_scale_pipeline(i) <= m.target_scale_pipeline(i-1);
+            m.shift_register(i)        <= m.shift_register(i-1);
+        end loop;
 
     end procedure;
 

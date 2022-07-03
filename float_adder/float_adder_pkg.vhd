@@ -55,7 +55,7 @@ package body float_adder_pkg is
         alias adder_is_done is adder_object.adder_is_done;
     begin
         create_denormalizer(adder_object.denormalizer);
-        adder_result <= (denormalizer.feedthrough_pipeline(2) + denormalizer.denormalizer_pipeline(2));
+        adder_result <= (denormalizer.feedthrough_pipeline(number_of_denormalizer_pipeline_stages) + denormalizer.denormalizer_pipeline(number_of_denormalizer_pipeline_stages));
         adder_is_done <= denormalizer_is_ready(denormalizer);
 
     end create_adder;

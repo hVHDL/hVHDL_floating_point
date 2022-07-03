@@ -16,10 +16,11 @@ package float_multiplier_pkg is
         sign                           : std_logic;
         exponent                       : t_exponent;
         mantissa_multiplication_result : unsigned(mantissa_high*2+1 downto 0);
-        shift_register                 : std_logic_vector(2 downto 0);
+        mantissa_multiplication_buffer : unsigned(mantissa_high*2+1 downto 0);
+        shift_register                 : std_logic_vector(3 downto 0);
     end record;
 
-    constant init_float_multiplier : float_multiplier_record := (zero, zero, zero, '0', (others => '0'),(others => '0'), (others => '0'));
+    constant init_float_multiplier : float_multiplier_record := (zero, zero, zero, '0', (others => '0'),(others => '0'), (others => '0'), (others => '0'));
 ------------------------------------------------------------------------
     procedure create_float_multiplier (
         signal float_multiplier_object : inout float_multiplier_record);
@@ -85,6 +86,7 @@ package body float_multiplier_pkg is
     is
         alias shift_register                 is  float_multiplier_object.shift_register;
         alias mantissa_multiplication_result is  float_multiplier_object.mantissa_multiplication_result;
+        alias mantissa_multiplication_buffer is  float_multiplier_object.mantissa_multiplication_buffer;
         alias left                           is  float_multiplier_object.left;
         alias right                          is  float_multiplier_object.right;
         alias result                         is  float_multiplier_object.result;
@@ -96,10 +98,11 @@ package body float_multiplier_pkg is
         sign                           <= left.sign xor right.sign;
         exponent                       <= left.exponent + right.exponent;
         mantissa_multiplication_result <= left.mantissa * right.mantissa;
+        mantissa_multiplication_buffer <= mantissa_multiplication_result;
 
-        result <= normalize((sign     => sign,
+        result <= ((sign     => sign,
                              exponent => exponent,
-                             mantissa => (mantissa_multiplication_result(mantissa_high*2+1 downto mantissa_high+1))
+                             mantissa => (mantissa_multiplication_buffer(mantissa_high*2+1 downto mantissa_high+1))
                             ));
     end procedure;
 

@@ -40,9 +40,9 @@ package body float_to_real_conversions_pkg is
     )
     return real
     is
-        variable mantissa : real;
-        variable sign     : real;
-        variable exponent : real;
+        variable mantissa : real := 0.0;
+        variable sign     : real := 0.0;
+        variable exponent : real := 0.0;
     begin
 
         sign     := get_sign(float_number);
