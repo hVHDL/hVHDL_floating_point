@@ -20,7 +20,7 @@ package float_arithmetic_operations_pkg is
 ------------------------------------------------------------------------
     function get_signed_mantissa ( float_object : float_record)
         return signed;
-------------------------------------------------------------------------
+----------------------------------------------------------------------
 end package float_arithmetic_operations_pkg;
 
 
@@ -43,7 +43,7 @@ package body float_arithmetic_operations_pkg is
         end if;
 
         return returned_float;
-        
+
     end ">";
 ------------------------------------------------------------------------
     function get_signed_mantissa
@@ -61,7 +61,7 @@ package body float_arithmetic_operations_pkg is
         end if;
 
         return signed_mantissa;
-        
+
     end get_signed_mantissa;
 ------------------------------------------------------------------------
     function "+"
@@ -74,6 +74,7 @@ package body float_arithmetic_operations_pkg is
         variable res             : signed(t_mantissa'high+2 downto 0);
         variable abs_res         : signed(t_mantissa'high+2 downto 0);
         variable result_exponent : signed(t_exponent'high+1 downto 0) := resize(left.exponent, t_exponent'length+1);
+        variable returned_value : float_record;
     begin
         signed_left_mantissa  := get_signed_mantissa(left);
         signed_right_mantissa := get_signed_mantissa(right);
@@ -86,9 +87,12 @@ package body float_arithmetic_operations_pkg is
             abs_res := shift_right(abs_res,1);
         end if;
 
-        return ( res(res'high), 
+
+        returned_value := ( res(res'high), 
                 result_exponent(t_exponent'range),
                 unsigned(abs_res(t_mantissa'range)));
+
+        return returned_value;
     end "+";
 ------------------------------------------------------------------------
     function "/"
