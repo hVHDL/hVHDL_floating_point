@@ -28,6 +28,7 @@ architecture vunit_simulation of tb_float_to_integer_converter is
 
 
     signal test_data_7 : float_record := to_float(1.999);
+    constant check_value : integer := integer(2.0**15*1.999);
 
     function to_radix15
     (
@@ -75,7 +76,7 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
-            check(integer(2.0**15*1.999) = to_radix15(test_data_7), "expected 32768, got " & integer'image(to_radix15(test_data_7)));
+            check((check_value) = to_radix15(test_data_7), "expected " & integer'image(check_value) & ", got " & integer'image(to_radix15(test_data_7)));
             output <= denormalize_float(to_float(1.0), mantissa_high+1-15);
 
 
