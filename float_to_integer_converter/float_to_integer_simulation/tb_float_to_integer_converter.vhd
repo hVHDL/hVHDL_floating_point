@@ -4,7 +4,11 @@ LIBRARY ieee  ;
     use ieee.math_real.all;
 
 library vunit_lib;
-    use vunit_lib.run_pkg.all;
+    context vunit_lib.vunit_context;
+
+    use work.float_type_definitions_pkg.all;
+    use work.float_to_real_conversions_pkg.all;
+    use work.float_type_definitions_pkg.all;
 
 entity tb_float_to_integer_converter is
   generic (runner_cfg : string);
@@ -21,6 +25,23 @@ architecture vunit_simulation of tb_float_to_integer_converter is
     signal simulation_counter : natural := 0;
     -----------------------------------
     -- simulation specific signals ----
+
+
+    signal test_data_7 : float_record := to_float(1.999);
+
+    function to_radix15
+    (
+        float_number : float_record
+    )
+    return integer
+    is
+        variable returned_value : float_record := to_float(0.0);
+    begin
+        returned_value := denormalize_float(float_number, mantissa_high+1-15);
+        return integer(get_mantissa(returned_value));
+    end to_radix15;
+
+    signal output : float_record := zero;
 
 begin
 
@@ -53,6 +74,9 @@ begin
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
+
+            check(integer(2.0**15*1.999) = to_radix15(test_data_7), "expected 32768, got " & integer'image(to_radix15(test_data_7)));
+            output <= denormalize_float(to_float(1.0), mantissa_high+1-15);
 
 
         end if; -- rising_edge

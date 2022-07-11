@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parent
 VU = VUnit.from_argv()
 
 mathlib = VU.add_library("math_library")
-mathlib.add_source_files(ROOT / "float_type_definitions/float_word_length_16_bit_pkg.vhd")
+mathlib.add_source_files(ROOT / "float_type_definitions/float_word_length_24_bit_pkg.vhd")
 mathlib.add_source_files(ROOT / "float_type_definitions/float_type_definitions_pkg.vhd")
 mathlib.add_source_files(ROOT / "float_arithmetic_operations/*.vhd")
 
@@ -32,5 +32,9 @@ mathlib.add_source_files(ROOT / "float_alu/float_alu_simulation/*.vhd")
 
 mathlib.add_source_files(ROOT / "float_first_order_filter/*.vhd")
 mathlib.add_source_files(ROOT / "float_first_order_filter/simulate_float_filter/*.vhd")
+
+
+mathlib.add_source_files(ROOT / "float_to_integer_converter/float_to_integer_simulation/*.vhd")
+
 
 VU.main()
