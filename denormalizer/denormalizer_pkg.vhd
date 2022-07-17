@@ -6,7 +6,7 @@ library ieee;
 
 package denormalizer_pkg is
 
-    constant number_of_denormalizer_pipeline_stages : natural := 2;
+    constant number_of_denormalizer_pipeline_stages : natural := 4;
 ------------------------------------------------------------------------
     type intarray is array (integer range number_of_denormalizer_pipeline_stages downto 0) of integer range -2**exponent_high to 2**exponent_high-1;
 ------------------------------------------------------------------------

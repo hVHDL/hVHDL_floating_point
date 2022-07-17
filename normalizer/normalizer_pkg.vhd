@@ -31,6 +31,11 @@ package normalizer_pkg is
     function get_normalizer_result ( normalizer_object : normalizer_record)
         return float_record;
 ------------------------------------------------------------------------
+    procedure to_float (
+        signal normalizer_object : out normalizer_record;
+        int_input                : in integer;
+        radix                    : in integer);
+------------------------------------------------------------------------
 end package normalizer_pkg;
 
 package body normalizer_pkg is
@@ -77,6 +82,29 @@ package body normalizer_pkg is
         normalizer_object.normalized_data(normalizer_object.normalized_data'low) <= float_input;
         
     end request_normalizer;
+
+    procedure to_float
+    (
+        signal normalizer_object : out normalizer_record;
+        int_input                : in integer;
+        radix                    : in integer
+    ) is
+        variable float_to_be_scaled : float_record;
+        variable float_sign : std_logic;
+    begin
+        if int_input < 0 then
+            float_sign := '1';
+        else
+            float_sign := '0';
+        end if;
+        float_to_be_scaled := (sign => float_sign,
+            exponent => to_signed(mantissa_length - radix, exponent_length), 
+            mantissa => to_unsigned(abs(int_input), mantissa_length));
+
+        normalizer_object.normalizer_is_requested(normalizer_object.normalizer_is_requested'low) <= '1';
+        normalizer_object.normalized_data(normalizer_object.normalized_data'low) <= float_to_be_scaled;
+        
+    end to_float;
 
 ------------------------------------------------------------------------
     function normalizer_is_ready
