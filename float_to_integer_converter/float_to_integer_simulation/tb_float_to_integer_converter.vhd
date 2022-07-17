@@ -45,6 +45,7 @@ architecture vunit_simulation of tb_float_to_integer_converter is
 
     signal denormalizer : denormalizer_record := init_denormalizer;
     signal vastaus : integer := 0;
+    signal result_index : integer := 0;
 
 begin
 
@@ -80,7 +81,7 @@ begin
             create_denormalizer(denormalizer);
 
 
-            check((check_value) = to_integer(test_data_7, 15), "expected " & integer'image(check_value) & ", got " & integer'image(to_integer(test_data_7, 15)));
+            -- check((check_value) = to_integer(test_data_7, 15), "expected " & integer'image(check_value) & ", got " & integer'image(to_integer(test_data_7, 15)));
 
             CASE simulation_counter is 
                 WHEN 0 => request_scaling(denormalizer, to_float(1.0), 12);
@@ -92,6 +93,14 @@ begin
 
             if denormalizer_is_ready(denormalizer) then
                 vastaus <= get_integer(denormalizer);
+                result_index <= result_index + 1;
+                CASE result_index is 
+                    WHEN 0 => check(get_integer(denormalizer) = 4096, "fail");
+                    WHEN 1 => check(get_integer(denormalizer) = 5*4096, "fail");
+                    WHEN 2 => check(get_integer(denormalizer) = -11*4096, "fail");
+                    WHEN 3 => check(get_integer(denormalizer) = 0, "fail");
+                    WHEN others => -- do nothing
+                end CASE;
             end if;
 
         end if; -- rising_edge

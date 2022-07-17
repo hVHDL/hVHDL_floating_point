@@ -147,7 +147,7 @@ package body denormalizer_pkg is
     is
         variable returned_value : integer;
     begin
-        if get_sign(denormalizer_object.feedthrough_pipeline(number_of_denormalizer_pipeline_stages-1)) = '0' then
+        if get_sign(denormalizer_object.feedthrough_pipeline(number_of_denormalizer_pipeline_stages)) = '0' then
             returned_value := (get_mantissa(get_denormalized_result(denormalizer_object)));
         else
             returned_value := -(get_mantissa(get_denormalized_result(denormalizer_object)));
