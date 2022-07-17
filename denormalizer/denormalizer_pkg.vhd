@@ -31,12 +31,20 @@ package denormalizer_pkg is
     procedure request_scaling (
         signal denormalizer_object : out denormalizer_record;
         left,right : in float_record);
+
+    procedure request_scaling (
+        signal denormalizer_object : out denormalizer_record;
+        left : in float_record;
+        right : in integer);
 ------------------------------------------------------------------------
     function denormalizer_is_ready (denormalizer_object : denormalizer_record)
         return boolean;
 ------------------------------------------------------------------------
     function get_denormalized_result ( denormalizer_object : denormalizer_record)
         return float_record;
+------------------------------------------------------------------------
+    function get_integer ( denormalizer_object : denormalizer_record)
+        return integer;
 ------------------------------------------------------------------------
 end package denormalizer_pkg;
 
@@ -115,6 +123,39 @@ package body denormalizer_pkg is
         end if;
         
     end request_scaling;
+------------------------------------------------------------------------
+    procedure request_scaling
+    (
+        signal denormalizer_object : out denormalizer_record;
+        left : in float_record;
+        right : in integer
+    ) is
+    begin
+        denormalizer_object.shift_register(0) <= '1';
+        denormalizer_object.denormalizer_pipeline(0) <= left;
+        denormalizer_object.feedthrough_pipeline(0)  <= left;
+        denormalizer_object.target_scale_pipeline(0) <= mantissa_length - right;
+        
+    end request_scaling;
+
+    function get_integer
+    (
+        denormalizer_object : denormalizer_record
+        
+    )
+    return integer
+    is
+        variable returned_value : integer;
+    begin
+        if get_sign(denormalizer_object.feedthrough_pipeline(number_of_denormalizer_pipeline_stages-1)) = '0' then
+            returned_value := (get_mantissa(get_denormalized_result(denormalizer_object)));
+        else
+            returned_value := -(get_mantissa(get_denormalized_result(denormalizer_object)));
+        end if;
+        return returned_value;
+        
+    end get_integer;
+
 ------------------------------------------------------------------------
     function denormalizer_is_ready
     (

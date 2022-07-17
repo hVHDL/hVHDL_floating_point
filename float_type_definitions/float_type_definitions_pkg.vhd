@@ -63,6 +63,9 @@ package float_type_definitions_pkg is
     function get_mantissa ( float_number : float_record)
         return integer;
 ------------------------------------------------------------------------
+    function get_sign ( float_number : float_record)
+        return std_logic ;
+------------------------------------------------------------------------
 end package float_type_definitions_pkg;
 
 package body float_type_definitions_pkg is
@@ -201,5 +204,15 @@ package body float_type_definitions_pkg is
         
     end get_mantissa;
 
+------------------------------------------------------------------------
+    function get_sign
+    (
+        float_number : float_record
+    )
+    return std_logic 
+    is
+    begin
+        return float_number.sign;
+    end get_sign;
 ------------------------------------------------------------------------
 end package body float_type_definitions_pkg;
