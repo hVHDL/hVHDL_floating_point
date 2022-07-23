@@ -12,7 +12,6 @@ library ieee;
 package float_alu_pkg is
 ------------------------------------------------------------------------
     type float_alu_record is record
-        float_left         : float_record;
         float_adder        : float_adder_record  ;
         adder_normalizer   : normalizer_record   ;
 
@@ -22,7 +21,6 @@ package float_alu_pkg is
     end record;
 
     constant init_float_alu : float_alu_record := (
-            to_float(0.0)         ,
             init_float_adder      ,
             init_normalizer       ,
             init_float_multiplier ,
