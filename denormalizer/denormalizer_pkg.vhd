@@ -3,10 +3,11 @@ library ieee;
     use ieee.numeric_std.all;
 
     use work.float_type_definitions_pkg.all;
+    use work.denormalizer_pipeline_pkg.all;
 
 package denormalizer_pkg is
 
-    constant number_of_denormalizer_pipeline_stages : natural := 4;
+    alias number_of_denormalizer_pipeline_stages is pipeline_configuration;
 ------------------------------------------------------------------------
     type intarray is array (integer range number_of_denormalizer_pipeline_stages downto 0) of integer range -2**exponent_high to 2**exponent_high-1;
 ------------------------------------------------------------------------

@@ -3,10 +3,11 @@ library ieee;
     use ieee.numeric_std.all;
 
     use work.float_type_definitions_pkg.all;
+    use work.normalizer_pipeline_pkg.all;
 
 package normalizer_pkg is
 ------------------------------------------------------------------------
-    constant number_of_normalizer_pipeline_stages : natural := 4;
+    alias number_of_normalizer_pipeline_stages is normalizer_pipeline_configuration;
 
     type normalizer_record is record
         normalizer_is_requested : std_logic_vector(number_of_normalizer_pipeline_stages downto 0);

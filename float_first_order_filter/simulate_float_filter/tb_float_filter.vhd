@@ -49,17 +49,7 @@ begin
         wait;
     end process simtime;	
 
-------------------------------------------------------------------------
-    sim_clock_gen : process
-    begin
-        simulator_clock <= '0';
-        wait for clock_half_per;
-        while simulation_running loop
-            wait for clock_half_per;
-                simulator_clock <= not simulator_clock;
-            end loop;
-        wait;
-    end process;
+    simulator_clock <= not simulator_clock after clock_per/2.0;
 ------------------------------------------------------------------------
 
     stimulus : process(simulator_clock)
