@@ -7,7 +7,6 @@ library ieee;
     use work.float_multiplier_pkg.all;
     use work.normalizer_pkg.all;
     use work.denormalizer_pkg.all;
-    use work.float_to_real_conversions_pkg.all;
 
 package float_alu_pkg is
 ------------------------------------------------------------------------
