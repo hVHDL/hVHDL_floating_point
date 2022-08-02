@@ -3,7 +3,7 @@ library ieee;
     use ieee.numeric_std.all;
 
     use work.float_type_definitions_pkg.all;
-    use work.denormalizer_pipeline_pkg.all;
+    use work.denormalizer_pipeline_pkg.pipeline_configuration;
 
 package denormalizer_pkg is
 
@@ -71,7 +71,9 @@ package body denormalizer_pkg is
             feedthrough_pipeline  => init_feedthrough_pipeline  ,
             shift_register        => init_shift_register        ,
             target_scale_pipeline => init_target_scale_pipeline);
+
         return initialized_record;
+
     end init_denormalizer;
 ------------------------------------------------------------------------
     procedure create_denormalizer 
