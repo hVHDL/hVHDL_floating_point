@@ -44,7 +44,9 @@ float_number <= to_float(3.14);
 
 run all test benches with vunit+ghdl+gtkwave using
 
+```
 python vunit_run_float.py -p 8 --gtkwave-fmt ghw
+```
 
 An iir low pass filter has been tested on an example project for the hVHDL project and can be found here
 https://hvhdl.readthedocs.io/en/latest/hvhdl_example_project/hvhdl_example_project.html#floating-point-filter-implementation
