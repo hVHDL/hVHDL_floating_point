@@ -52,8 +52,8 @@ package body float_to_integer_converter_pkg is
     ) is
         alias m is float_to_integer_converter_object;
     begin
-        create_normalizer(m.normalizer);
-        create_denormalizer(m.denormalizer);
+        create_normalizer(float_to_integer_converter_object.normalizer);
+        create_denormalizer(float_to_integer_converter_object.denormalizer);
     end create_float_to_integer_converter;
 
 ------------------------------------------------------------------------
@@ -66,7 +66,7 @@ package body float_to_integer_converter_pkg is
     ) is
         alias m is float_to_integer_converter_object;
     begin
-        request_scaling(m.denormalizer, number_to_be_converted, desired_radix);
+        request_scaling(float_to_integer_converter_object.denormalizer, number_to_be_converted, desired_radix);
         
     end convert_float_to_integer;
 
@@ -79,7 +79,7 @@ package body float_to_integer_converter_pkg is
     is
         alias m is float_to_integer_converter_object;
     begin
-        return denormalizer_is_ready(m.denormalizer);
+        return denormalizer_is_ready(float_to_integer_converter_object.denormalizer);
     end float_to_int_conversion_is_ready;
 
 --------------------------------------------------
@@ -91,7 +91,7 @@ package body float_to_integer_converter_pkg is
     is
         alias m is float_to_integer_converter_object;
     begin
-        return get_integer(m.denormalizer);
+        return get_integer(float_to_integer_converter_object.denormalizer);
     end get_converted_integer;
 
 ------------------------------------------------------------------------
@@ -104,7 +104,7 @@ package body float_to_integer_converter_pkg is
     ) is
         alias m is float_to_integer_converter_object;
     begin
-        to_float(m.normalizer, number_to_be_converted, radix_of_converted_number);
+        to_float(float_to_integer_converter_object.normalizer, number_to_be_converted, radix_of_converted_number);
         
     end convert_integer_to_float;
 
@@ -117,7 +117,7 @@ package body float_to_integer_converter_pkg is
     is
         alias m is float_to_integer_converter_object;
     begin
-        return normalizer_is_ready(m.normalizer);
+        return normalizer_is_ready(float_to_integer_converter_object.normalizer);
     end int_to_float_conversion_is_ready;
 
 --------------------------------------------------
@@ -129,7 +129,7 @@ package body float_to_integer_converter_pkg is
     is
         alias m is float_to_integer_converter_object;
     begin
-        return get_normalizer_result(m.normalizer);
+        return get_normalizer_result(float_to_integer_converter_object.normalizer);
     end get_converted_float;
 ------------------------------------------------------------------------
 end package body float_to_integer_converter_pkg;
