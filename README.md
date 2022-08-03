@@ -46,7 +46,8 @@ run all test benches with vunit+ghdl+gtkwave using
 
 python vunit_run_float.py -p 8 --gtkwave-fmt ghw
 
-An iir low pass filter which uses the Multiplier and adder has been tested successfully on efinix trion fpga
+An iir low pass filter has been tested on an example project for the hVHDL project and can be found here
+https://hvhdl.readthedocs.io/en/latest/hvhdl_example_project/hvhdl_example_project.html#floating-point-filter-implementation
 
-A blog post on the library design can be found at
+There is a blog post on the bit level design of the floating point module
 https://hardwaredescriptions.com/floating-point-in-vhdl/
