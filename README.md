@@ -66,3 +66,6 @@ https://hvhdl.readthedocs.io/en/latest/hvhdl_example_project/hvhdl_example_proje
 
 There is a blog post on the bit level design of the floating point module
 https://hardwaredescriptions.com/floating-point-in-vhdl/
+
+The floating point alu is also documented in
+https://hardwaredescriptions.com/high-level-floating-point-alu-in-synthesizable-vhdl/
