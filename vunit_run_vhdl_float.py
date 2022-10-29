@@ -14,29 +14,29 @@ mathlib.add_source_files(ROOT / "float_arithmetic_operations/*.vhd")
 
 mathlib.add_source_files(ROOT / "normalizer/normalizer_configuration/normalizer_with_4_stage_pipe_pkg.vhd")
 mathlib.add_source_files(ROOT / "normalizer/*.vhd")
-mathlib.add_source_files(ROOT / "normalizer/simulate_normalizer/*.vhd")
 
 mathlib.add_source_files(ROOT / "denormalizer/denormalizer_configuration/denormalizer_with_4_stage_pipe_pkg.vhd")
 mathlib.add_source_files(ROOT / "denormalizer/*.vhd")
-mathlib.add_source_files(ROOT / "denormalizer/denormalizer_simulation/*.vhd")
 
 mathlib.add_source_files(ROOT / "float_to_real_conversions" / "*.vhd")
-mathlib.add_source_files(ROOT / "float_to_real_conversions/float_to_real_simulation" / "*.vhd")
 
 mathlib.add_source_files(ROOT / "float_adder/*.vhd")
-mathlib.add_source_files(ROOT / "float_adder/adder_simulation/*.vhd")
 
 mathlib.add_source_files(ROOT / "float_multiplier/*.vhd")
-mathlib.add_source_files(ROOT / "float_multiplier/float_multiplier_simulation/*.vhd")
 
 mathlib.add_source_files(ROOT / "float_alu/*.vhd")
-mathlib.add_source_files(ROOT / "float_alu/float_alu_simulation/*.vhd")
 
 mathlib.add_source_files(ROOT / "float_first_order_filter/*.vhd")
-mathlib.add_source_files(ROOT / "float_first_order_filter/simulate_float_filter/*.vhd")
 
 
-mathlib.add_source_files(ROOT / "float_to_integer_converter/float_to_integer_simulation/*.vhd")
+mathlib.add_source_files(ROOT / "testbenches/simulate_normalizer/*.vhd")
+mathlib.add_source_files(ROOT / "testbenches/denormalizer_simulation/*.vhd")
+mathlib.add_source_files(ROOT / "testbenches/float_to_real_simulation" / "*.vhd")
+mathlib.add_source_files(ROOT / "testbenches/adder_simulation/*.vhd")
+mathlib.add_source_files(ROOT / "testbenches/float_multiplier_simulation/*.vhd")
+mathlib.add_source_files(ROOT / "testbenches/float_alu_simulation/*.vhd")
+mathlib.add_source_files(ROOT / "testbenches/simulate_float_filter/*.vhd")
+mathlib.add_source_files(ROOT / "testbenches/float_to_integer_simulation/*.vhd")
 
 
 VU.main()
