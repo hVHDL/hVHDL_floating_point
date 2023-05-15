@@ -18,28 +18,28 @@ package float_adder_pkg is
     constant init_float_adder : float_adder_record := init_adder;
 ------------------------------------------------------------------------
     procedure create_adder (
-        signal adder_object : inout float_adder_record);
+        signal self : inout float_adder_record);
 ------------------------------------------------------------------------
     procedure request_add (
-        signal adder_object : out float_adder_record;
+        signal self : out float_adder_record;
         left, right : float_record);
 ------------------------------------------------------------------------
     procedure request_subtraction (
-        signal adder_object : out float_adder_record;
+        signal self : out float_adder_record;
         left, right : float_record);
 ------------------------------------------------------------------------
     procedure pipelined_add (
-        signal adder_object : out float_adder_record;
+        signal self : out float_adder_record;
         left, right : float_record );
 ------------------------------------------------------------------------
     procedure pipelined_subtract (
-        signal adder_object : out float_adder_record;
+        signal self : out float_adder_record;
         left, right : float_record );
 ------------------------------------------------------------------------
-    function adder_is_ready (float_adder_object : float_adder_record)
+    function adder_is_ready (float_self : float_adder_record)
         return boolean;
 ------------------------------------------------------------------------
-    function get_result ( adder_object : float_adder_record)
+    function get_result ( self : float_adder_record)
         return float_record;
 ------------------------------------------------------------------------
 end package float_adder_pkg;
@@ -48,75 +48,72 @@ package body float_adder_pkg is
 ------------------------------------------------------------------------
     procedure create_adder
     (
-        signal adder_object : inout float_adder_record
+        signal self : inout float_adder_record
     ) is
-        alias adder_result is adder_object.adder_result;
-        alias denormalizer is adder_object.denormalizer;
-        alias adder_is_done is adder_object.adder_is_done;
     begin
-        create_denormalizer(adder_object.denormalizer);
-        adder_result <= (denormalizer.feedthrough_pipeline(number_of_denormalizer_pipeline_stages) + denormalizer.denormalizer_pipeline(number_of_denormalizer_pipeline_stages));
-        adder_is_done <= denormalizer_is_ready(denormalizer);
+        create_denormalizer(self.denormalizer);
+        self.adder_result <= (self.denormalizer.feedthrough_pipeline(number_of_denormalizer_pipeline_stages) + self.denormalizer.denormalizer_pipeline(number_of_denormalizer_pipeline_stages));
+        self.adder_is_done <= denormalizer_is_ready(self.denormalizer);
 
     end create_adder;
 
 ------------------------------------------------------------------------
     procedure request_add
     (
-        signal adder_object : out float_adder_record;
+        signal self : out float_adder_record;
         left, right : float_record
     ) is
     begin
-        pipelined_add(adder_object, left, right);
+        pipelined_add(self, left, right);
     end request_add;
 
 ------------------------------------------------------------------------
     procedure request_subtraction
     (
-        signal adder_object : out float_adder_record;
+        signal self : out float_adder_record;
         left, right : float_record
     ) is
     begin
-        pipelined_subtract(adder_object, left, right);
+        pipelined_subtract(self, left, right);
     end request_subtraction;
 ------------------------------------------------------------------------
     procedure pipelined_add
     (
-        signal adder_object : out float_adder_record;
+        signal self : out float_adder_record;
         left, right : float_record 
     ) is
     begin
-        request_scaling(adder_object.denormalizer, left, right);
+        request_scaling(self.denormalizer, left, right);
     end pipelined_add;
 ------------------------------------------------------------------------
     procedure pipelined_subtract
     (
-        signal adder_object : out float_adder_record;
+        signal self : out float_adder_record;
         left, right : float_record 
     ) is
     begin
-        request_scaling(adder_object.denormalizer, left, -right);
+        request_scaling(self.denormalizer, left, -right);
     end pipelined_subtract;
 ------------------------------------------------------------------------
     function adder_is_ready
     (
-        float_adder_object : float_adder_record
+        float_self : float_adder_record
     )
     return boolean
     is
     begin
-        return float_adder_object.adder_is_done;
+        return float_self.adder_is_done;
     end adder_is_ready;
 
 ------------------------------------------------------------------------
     function get_result
     (
-        adder_object : float_adder_record
+        self : float_adder_record
     )
     return float_record
     is
     begin
-        return adder_object.adder_result;
+        return self.adder_result;
     end get_result;
 ------------------------------------------------------------------------
 end package body float_adder_pkg;

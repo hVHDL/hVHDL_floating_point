@@ -4,3 +4,4 @@
 *.swp
 vunit_out/
 *.cf
+*.o

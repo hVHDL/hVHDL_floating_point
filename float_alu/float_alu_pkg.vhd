@@ -27,7 +27,7 @@ package float_alu_pkg is
 
 ------------------------------------------------------------------------
     procedure create_float_alu (
-        signal float_alu_object : inout float_alu_record);
+        signal self : inout float_alu_record);
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
     procedure multiply (
@@ -78,23 +78,23 @@ package body float_alu_pkg is
 ------------------------------------------------------------------------
     procedure create_float_alu 
     (
-        signal float_alu_object : inout float_alu_record
+        signal self : inout float_alu_record
     ) 
     is
     begin
 
-        create_adder(float_alu_object.float_adder);
-        create_normalizer(float_alu_object.adder_normalizer);
+        create_adder(self.float_adder);
+        create_normalizer(self.adder_normalizer);
 
-        create_float_multiplier(float_alu_object.float_multiplier);
-        create_normalizer(float_alu_object.multiplier_normalizer);
+        create_float_multiplier(self.float_multiplier);
+        create_normalizer(self.multiplier_normalizer);
 
-        if adder_is_ready(float_alu_object.float_adder) then
-            request_normalizer(float_alu_object.adder_normalizer, get_result(float_alu_object.float_adder));
+        if adder_is_ready(self.float_adder) then
+            request_normalizer(self.adder_normalizer, get_result(self.float_adder));
         end if;
 
-        if float_multiplier_is_ready(float_alu_object.float_multiplier) then
-            request_normalizer(float_alu_object.multiplier_normalizer, get_multiplier_result(float_alu_object.float_multiplier));
+        if float_multiplier_is_ready(self.float_multiplier) then
+            request_normalizer(self.multiplier_normalizer, get_multiplier_result(self.float_multiplier));
         end if;
 
     end procedure;

@@ -20,20 +20,20 @@ package normalizer_pkg is
     constant init_float_normalizer : float_normalizer_record := init_normalizer;
 ------------------------------------------------------------------------
     procedure create_normalizer (
-        signal normalizer_object : inout normalizer_record);
+        signal self : inout normalizer_record);
 ------------------------------------------------------------------------
     procedure request_normalizer (
-        signal normalizer_object : out normalizer_record;
+        signal self : out normalizer_record;
         float_input : in float_record);
 ------------------------------------------------------------------------
-    function normalizer_is_ready (normalizer_object : normalizer_record)
+    function normalizer_is_ready (self : normalizer_record)
         return boolean;
 ------------------------------------------------------------------------
-    function get_normalizer_result ( normalizer_object : normalizer_record)
+    function get_normalizer_result ( self : normalizer_record)
         return float_record;
 ------------------------------------------------------------------------
     procedure to_float (
-        signal normalizer_object : out normalizer_record;
+        signal self : out normalizer_record;
         int_input                : in integer;
         radix                    : in integer);
 ------------------------------------------------------------------------
@@ -59,34 +59,33 @@ package body normalizer_pkg is
 ------------------------------------------------------------------------
     procedure create_normalizer 
     (
-        signal normalizer_object : inout normalizer_record
+        signal self : inout normalizer_record
     ) 
     is
-        alias m is normalizer_object;
     begin
 
-        m.normalizer_is_requested(0) <= '0';
+        self.normalizer_is_requested(0) <= '0';
         for i in 1 to number_of_normalizer_pipeline_stages loop
-            m.normalizer_is_requested(i) <= m.normalizer_is_requested(i-1);
-            m.normalized_data(i)      <= normalize(m.normalized_data(i-1), mantissa_high/number_of_normalizer_pipeline_stages);
+            self.normalizer_is_requested(i) <= self.normalizer_is_requested(i-1);
+            self.normalized_data(i)      <= normalize(self.normalized_data(i-1), mantissa_high/number_of_normalizer_pipeline_stages);
         end loop;
     end procedure;
 
 ------------------------------------------------------------------------
     procedure request_normalizer
     (
-        signal normalizer_object : out normalizer_record;
+        signal self : out normalizer_record;
         float_input              : in float_record
     ) is
     begin
-        normalizer_object.normalizer_is_requested(normalizer_object.normalizer_is_requested'low) <= '1';
-        normalizer_object.normalized_data(normalizer_object.normalized_data'low) <= float_input;
+        self.normalizer_is_requested(self.normalizer_is_requested'low) <= '1';
+        self.normalized_data(self.normalized_data'low) <= float_input;
         
     end request_normalizer;
 
     procedure to_float
     (
-        signal normalizer_object : out normalizer_record;
+        signal self : out normalizer_record;
         int_input                : in integer;
         radix                    : in integer
     ) is
@@ -102,31 +101,31 @@ package body normalizer_pkg is
             exponent => to_signed(mantissa_length - radix, exponent_length), 
             mantissa => to_unsigned(abs(int_input), mantissa_length));
 
-        normalizer_object.normalizer_is_requested(normalizer_object.normalizer_is_requested'low) <= '1';
-        normalizer_object.normalized_data(normalizer_object.normalized_data'low) <= float_to_be_scaled;
+        self.normalizer_is_requested(self.normalizer_is_requested'low) <= '1';
+        self.normalized_data(self.normalized_data'low) <= float_to_be_scaled;
         
     end to_float;
 
 ------------------------------------------------------------------------
     function normalizer_is_ready
     (
-        normalizer_object : normalizer_record
+        self : normalizer_record
     )
     return boolean
     is
     begin
-        return normalizer_object.normalizer_is_requested(normalizer_object.normalizer_is_requested'high) = '1';
+        return self.normalizer_is_requested(self.normalizer_is_requested'high) = '1';
     end normalizer_is_ready;
 
 ------------------------------------------------------------------------
     function get_normalizer_result
     (
-        normalizer_object : normalizer_record
+        self : normalizer_record
     )
     return float_record
     is
     begin
-        return normalizer_object.normalized_data(normalizer_object.normalized_data'high);
+        return self.normalized_data(self.normalized_data'high);
     end get_normalizer_result;
 ------------------------------------------------------------------------
 end package body normalizer_pkg;

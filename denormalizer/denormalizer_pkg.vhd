@@ -22,29 +22,29 @@ package denormalizer_pkg is
 
 ------------------------------------------------------------------------
     procedure create_denormalizer (
-        signal denormalizer_object : inout denormalizer_record);
+        signal self : inout denormalizer_record);
 ------------------------------------------------------------------------
     procedure request_denormalizer (
-        signal denormalizer_object : out denormalizer_record;
+        signal self : out denormalizer_record;
         denormalized_number : in float_record;
         target_scale : in integer);
 ------------------------------------------------------------------------
     procedure request_scaling (
-        signal denormalizer_object : out denormalizer_record;
+        signal self : out denormalizer_record;
         left,right : in float_record);
 
     procedure request_scaling (
-        signal denormalizer_object : out denormalizer_record;
+        signal self : out denormalizer_record;
         left : in float_record;
         right : in integer);
 ------------------------------------------------------------------------
-    function denormalizer_is_ready (denormalizer_object : denormalizer_record)
+    function denormalizer_is_ready (self : denormalizer_record)
         return boolean;
 ------------------------------------------------------------------------
-    function get_denormalized_result ( denormalizer_object : denormalizer_record)
+    function get_denormalized_result ( self : denormalizer_record)
         return float_record;
 ------------------------------------------------------------------------
-    function get_integer ( denormalizer_object : denormalizer_record)
+    function get_integer ( self : denormalizer_record)
         return integer;
 ------------------------------------------------------------------------
 end package denormalizer_pkg;
@@ -78,18 +78,17 @@ package body denormalizer_pkg is
 ------------------------------------------------------------------------
     procedure create_denormalizer 
     (
-        signal denormalizer_object : inout denormalizer_record
+        signal self : inout denormalizer_record
     ) 
     is
-        alias m is denormalizer_object;
     begin
 
-        m.shift_register(0) <= '0';
+        self.shift_register(0) <= '0';
         for i in 1 to number_of_denormalizer_pipeline_stages loop
-            m.denormalizer_pipeline(i) <= denormalize_float(m.denormalizer_pipeline(i-1), m.target_scale_pipeline(i-1), mantissa_length/number_of_denormalizer_pipeline_stages);
-            m.feedthrough_pipeline(i)  <= m.feedthrough_pipeline(i-1);
-            m.target_scale_pipeline(i) <= m.target_scale_pipeline(i-1);
-            m.shift_register(i)        <= m.shift_register(i-1);
+            self.denormalizer_pipeline(i) <= denormalize_float(self.denormalizer_pipeline(i-1), self.target_scale_pipeline(i-1), mantissa_length/number_of_denormalizer_pipeline_stages);
+            self.feedthrough_pipeline(i)  <= self.feedthrough_pipeline(i-1);
+            self.target_scale_pipeline(i) <= self.target_scale_pipeline(i-1);
+            self.shift_register(i)        <= self.shift_register(i-1);
         end loop;
 
     end procedure;
@@ -97,63 +96,63 @@ package body denormalizer_pkg is
 ------------------------------------------------------------------------
     procedure request_denormalizer
     (
-        signal denormalizer_object : out denormalizer_record;
+        signal self : out denormalizer_record;
         denormalized_number : in float_record;
         target_scale : in integer
     ) is
     begin
-        denormalizer_object.denormalizer_pipeline(0) <= denormalized_number;
-        denormalizer_object.target_scale_pipeline(0) <= target_scale;
-        denormalizer_object.shift_register(0) <= '1';
+        self.denormalizer_pipeline(0) <= denormalized_number;
+        self.target_scale_pipeline(0) <= target_scale;
+        self.shift_register(0) <= '1';
         
     end request_denormalizer;
 ------------------------------------------------------------------------
     procedure request_scaling
     (
-        signal denormalizer_object : out denormalizer_record;
+        signal self : out denormalizer_record;
         left,right : in float_record
     ) is
     begin
-        denormalizer_object.shift_register(0) <= '1';
+        self.shift_register(0) <= '1';
         if get_exponent(left) < get_exponent(right) then
-            denormalizer_object.denormalizer_pipeline(0) <= left;
-            denormalizer_object.feedthrough_pipeline(0)  <= right;
-            denormalizer_object.target_scale_pipeline(0) <= get_exponent(right);
+            self.denormalizer_pipeline(0) <= left;
+            self.feedthrough_pipeline(0)  <= right;
+            self.target_scale_pipeline(0) <= get_exponent(right);
         else
-            denormalizer_object.denormalizer_pipeline(0) <= right;
-            denormalizer_object.feedthrough_pipeline(0)  <= left;
-            denormalizer_object.target_scale_pipeline(0) <= get_exponent(left);
+            self.denormalizer_pipeline(0) <= right;
+            self.feedthrough_pipeline(0)  <= left;
+            self.target_scale_pipeline(0) <= get_exponent(left);
         end if;
         
     end request_scaling;
 ------------------------------------------------------------------------
     procedure request_scaling
     (
-        signal denormalizer_object : out denormalizer_record;
+        signal self : out denormalizer_record;
         left : in float_record;
         right : in integer
     ) is
     begin
-        denormalizer_object.shift_register(0) <= '1';
-        denormalizer_object.denormalizer_pipeline(0) <= left;
-        denormalizer_object.feedthrough_pipeline(0)  <= left;
-        denormalizer_object.target_scale_pipeline(0) <= mantissa_length - right;
+        self.shift_register(0) <= '1';
+        self.denormalizer_pipeline(0) <= left;
+        self.feedthrough_pipeline(0)  <= left;
+        self.target_scale_pipeline(0) <= mantissa_length - right;
         
     end request_scaling;
 
     function get_integer
     (
-        denormalizer_object : denormalizer_record
+        self : denormalizer_record
         
     )
     return integer
     is
         variable returned_value : integer;
     begin
-        if get_sign(denormalizer_object.feedthrough_pipeline(number_of_denormalizer_pipeline_stages)) = '0' then
-            returned_value := (get_mantissa(get_denormalized_result(denormalizer_object)));
+        if get_sign(self.feedthrough_pipeline(number_of_denormalizer_pipeline_stages)) = '0' then
+            returned_value := (get_mantissa(get_denormalized_result(self)));
         else
-            returned_value := -(get_mantissa(get_denormalized_result(denormalizer_object)));
+            returned_value := -(get_mantissa(get_denormalized_result(self)));
         end if;
         return returned_value;
         
@@ -162,22 +161,22 @@ package body denormalizer_pkg is
 ------------------------------------------------------------------------
     function denormalizer_is_ready
     (
-        denormalizer_object : denormalizer_record
+        self : denormalizer_record
     )
     return boolean
     is
-        constant left : integer := (denormalizer_object.shift_register'left);
+        constant left : integer := (self.shift_register'left);
     begin
-        return denormalizer_object.shift_register(left) = '1';
+        return self.shift_register(left) = '1';
     end denormalizer_is_ready;
 ------------------------------------------------------------------------
     function get_denormalized_result
     (
-        denormalizer_object : denormalizer_record
+        self : denormalizer_record
     )
     return float_record
     is
-        alias denormalizer_pipeline is denormalizer_object.denormalizer_pipeline;
+        alias denormalizer_pipeline is self.denormalizer_pipeline;
     begin
         return denormalizer_pipeline(denormalizer_pipeline'left);
     end get_denormalized_result;
