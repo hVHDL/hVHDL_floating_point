@@ -15,9 +15,8 @@ package normalizer_pkg is
     end record;
 
     subtype float_normalizer_record is normalizer_record;
-
-    function init_normalizer return normalizer_record;
-    function init_float_normalizer return normalizer_record;
+    constant init_normalizer : normalizer_record := ((others => '0'), (others => zero));
+    alias init_float_normalizer is init_normalizer;
 ------------------------------------------------------------------------
     procedure create_normalizer (
         signal self : inout normalizer_record);
@@ -40,29 +39,6 @@ package normalizer_pkg is
 end package normalizer_pkg;
 
 package body normalizer_pkg is
-------------------------------------------------------------------------
-    function init_normalizer return normalizer_record
-    is
-        variable init_normalizer_is_requested : std_logic_vector(number_of_normalizer_pipeline_stages downto 0);
-        variable init_normalized_data         : float_array(0 to number_of_normalizer_pipeline_stages);
-    begin
-
-        for i in 0 to number_of_normalizer_pipeline_stages loop
-            init_normalizer_is_requested(i) := '0';
-            init_normalized_data(i) := zero;
-        end loop;
-
-        return (normalizer_is_requested => init_normalizer_is_requested,
-                normalized_data         => init_normalized_data);
-        
-    end init_normalizer;
-------------------------------------------------------------------------
-    function init_float_normalizer return normalizer_record
-    is
-    begin
-        return init_normalizer;
-        
-    end init_float_normalizer;
 ------------------------------------------------------------------------
     procedure create_normalizer 
     (
