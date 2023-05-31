@@ -18,7 +18,11 @@ package denormalizer_pkg is
         target_scale_pipeline : intarray;
     end record;
 
-    function init_denormalizer return denormalizer_record;
+    constant init_denormalizer : denormalizer_record := (
+            denormalizer_pipeline => (others => zero),
+            feedthrough_pipeline  => (others => zero),
+            shift_register        => (others => '0'),
+            target_scale_pipeline => (others => 0));
 
 ------------------------------------------------------------------------
     procedure create_denormalizer (
@@ -50,31 +54,6 @@ package denormalizer_pkg is
 end package denormalizer_pkg;
 
 package body denormalizer_pkg is
-------------------------------------------------------------------------
-    function init_denormalizer
-    return denormalizer_record
-    is
-        variable initialized_record : denormalizer_record;
-        variable init_denormalizer_pipeline : float_array(number_of_denormalizer_pipeline_stages downto 0);
-        variable init_feedthrough_pipeline  : float_array(number_of_denormalizer_pipeline_stages downto 0);
-        variable init_shift_register        : std_logic_vector(number_of_denormalizer_pipeline_stages downto 0);
-        variable init_target_scale_pipeline : intarray;
-    begin
-        for i in 0 to number_of_denormalizer_pipeline_stages loop
-            init_denormalizer_pipeline(i) := zero;
-            init_feedthrough_pipeline(i)  := zero;
-            init_target_scale_pipeline(i) := 0;
-            init_shift_register(i)        := '0';
-        end loop;
-        initialized_record := (
-            denormalizer_pipeline => init_denormalizer_pipeline ,
-            feedthrough_pipeline  => init_feedthrough_pipeline  ,
-            shift_register        => init_shift_register        ,
-            target_scale_pipeline => init_target_scale_pipeline);
-
-        return initialized_record;
-
-    end init_denormalizer;
 ------------------------------------------------------------------------
     procedure create_denormalizer 
     (
