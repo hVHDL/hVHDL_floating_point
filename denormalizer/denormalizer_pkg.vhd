@@ -176,9 +176,8 @@ package body denormalizer_pkg is
     )
     return float_record
     is
-        alias denormalizer_pipeline is self.denormalizer_pipeline;
     begin
-        return denormalizer_pipeline(denormalizer_pipeline'left);
+        return self.denormalizer_pipeline(self.denormalizer_pipeline'left);
     end get_denormalized_result;
 ------------------------------------------------------------------------
 end package body denormalizer_pkg;

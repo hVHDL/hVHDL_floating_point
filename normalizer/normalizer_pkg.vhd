@@ -17,7 +17,7 @@ package normalizer_pkg is
     subtype float_normalizer_record is normalizer_record;
 
     function init_normalizer return normalizer_record;
-    constant init_float_normalizer : float_normalizer_record := init_normalizer;
+    function init_float_normalizer return normalizer_record;
 ------------------------------------------------------------------------
     procedure create_normalizer (
         signal self : inout normalizer_record);
@@ -56,6 +56,13 @@ package body normalizer_pkg is
                 normalized_data         => init_normalized_data);
         
     end init_normalizer;
+------------------------------------------------------------------------
+    function init_float_normalizer return normalizer_record
+    is
+    begin
+        return init_normalizer;
+        
+    end init_float_normalizer;
 ------------------------------------------------------------------------
     procedure create_normalizer 
     (

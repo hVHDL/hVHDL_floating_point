@@ -22,20 +22,20 @@ package float_first_order_filter_pkg is
 
 ------------------------------------------------------------------------
     procedure create_first_order_filter (
-        signal first_order_filter_object : inout first_order_filter_record;
+        signal self : inout first_order_filter_record;
         signal alu_object                : inout float_alu_record;
         filter_gain                      : in float_record);
 
 ------------------------------------------------------------------------
     procedure request_float_filter (
-        signal first_order_filter_object : inout first_order_filter_record;
+        signal self : inout first_order_filter_record;
         filter_data : in float_record);
 
 ------------------------------------------------------------------------
-    function float_filter_is_ready ( first_order_filter_object : first_order_filter_record)
+    function float_filter_is_ready ( self : first_order_filter_record)
         return boolean;
 ------------------------------------------------------------------------
-    function get_filter_output ( first_order_filter_object : first_order_filter_record)
+    function get_filter_output ( self : first_order_filter_record)
         return float_record;
 ------------------------------------------------------------------------
 end package float_first_order_filter_pkg;
@@ -45,38 +45,38 @@ package body float_first_order_filter_pkg is
 ------------------------------------------------------------------------
     procedure create_first_order_filter
     (
-        signal first_order_filter_object : inout first_order_filter_record;
+        signal self : inout first_order_filter_record;
         signal alu_object                : inout float_alu_record;
         filter_gain                      : in float_record
         
     ) is
-        alias filter_counter   is first_order_filter_object.filter_counter  ;
-        alias y                is first_order_filter_object.y               ;
-        alias u                is first_order_filter_object.u               ;
-        alias filter_is_ready is first_order_filter_object.filter_is_ready;
     begin
 
-        filter_is_ready <= false;
-        CASE filter_counter is
+        CASE self.filter_counter is
             WHEN 0 => 
-                subtract(alu_object, u, y);
-                filter_counter <= filter_counter + 1;
+                subtract(alu_object, self.u, self.y);
+                self.filter_counter <= self.filter_counter + 1;
+                self.filter_is_ready <= false;
             WHEN 1 =>
+                self.filter_is_ready <= false;
                 if add_is_ready(alu_object) then
                     multiply(alu_object  , get_add_result(alu_object) , filter_gain);
-                    filter_counter <= filter_counter + 1;
+                    self.filter_counter <= self.filter_counter + 1;
                 end if;
 
             WHEN 2 =>
+                self.filter_is_ready <= false;
                 if multiplier_is_ready(alu_object) then
-                    add(alu_object, get_multiplier_result(alu_object), y);
-                    filter_counter <= filter_counter + 1;
+                    add(alu_object, get_multiplier_result(alu_object), self.y);
+                    self.filter_counter <= self.filter_counter + 1;
                 end if;
             WHEN 3 => 
                 if add_is_ready(alu_object) then
-                    filter_is_ready <= true;
-                    y <= get_add_result(alu_object);
-                    filter_counter <= filter_counter + 1;
+                    self.filter_is_ready <= true;
+                    self.y <= get_add_result(alu_object);
+                    self.filter_counter <= self.filter_counter + 1;
+                else
+                    self.filter_is_ready <= false;
                 end if;
             WHEN others =>  -- filter is ready
         end CASE;
@@ -84,34 +84,34 @@ package body float_first_order_filter_pkg is
 ------------------------------------------------------------------------
     procedure request_float_filter
     (
-        signal first_order_filter_object : inout first_order_filter_record;
+        signal self : inout first_order_filter_record;
         filter_data : in float_record
     ) is
     begin
 
-        first_order_filter_object.u <= filter_data;
-        first_order_filter_object.filter_counter <= 0;
+        self.u <= filter_data;
+        self.filter_counter <= 0;
         
     end request_float_filter;
 ------------------------------------------------------------------------
     function float_filter_is_ready
     (
-        first_order_filter_object : first_order_filter_record
+        self : first_order_filter_record
     )
     return boolean
     is
     begin
-        return first_order_filter_object.filter_is_ready;
+        return self.filter_is_ready;
     end float_filter_is_ready;
 ------------------------------------------------------------------------
     function get_filter_output
     (
-        first_order_filter_object : first_order_filter_record
+        self : first_order_filter_record
     )
     return float_record
     is
     begin
-        return first_order_filter_object.y;
+        return self.y;
     end get_filter_output;
 
 end package body float_first_order_filter_pkg;
