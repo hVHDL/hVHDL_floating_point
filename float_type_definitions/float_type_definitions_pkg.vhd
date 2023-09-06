@@ -66,6 +66,9 @@ package float_type_definitions_pkg is
     function get_sign ( float_number : float_record)
         return std_logic ;
 ------------------------------------------------------------------------
+    function to_std_logic ( float_number : float_record)
+        return std_logic_vector;
+------------------------------------------------------------------------
 end package float_type_definitions_pkg;
 
 package body float_type_definitions_pkg is
@@ -214,5 +217,15 @@ package body float_type_definitions_pkg is
     begin
         return float_number.sign;
     end get_sign;
+------------------------------------------------------------------------
+    function to_std_logic
+    (
+        float_number : float_record
+    )
+    return std_logic_vector 
+    is
+    begin
+        return float_number.sign & std_logic_vector(float_number.exponent) & std_logic_vector(float_number.mantissa);
+    end to_std_logic;
 ------------------------------------------------------------------------
 end package body float_type_definitions_pkg;
