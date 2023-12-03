@@ -1,4 +1,4 @@
-# vhdl_float
+# High level vhdl floating point library 
 simple floating point library for synthesis in fpga coded in object oriented style. This is a synthesizable version of a floating point filter, which has been tested with most common FPGAs
 
 ```vhdl
