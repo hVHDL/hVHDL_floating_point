@@ -22,7 +22,7 @@ package float_type_definitions_pkg is
         mantissa : t_mantissa;
     end record;
 
-    type float_array is array (integer range <>) of float_record;
+    type float_array is array (natural range <>) of float_record;
 
     constant zero : float_record := ('0', (others => '0'), (others => '0'));
 
