@@ -36,6 +36,17 @@ package normalizer_pkg is
         int_input                : in integer;
         radix                    : in integer);
 ------------------------------------------------------------------------
+    function normalize
+    (
+        float_number : float_record;
+        max_shift : integer
+    )
+    return float_record;
+
+    function normalize ( float_number : float_record)
+        return float_record;
+------------------------------------------------------------------------
+------------------------------------------------------------------------
 end package normalizer_pkg;
 
 package body normalizer_pkg is
@@ -110,5 +121,35 @@ package body normalizer_pkg is
     begin
         return self.normalized_data(self.normalized_data'high);
     end get_normalizer_result;
+------------------------------------------------------------------------
+    function normalize
+    (
+        float_number : float_record;
+        max_shift : integer
+    )
+    return float_record
+    is
+        variable number_of_zeroes : natural := 0;
+    begin
+        number_of_zeroes := number_of_leading_zeroes(float_number.mantissa, max_shift);
+
+        return (sign     => float_number.sign,
+                exponent => float_number.exponent - number_of_zeroes,
+                mantissa => shift_left(float_number.mantissa, number_of_zeroes));
+    end normalize;
+
+----------
+
+    function normalize
+    (
+        float_number : float_record
+    )
+    return float_record
+    is
+        variable number_of_zeroes : natural := 0;
+    begin
+
+        return normalize(float_number, mantissa_high);
+    end normalize;
 ------------------------------------------------------------------------
 end package body normalizer_pkg;

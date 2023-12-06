@@ -27,13 +27,6 @@ package float_type_definitions_pkg is
     constant zero : float_record := ('0', (others => '0'), (others => '0'));
 
 ------------------------------------------------------------------------
-    function normalize ( float_number : float_record)
-        return float_record;
-------------------------------------------------------------------------
-    function denormalize_float (
-        right           : float_record;
-        set_exponent_to : integer)
-    return float_record;
 ------------------------------------------------------------------------
     function "-" ( right : float_record)
         return float_record;
@@ -43,19 +36,6 @@ package float_type_definitions_pkg is
         data : unsigned;
         max_shift : integer)
     return integer;
-------------------------------------------------------------------------
-    function normalize
-    (
-        float_number : float_record;
-        max_shift : integer
-    )
-    return float_record;
-------------------------------------------------------------------------
-    function denormalize_float (
-        right           : float_record;
-        set_exponent_to : integer;
-        max_shift       : integer)
-    return float_record;
 ------------------------------------------------------------------------
     function get_exponent ( float_number : float_record)
         return integer;
@@ -110,65 +90,6 @@ package body float_type_definitions_pkg is
     end number_of_leading_zeroes;
 
 ------------------------------------------------------------------------
-    function normalize
-    (
-        float_number : float_record;
-        max_shift : integer
-    )
-    return float_record
-    is
-        variable number_of_zeroes : natural := 0;
-    begin
-        number_of_zeroes := number_of_leading_zeroes(float_number.mantissa, max_shift);
-
-        return (sign     => float_number.sign,
-                exponent => float_number.exponent - number_of_zeroes,
-                mantissa => shift_left(float_number.mantissa, number_of_zeroes));
-    end normalize;
-
-------------------------------------------------------------------------
-    function normalize
-    (
-        float_number : float_record
-    )
-    return float_record
-    is
-        variable number_of_zeroes : natural := 0;
-    begin
-
-        return normalize(float_number, mantissa_high);
-    end normalize;
-------------------------------------------------------------------------
-    function denormalize_float
-    (
-        right           : float_record;
-        set_exponent_to : integer;
-        max_shift       : integer
-    )
-    return float_record
-    is
-        variable float : float_record := zero;
-    begin
-        float := (sign     => right.sign,
-                  exponent => to_signed(set_exponent_to, exponent_length),
-                  mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent)));
-
-        return float;
-        
-    end denormalize_float;
-------------------------------------------------------------------------
-    function denormalize_float
-    (
-        right           : float_record;
-        set_exponent_to : integer
-    )
-    return float_record
-    is
-    begin
-
-        return denormalize_float(right, set_exponent_to, mantissa_length);
-        
-    end denormalize_float;
 ------------------------------------------------------------------------
     function "-"
     (

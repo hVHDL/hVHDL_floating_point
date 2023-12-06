@@ -51,6 +51,18 @@ package denormalizer_pkg is
     function get_integer ( self : denormalizer_record)
         return integer;
 ------------------------------------------------------------------------
+    function denormalize_float (
+        right           : float_record;
+        set_exponent_to : integer)
+    return float_record;
+
+    function denormalize_float (
+        right           : float_record;
+        set_exponent_to : integer;
+        max_shift       : integer)
+    return float_record;
+------------------------------------------------------------------------
+------------------------------------------------------------------------
 end package denormalizer_pkg;
 
 package body denormalizer_pkg is
@@ -158,5 +170,36 @@ package body denormalizer_pkg is
     begin
         return self.denormalizer_pipeline(self.denormalizer_pipeline'left);
     end get_denormalized_result;
+------------------------------------------------------------------------
+    function denormalize_float
+    (
+        right           : float_record;
+        set_exponent_to : integer;
+        max_shift       : integer
+    )
+    return float_record
+    is
+        variable float : float_record := zero;
+    begin
+        float := (sign     => right.sign,
+                  exponent => to_signed(set_exponent_to, exponent_length),
+                  mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent)));
+
+        return float;
+        
+    end denormalize_float;
+------------------------------------------------------------------------
+    function denormalize_float
+    (
+        right           : float_record;
+        set_exponent_to : integer
+    )
+    return float_record
+    is
+    begin
+
+        return denormalize_float(right, set_exponent_to, mantissa_length);
+        
+    end denormalize_float;
 ------------------------------------------------------------------------
 end package body denormalizer_pkg;

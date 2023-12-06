@@ -4,6 +4,7 @@ library ieee;
     use ieee.math_real.all;
 
     use work.float_type_definitions_pkg.all;
+    use work.normalizer_pkg.normalize;
     use work.float_to_real_functions_pkg.all;
 
 package float_to_real_conversions_pkg is
