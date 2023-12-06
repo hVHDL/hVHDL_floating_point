@@ -62,7 +62,7 @@ package body normalizer_pkg is
         self.normalizer_is_requested(0) <= '0';
         for i in 1 to number_of_normalizer_pipeline_stages loop
             self.normalizer_is_requested(i) <= self.normalizer_is_requested(i-1);
-            self.normalized_data(i)      <= normalize(self.normalized_data(i-1), mantissa_high/number_of_normalizer_pipeline_stages);
+            self.normalized_data(i)         <= normalize(self.normalized_data(i-1), mantissa_high/number_of_normalizer_pipeline_stages);
         end loop;
     end procedure;
 

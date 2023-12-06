@@ -6,8 +6,6 @@ LIBRARY ieee  ;
     use work.float_type_definitions_pkg.all;
     use work.float_arithmetic_operations_pkg.all;
     use work.float_to_real_conversions_pkg.all;
-    use work.float_multiplier_pkg.all;
-    use work.float_adder_pkg.all;
     use work.float_first_order_filter_pkg.all;
     use work.float_alu_pkg.all;
 
@@ -21,7 +19,7 @@ end;
 architecture vunit_simulation of float_filter_tb is
 
     signal simulation_running : boolean;
-    signal simulator_clock : std_logic;
+    signal simulator_clock : std_logic := '0';
     constant clock_per : time := 1 ns;
     constant clock_half_per : time := 0.5 ns;
     constant simtime_in_clocks : integer := 6500;
@@ -43,9 +41,7 @@ begin
     simtime : process
     begin
         test_runner_setup(runner, runner_cfg);
-        simulation_running <= true;
         wait for simtime_in_clocks*clock_per;
-        simulation_running <= false;
         test_runner_cleanup(runner); -- Simulation ends here
         wait;
     end process simtime;	

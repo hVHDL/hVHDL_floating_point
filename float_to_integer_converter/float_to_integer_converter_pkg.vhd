@@ -75,7 +75,6 @@ package body float_to_integer_converter_pkg is
     )
     return boolean
     is
-        alias m is self;
     begin
         return denormalizer_is_ready(self.denormalizer);
     end float_to_int_conversion_is_ready;

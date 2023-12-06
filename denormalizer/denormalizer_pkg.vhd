@@ -181,10 +181,15 @@ package body denormalizer_pkg is
     return float_record
     is
         variable float : float_record := zero;
+        variable shift_width : integer;
     begin
+        shift_width := to_integer(set_exponent_to - right.exponent);
+        if shift_width > max_shift then
+            shift_width := max_shift;
+        end if;
         float := (sign     => right.sign,
-                  exponent => to_signed(set_exponent_to, exponent_length),
-                  mantissa => shift_right(right.mantissa,to_integer(set_exponent_to - right.exponent)));
+                  exponent => right.exponent + shift_width,
+                  mantissa => shift_right(right.mantissa , shift_width));
 
         return float;
         
