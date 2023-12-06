@@ -27,15 +27,8 @@ package float_type_definitions_pkg is
     constant zero : float_record := ('0', (others => '0'), (others => '0'));
 
 ------------------------------------------------------------------------
-------------------------------------------------------------------------
-    function "-" ( right : float_record)
-        return float_record;
-
-------------------------------------------------------------------------
-    function number_of_leading_zeroes (
-        data : unsigned;
-        max_shift : integer)
-    return integer;
+    function get_signed_mantissa ( float_object : float_record)
+        return signed;
 ------------------------------------------------------------------------
     function get_exponent ( float_number : float_record)
         return integer;
@@ -46,64 +39,28 @@ package float_type_definitions_pkg is
     function get_sign ( float_number : float_record)
         return std_logic ;
 ------------------------------------------------------------------------
-    function to_std_logic ( float_number : float_record)
-        return std_logic_vector;
-------------------------------------------------------------------------
+
 end package float_type_definitions_pkg;
 
 package body float_type_definitions_pkg is
 
-------------------------------------------------------------------------
-    function number_of_leading_zeroes
+    function get_signed_mantissa
     (
-        data : std_logic_vector;
-        max_shift : integer
+        float_object : float_record
     )
-    return integer 
+    return signed 
     is
-        variable number_of_zeroes : integer := 0;
+        variable signed_mantissa : signed(mantissa_length+1 downto 0) := (others => '0');
+
     begin
-        for i in data'high - max_shift to data'high loop
-            if data(i) = '0' then
-                number_of_zeroes := number_of_zeroes + 1;
-            else
-                number_of_zeroes := 0;
-            end if;
-        end loop;
+        signed_mantissa(t_mantissa'range) := signed(float_object.mantissa);
+        if float_object.sign = '1' then
+            signed_mantissa := -signed_mantissa;
+        end if;
 
-        return number_of_zeroes;
-        
-    end number_of_leading_zeroes;
+        return signed_mantissa;
 
-------------------------------------------------------------------------
-    function number_of_leading_zeroes
-    (
-        data : unsigned;
-        max_shift : integer
-    )
-    return integer 
-    is
-    begin
-
-        return number_of_leading_zeroes(std_logic_vector(data), max_shift);
-        
-    end number_of_leading_zeroes;
-
-------------------------------------------------------------------------
-------------------------------------------------------------------------
-    function "-"
-    (
-        right : float_record
-    )
-    return float_record
-    is
-        variable returned_float : float_record;
-    begin
-         returned_float := (sign     => not right.sign,
-                            exponent => right.exponent,
-                            mantissa => right.mantissa);
-        return returned_float;
-    end "-";
+    end get_signed_mantissa;
 ------------------------------------------------------------------------
     function get_exponent
     (
@@ -139,14 +96,5 @@ package body float_type_definitions_pkg is
         return float_number.sign;
     end get_sign;
 ------------------------------------------------------------------------
-    function to_std_logic
-    (
-        float_number : float_record
-    )
-    return std_logic_vector 
-    is
-    begin
-        return float_number.sign & std_logic_vector(float_number.exponent) & std_logic_vector(float_number.mantissa);
-    end to_std_logic;
-------------------------------------------------------------------------
+
 end package body float_type_definitions_pkg;

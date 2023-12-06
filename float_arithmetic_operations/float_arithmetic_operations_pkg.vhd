@@ -18,9 +18,18 @@ package float_arithmetic_operations_pkg is
     function "=" ( left, right : float_record)
         return boolean;
 ------------------------------------------------------------------------
-    function get_signed_mantissa ( float_object : float_record)
-        return signed;
-----------------------------------------------------------------------
+    function "-" ( right : float_record)
+        return float_record;
+
+------------------------------------------------------------------------
+    function number_of_leading_zeroes (
+        data : unsigned;
+        max_shift : integer)
+    return integer;
+------------------------------------------------------------------------
+    function to_std_logic ( float_number : float_record)
+        return std_logic_vector;
+------------------------------------------------------------------------
 end package float_arithmetic_operations_pkg;
 
 
@@ -45,24 +54,6 @@ package body float_arithmetic_operations_pkg is
         return returned_float;
 
     end ">";
-------------------------------------------------------------------------
-    function get_signed_mantissa
-    (
-        float_object : float_record
-    )
-    return signed 
-    is
-        variable signed_mantissa : signed(mantissa_length+1 downto 0) := (others => '0');
-
-    begin
-        signed_mantissa(t_mantissa'range) := signed(float_object.mantissa);
-        if float_object.sign = '1' then
-            signed_mantissa := -signed_mantissa;
-        end if;
-
-        return signed_mantissa;
-
-    end get_signed_mantissa;
 ------------------------------------------------------------------------
     function "+"
     (
@@ -120,5 +111,66 @@ package body float_arithmetic_operations_pkg is
                 left.exponent = right.exponent and
                 left.mantissa = right.mantissa;
     end "=";
+------------------------------------------------------------------------
+    function number_of_leading_zeroes
+    (
+        data : std_logic_vector;
+        max_shift : integer
+    )
+    return integer 
+    is
+        variable number_of_zeroes : integer := 0;
+    begin
+        for i in data'high - max_shift to data'high loop
+            if data(i) = '0' then
+                number_of_zeroes := number_of_zeroes + 1;
+            else
+                number_of_zeroes := 0;
+            end if;
+        end loop;
+
+        return number_of_zeroes;
+        
+    end number_of_leading_zeroes;
+
+------------------------------------------------------------------------
+    function number_of_leading_zeroes
+    (
+        data : unsigned;
+        max_shift : integer
+    )
+    return integer 
+    is
+    begin
+
+        return number_of_leading_zeroes(std_logic_vector(data), max_shift);
+        
+    end number_of_leading_zeroes;
+
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+    function "-"
+    (
+        right : float_record
+    )
+    return float_record
+    is
+        variable returned_float : float_record;
+    begin
+         returned_float := (sign     => not right.sign,
+                            exponent => right.exponent,
+                            mantissa => right.mantissa);
+        return returned_float;
+    end "-";
+------------------------------------------------------------------------
+    function to_std_logic
+    (
+        float_number : float_record
+    )
+    return std_logic_vector 
+    is
+    begin
+        return float_number.sign & std_logic_vector(float_number.exponent) & std_logic_vector(float_number.mantissa);
+    end to_std_logic;
 ------------------------------------------------------------------------
 end package body float_arithmetic_operations_pkg;

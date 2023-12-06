@@ -7,6 +7,7 @@ library vunit_lib;
     use vunit_lib.run_pkg.all;
 
     use work.float_alu_pkg.all;
+    use work.float_arithmetic_operations_pkg.all;
     use work.float_type_definitions_pkg.all;
     use work.float_to_real_conversions_pkg.all;
 

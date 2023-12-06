@@ -3,6 +3,7 @@ library ieee;
     use ieee.numeric_std.all;
 
     use work.float_type_definitions_pkg.all;
+    use work.float_arithmetic_operations_pkg.all;
     use work.float_adder_pkg.all;
     use work.float_multiplier_pkg.all;
     use work.normalizer_pkg.all;
