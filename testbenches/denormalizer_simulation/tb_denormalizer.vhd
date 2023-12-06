@@ -18,7 +18,7 @@ end;
 architecture vunit_simulation of denormalizer_tb is
 
     signal simulation_running : boolean;
-    signal simulator_clock : std_logic;
+    signal simulator_clock : std_logic := '0';
     constant clock_per : time := 1 ns;
     constant clock_half_per : time := 0.5 ns;
     constant simtime_in_clocks : integer := 50;
@@ -35,8 +35,6 @@ architecture vunit_simulation of denormalizer_tb is
     signal denormalizer : denormalizer_record := init_denormalizer;
     signal denormalization_result : float_record := to_float(0.0);
 
-    signal test_add : real := 0.0;
-
 begin
 
 ------------------------------------------------------------------------
@@ -49,20 +47,9 @@ begin
         test_runner_cleanup(runner); -- Simulation ends here
         wait;
     end process simtime;	
+    simulator_clock <= not simulator_clock after clock_per/2.0;
 
 ------------------------------------------------------------------------
-    sim_clock_gen : process
-    begin
-        simulator_clock <= '0';
-        wait for clock_half_per;
-        while simulation_running loop
-            wait for clock_half_per;
-                simulator_clock <= not simulator_clock;
-            end loop;
-        wait;
-    end process;
-------------------------------------------------------------------------
-
     stimulus : process(simulator_clock)
 
     begin
@@ -87,8 +74,6 @@ begin
                 denormalization_result <= get_denormalized_result(denormalizer);
             end if;
             
-            test_add <= to_real(denormalizer.feedthrough_pipeline(2) + denormalizer.denormalizer_pipeline(2));
-
         end if; -- rising_edge
     end process stimulus;	
 ------------------------------------------------------------------------
