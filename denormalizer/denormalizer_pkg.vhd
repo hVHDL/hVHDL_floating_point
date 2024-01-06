@@ -184,7 +184,7 @@ package body denormalizer_pkg is
         variable shift_width : integer;
     begin
         shift_width := to_integer(set_exponent_to - right.exponent);
-        if shift_width > max_shift then
+        if shift_width >= max_shift then
             shift_width := max_shift;
         end if;
         float := (sign     => right.sign,
