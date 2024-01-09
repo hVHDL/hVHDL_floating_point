@@ -1,5 +1,9 @@
 echo off
-set source=%1
+if "%1"=="" (
+    set source=./
+) else (
+    set source=%1
+)
 
 ghdl -a --ieee=synopsys --std=08 %source%/float_type_definitions/float_word_length_16_bit_pkg.vhd
 ghdl -a --ieee=synopsys --std=08 %source%/float_type_definitions/float_type_definitions_pkg.vhd
