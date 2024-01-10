@@ -5,6 +5,7 @@ library ieee;
 
     use work.float_type_definitions_pkg.all;
     use work.float_to_real_functions_pkg.all;
+    use work.normalizer_pkg.all;
 
 package float_to_real_conversions_pkg is
 ------------------------------------------------------------------------
@@ -34,7 +35,7 @@ package body float_to_real_conversions_pkg is
 
     begin
 
-        return work.normalizer_pkg.normalize((sign   => get_sign(real_number),
+        return normalize((sign   => get_sign(real_number),
                         exponent => get_exponent(real_number),
                         mantissa => get_mantissa(real_number)));
         
