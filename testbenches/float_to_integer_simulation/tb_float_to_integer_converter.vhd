@@ -1,7 +1,6 @@
 LIBRARY ieee  ; 
     USE ieee.NUMERIC_STD.all  ; 
     USE ieee.std_logic_1164.all  ; 
-    use ieee.math_real.all;
 
 library vunit_lib;
     context vunit_lib.vunit_context;
@@ -16,8 +15,7 @@ end;
 
 architecture vunit_simulation of tb_float_to_integer_converter is
 
-    signal simulation_running : boolean;
-    signal simulator_clock : std_logic;
+    signal simulator_clock : std_logic := '0';
     constant clock_period : time := 1 ns;
     constant simtime_in_clocks : integer := 50;
 
@@ -26,7 +24,7 @@ architecture vunit_simulation of tb_float_to_integer_converter is
     -- simulation specific signals ----
 
     signal denormalizer : denormalizer_record := init_denormalizer;
-    signal result_index : integer := 0;
+    signal result_index : natural := 0;
 
 begin
 
@@ -34,9 +32,7 @@ begin
     simtime : process
     begin
         test_runner_setup(runner, runner_cfg);
-        simulation_running <= true;
         wait for simtime_in_clocks*clock_period;
-        simulation_running <= false;
         test_runner_cleanup(runner); -- Simulation ends here
         wait;
     end process simtime;	
