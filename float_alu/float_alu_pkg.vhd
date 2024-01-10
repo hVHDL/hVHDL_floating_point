@@ -60,8 +60,7 @@ package float_alu_pkg is
         signal alu_object : inout float_alu_record;
         left, right : float_record);
 
-    procedure subtract_and_increment_counter
-    (
+    procedure subtract_and_increment_counter (
         signal alu_object : inout float_alu_record;
         signal counter_to_be_incremented : inout integer;
         left, right : float_record);
