@@ -3,8 +3,8 @@ library ieee;
     use ieee.numeric_std.all;
 
     use work.float_type_definitions_pkg.all;
-    use work.float_arithmetic_operations_pkg.all;
     use work.normalizer_pipeline_pkg.normalizer_pipeline_configuration;
+    use work.float_arithmetic_operations_pkg.number_of_leading_zeroes;
 
 package normalizer_pkg is
 ------------------------------------------------------------------------

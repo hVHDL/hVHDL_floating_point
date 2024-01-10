@@ -22,7 +22,7 @@ architecture vunit_simulation of denormal_conversions_tb is
     -----------------------------------
     -- simulation specific signals ----
 
-    constant test_result  : real := 0.0055435133453;
+    constant test_result  : real := 0.00055435133453;
     constant test         : real := to_real(to_float(to_std_logic_vector(to_float(test_result))));
     signal should_be_zero : real := test_result - test;
     signal testi          : real := test;
@@ -34,6 +34,7 @@ begin
     begin
         test_runner_setup(runner, runner_cfg);
         wait for simtime_in_clocks*clock_period;
+        check(abs(should_be_zero) < 0.01, "got " & real'image(should_be_zero));
         test_runner_cleanup(runner); -- Simulation ends here
         wait;
     end process simtime;	
