@@ -15,6 +15,12 @@ package float_to_real_conversions_pkg is
     function to_real ( float_number : float_record)
         return real;
 ------------------------------------------------------------------------
+    function to_float ( float : std_logic_vector)
+        return float_record ;
+------------------------------------------------------------------------
+    function to_std_logic_vector ( float : float_record)
+        return std_logic_vector;
+------------------------------------------------------------------------
 end package float_to_real_conversions_pkg;
 
 package body float_to_real_conversions_pkg is
@@ -54,4 +60,34 @@ package body float_to_real_conversions_pkg is
         
     end to_real;
 ------------------------------------------------------------------------
+    function to_float
+    (
+        float : std_logic_vector
+    )
+    return float_record 
+    is
+        variable retval : float_record;
+    begin
+        retval.sign     := float(float'left);
+        retval.exponent := signed(float(float'left-1 downto float'left-1-exponent_high));
+        retval.mantissa := unsigned(float(float'left-exponent_high-2 downto 0));
+
+        return retval;
+    end to_float;
+------------------------------------------------------------------------
+    function to_std_logic_vector
+    (
+        float : float_record
+    )
+    return std_logic_vector 
+    is
+        variable retval : std_logic_vector(mantissa_high+exponent_high+2 downto 0);
+    begin
+        retval  := float.sign & std_logic_vector(float.exponent) & std_logic_vector(float.mantissa);
+
+        return retval;
+
+    end to_std_logic_vector;
+------------------------------------------------------------------------
+
 end package body float_to_real_conversions_pkg;
