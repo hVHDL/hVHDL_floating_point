@@ -131,6 +131,7 @@ package body normalizer_pkg is
     return float_record
     is
         variable number_of_zeroes : natural := 0;
+
     begin
         number_of_zeroes := number_of_leading_zeroes(float_number.mantissa, max_shift);
 
@@ -150,7 +151,7 @@ package body normalizer_pkg is
         variable number_of_zeroes : natural := 0;
     begin
 
-        return normalize(float_number, mantissa_high);
+        return normalize(float_number => float_number, max_shift => mantissa_high);
     end normalize;
 ------------------------------------------------------------------------
 end package body normalizer_pkg;

@@ -69,7 +69,8 @@ denormal.add_source_files(ROOT / "testbenches/float_alu_simulation/*.vhd")
 denormal.add_source_files(ROOT / "testbenches/simulate_float_filter/*.vhd")
 denormal.add_source_files(ROOT / "testbenches/float_to_integer_simulation/*.vhd")
 
-denormal.add_source_files(ROOT / "testbenches/denormalized_numbers/tb_denormal_conversions.vhd")
+# denormal.add_source_files(ROOT / "testbenches/denormalized_numbers/tb_denormal_conversions.vhd")
+denormal.add_source_files(ROOT / "testbenches/denormalized_numbers/saturated_add_tb.vhd")
 
 
 VU.main()

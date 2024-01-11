@@ -187,6 +187,9 @@ package body denormalizer_pkg is
         if shift_width >= max_shift then
             shift_width := max_shift;
         end if;
+        if shift_width < 0 then
+            shift_width := 0;
+        end if;
         float := (sign     => right.sign,
                   exponent => right.exponent + shift_width,
                   mantissa => shift_right(right.mantissa , shift_width));

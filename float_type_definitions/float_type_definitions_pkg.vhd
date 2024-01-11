@@ -25,6 +25,7 @@ package float_type_definitions_pkg is
     type float_array is array (natural range <>) of float_record;
 
     constant zero : float_record := ('0', (others => '0'), (others => '0'));
+    constant pos_max : float_record := ('0', (exponent_high => '0', others => '1'), (others => '1'));
 
 ------------------------------------------------------------------------
     function get_signed_mantissa ( float_object : float_record)

@@ -44,12 +44,19 @@ package body float_to_real_functions_pkg is
     )
     return real
     is
+        variable retval : real;
     begin
         if number = 0.0 then
-            return 0.0;
+            retval := 0.0;
         else
-            return floor(log2(abs(number)))+1.0;
+            retval := floor(log2(abs(number)))+1.0;
         end if;
+        if retval >= 2.0**(exponent_high)-1.0 then
+            retval := 2.0**(exponent_high)-1.0;
+        end if;
+
+        return retval;
+        
     end get_exponent;
 ------------------------------------------------------------------------
     function get_mantissa
