@@ -34,16 +34,16 @@ architecture vunit_simulation of float_alu_tb is
     type float_array is array (natural range 0 to 4) of real;
     constant left : float_array := (
         5.2948629,
-        6.2853628,
-        7.7988346,
-        8.3825920,
-        9.9349673);
+        37.2853628,
+        21.7988346,
+        15.3825920,
+        1.9349673);
 
     constant right : float_array := (
-        5.296720,
-        5.238572,
+        1.296720,
+        3.238572,
         5.746730,
-        -8.92395,
+        -7.92395,
         -9.10365);
 
     function multiplier_result_values return float_array
