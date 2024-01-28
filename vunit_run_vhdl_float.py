@@ -39,7 +39,7 @@ mathlib.add_source_files(ROOT / "testbenches/float_alu_simulation/*.vhd")
 mathlib.add_source_files(ROOT / "testbenches/simulate_float_filter/*.vhd")
 mathlib.add_source_files(ROOT / "testbenches/float_to_integer_simulation/*.vhd")
 
-#denormalized numbers tests
+#denormalized numbers tests, not yet developed
 
 denormal = VU.add_library("denormal")
 denormal.add_source_files(ROOT / "float_type_definitions/float_word_length_20_bit_pkg.vhd")
@@ -71,6 +71,5 @@ denormal.add_source_files(ROOT / "testbenches/float_to_integer_simulation/*.vhd"
 
 # denormal.add_source_files(ROOT / "testbenches/denormalized_numbers/tb_denormal_conversions.vhd")
 denormal.add_source_files(ROOT / "testbenches/denormalized_numbers/saturated_add_tb.vhd")
-
 
 VU.main()

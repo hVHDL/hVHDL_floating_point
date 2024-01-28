@@ -33,21 +33,20 @@ architecture vunit_simulation of float_alu_tb is
 
     type float_array is array (natural range 0 to 4) of real;
     constant left : float_array := (
-        5.0,
-        6.0,
-        7.0,
-        8.0,
-        9.0);
+        5.2948629,
+        6.2853628,
+        7.7988346,
+        8.3825920,
+        9.9349673);
 
     constant right : float_array := (
-        5.0,
-        5.0,
-        5.0,
-        -8.0,
-        -9.0);
+        5.296720,
+        5.238572,
+        5.746730,
+        -8.92395,
+        -9.10365);
 
-    function result_values
-    return float_array
+    function multiplier_result_values return float_array
     is
         variable retval : float_array;
     begin
@@ -57,12 +56,26 @@ architecture vunit_simulation of float_alu_tb is
         
         return retval;
         
-    end result_values;
+    end multiplier_result_values;
 
-    constant multiply_results : float_array := result_values;
+    constant multiply_results : float_array := multiplier_result_values;
 
+    function adder_result_values return float_array
+    is
+        variable retval : float_array;
+    begin
+        for i in left'range loop
+            retval(i) := left(i) + right(i);
+        end loop;
+        
+        return retval;
+        
+    end adder_result_values;
+
+    constant add_results : float_array := adder_result_values;
 
     signal mult_index : natural := 0;
+    signal add_index : natural := 0;
 
 
 begin
@@ -93,6 +106,8 @@ begin
 
     stimulus : process(simulator_clock)
 
+        variable test_result : real := 0.0;
+
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
@@ -108,23 +123,28 @@ begin
             end CASE;
 
             CASE simulation_counter is
-                WHEN 3 => add(float_alu, to_float(5.0), to_float(5.0));
-                WHEN 4 => add(float_alu, to_float(6.0), to_float(5.0));
-                WHEN 5 => add(float_alu, to_float(7.0), to_float(5.0));
-                WHEN 6 => add(float_alu, to_float(8.1), to_float(-8.0));
-                WHEN 7 => add(float_alu, to_float(9.0), to_float(-9.1));
+                WHEN 3 => add(float_alu, to_float(left(0)), to_float(right(0)));
+                WHEN 4 => add(float_alu, to_float(left(1)), to_float(right(1)));
+                WHEN 5 => add(float_alu, to_float(left(2)), to_float(right(2)));
+                WHEN 6 => add(float_alu, to_float(left(3)), to_float(right(3)));
+                WHEN 7 => add(float_alu, to_float(left(4)), to_float(right(4)));
                 WHEN others => -- do nothing
             end CASE;
 
             if multiplier_is_ready(float_alu) then
-                mult_index <= mult_index + 1;
-                test_multiplier <= to_real(get_multiplier_result(float_alu)) - multiply_results(mult_index);
-                check(abs(to_real(get_multiplier_result(float_alu)) - multiply_results(mult_index)) < 0.001);
+                mult_index      <= mult_index + 1;
+                test_multiplier <= to_real(get_multiplier_result(float_alu));
+                test_result := to_real(get_multiplier_result(float_alu)) - multiply_results(mult_index);
+                check(abs(test_result) < 1.0e-4, "multiply error is " & real'image(test_result));
             end if;
 
             if add_is_ready(float_alu) then
                 add_result      <= get_add_result(float_alu);
                 add_result_real <= to_real(get_add_result(float_alu));
+
+                add_index <= add_index + 1;
+                test_result := to_real(get_add_result(float_alu)) - add_results(mult_index);
+                check(abs(test_result) < 1.0e-4, "adder error is " & real'image(test_result));
             end if;
 
         end if; -- rising_edge
