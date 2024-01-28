@@ -90,10 +90,11 @@ package body float_multiplier_pkg is
         self.exponent                       <= self.left.exponent + self.right.exponent;
         self.mantissa_multiplication_result <= self.left.mantissa * self.right.mantissa;
 
-        self.result <= ((sign     => self.sign,
-                             exponent => self.exponent,
-                             mantissa => (self.mantissa_multiplication_result(mantissa_high*2+1 downto mantissa_high+1))
-                            ));
+        self.result <= (
+                           sign     => self.sign,
+                           exponent => self.exponent,
+                           mantissa => (self.mantissa_multiplication_result(mantissa_high*2+1 downto mantissa_high+1))
+                       );
     end procedure;
 
 ------------------------------------------------------------------------
