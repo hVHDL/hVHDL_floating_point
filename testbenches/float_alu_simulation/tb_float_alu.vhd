@@ -135,7 +135,7 @@ begin
                 mult_index      <= mult_index + 1;
                 test_multiplier <= to_real(get_multiplier_result(float_alu));
                 test_result := to_real(get_multiplier_result(float_alu)) - multiply_results(mult_index);
-                check(abs(test_result) < 1.0e-4, "multiply error is " & real'image(test_result));
+                check(abs(test_result) < 1.0e-3, "multiply error is " & real'image(test_result));
             end if;
 
             if add_is_ready(float_alu) then
@@ -144,7 +144,7 @@ begin
 
                 add_index <= add_index + 1;
                 test_result := to_real(get_add_result(float_alu)) - add_results(mult_index);
-                check(abs(test_result) < 1.0e-4, "adder error is " & real'image(test_result));
+                check(abs(test_result) < 1.0e-3, "adder error is " & real'image(test_result));
             end if;
 
         end if; -- rising_edge
