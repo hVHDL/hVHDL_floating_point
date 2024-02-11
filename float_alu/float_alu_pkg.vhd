@@ -69,6 +69,15 @@ package float_alu_pkg is
     function get_add_result ( alu_object : float_alu_record)
         return float_record;
 ------------------------------------------------------------------------
+    procedure convert_float_to_integer (
+        signal self : out float_alu_record;
+        number_to_be_converted : float_record;
+        desired_radix : in integer);
+------------------------------------------------------------------------
+    procedure convert_integer_to_float (
+        signal self : out float_alu_record;
+        number_to_be_converted : in integer;
+        radix_of_converted_number : in integer);
 ------------------------------------------------------------------------
 end package float_alu_pkg;
 
@@ -202,4 +211,27 @@ package body float_alu_pkg is
         return get_normalizer_result(alu_object.adder_normalizer);
     end get_add_result;
 ------------------------------------------------------------------------
+    procedure convert_float_to_integer
+    (
+        signal self : out float_alu_record;
+        number_to_be_converted : float_record;
+        desired_radix : in integer
+    ) is
+    begin
+        request_scaling(self.float_adder.denormalizer, number_to_be_converted, desired_radix);
+    end convert_float_to_integer;
+--------------------------------------------------
+    procedure convert_integer_to_float
+    (
+        signal self : out float_alu_record;
+        number_to_be_converted : in integer;
+        radix_of_converted_number : in integer
+    ) is
+    begin
+        to_float(self.adder_normalizer, number_to_be_converted, radix_of_converted_number);
+        
+    end convert_integer_to_float;
+
+--------------------------------------------------
+--------------------------------------------------
 end package body float_alu_pkg;
