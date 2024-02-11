@@ -47,6 +47,11 @@ package normalizer_pkg is
     function normalize ( float_number : float_record)
         return float_record;
 ------------------------------------------------------------------------
+    procedure convert_integer_to_float
+    (
+        signal self : out normalizer_record;
+        number_to_be_converted : in integer;
+        radix_of_converted_number : in integer);
 ------------------------------------------------------------------------
 end package normalizer_pkg;
 
@@ -154,4 +159,16 @@ package body normalizer_pkg is
         return normalize(float_number => float_number, max_shift => mantissa_high);
     end normalize;
 ------------------------------------------------------------------------
+    procedure convert_integer_to_float
+    (
+        signal self : out normalizer_record;
+        number_to_be_converted : in integer;
+        radix_of_converted_number : in integer
+    ) is
+    begin
+        to_float(self, number_to_be_converted, radix_of_converted_number);
+        
+    end convert_integer_to_float;
+
+--------------------------------------------------
 end package body normalizer_pkg;

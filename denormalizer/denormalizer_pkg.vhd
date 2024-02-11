@@ -63,6 +63,10 @@ package denormalizer_pkg is
         max_shift       : integer)
     return float_record;
 ------------------------------------------------------------------------
+    procedure convert_float_to_integer (
+        signal self : out denormalizer_record;
+        number_to_be_converted : float_record;
+        desired_radix : in integer);
 ------------------------------------------------------------------------
 end package denormalizer_pkg;
 
@@ -211,4 +215,15 @@ package body denormalizer_pkg is
         
     end denormalize_float;
 ------------------------------------------------------------------------
+    procedure convert_float_to_integer
+    (
+        signal self : out denormalizer_record;
+        number_to_be_converted : float_record;
+        desired_radix : in integer
+    ) is
+    begin
+        request_scaling(self, number_to_be_converted, desired_radix);
+        
+    end convert_float_to_integer;
+--------------------------------------------------
 end package body denormalizer_pkg;
