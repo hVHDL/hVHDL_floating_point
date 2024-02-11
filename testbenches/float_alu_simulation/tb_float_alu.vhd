@@ -77,7 +77,6 @@ architecture vunit_simulation of float_alu_tb is
     signal mult_index : natural := 0;
     signal add_index : natural := 0;
 
-
 begin
 
 ------------------------------------------------------------------------
@@ -143,7 +142,7 @@ begin
                 add_result_real <= to_real(get_add_result(float_alu));
 
                 add_index <= add_index + 1;
-                test_result := to_real(get_add_result(float_alu)) - add_results(mult_index);
+                test_result := to_real(get_add_result(float_alu)) - add_results(add_index);
                 check(abs(test_result) < 1.0e-3, "adder error is " & real'image(test_result));
             end if;
 

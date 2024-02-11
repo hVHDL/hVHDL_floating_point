@@ -16,15 +16,13 @@ package float_alu_pkg is
         adder_normalizer   : normalizer_record   ;
 
         float_multiplier : float_multiplier_record ;
-        multiplier_normalizer : normalizer_record  ;
 
     end record;
 
     constant init_float_alu : float_alu_record := (
             init_float_adder      ,
             init_normalizer       ,
-            init_float_multiplier ,
-            init_normalizer);
+            init_float_multiplier);
 
 ------------------------------------------------------------------------
     procedure create_float_alu (
@@ -87,16 +85,10 @@ package body float_alu_pkg is
         create_normalizer(self.adder_normalizer);
 
         create_float_multiplier(self.float_multiplier);
-        create_normalizer(self.multiplier_normalizer);
 
         if adder_is_ready(self.float_adder) then
             request_normalizer(self.adder_normalizer, get_result(self.float_adder));
         end if;
-
-        if float_multiplier_is_ready(self.float_multiplier) then
-            request_normalizer(self.multiplier_normalizer, get_multiplier_result(self.float_multiplier));
-        end if;
-
     end procedure;
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
@@ -136,7 +128,7 @@ package body float_alu_pkg is
     return boolean
     is
     begin
-        return normalizer_is_ready(alu_object.multiplier_normalizer);
+        return float_multiplier_is_ready(alu_object.float_multiplier);
     end multiplier_is_ready;
 ------------------------------------------------------------------------
     function get_multiplier_result
@@ -146,7 +138,7 @@ package body float_alu_pkg is
     return float_record
     is
     begin
-        return get_normalizer_result(alu_object.multiplier_normalizer);
+        return get_multiplier_result(alu_object.float_multiplier);
     end get_multiplier_result;
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
