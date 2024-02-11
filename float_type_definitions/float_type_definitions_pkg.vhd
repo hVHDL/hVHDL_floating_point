@@ -22,6 +22,12 @@ package float_type_definitions_pkg is
         mantissa : t_mantissa;
     end record;
 
+    function init_float (
+        sign : std_logic;
+        exponent : integer range -2**t_exponent'high to 2**t_exponent'high-1;
+        mantissa : t_mantissa)
+    return float_record;
+
     type float_array is array (natural range <>) of float_record;
 
     constant zero : float_record := ('0', (others => '0'), (others => '0'));
@@ -44,6 +50,20 @@ package float_type_definitions_pkg is
 end package float_type_definitions_pkg;
 
 package body float_type_definitions_pkg is
+
+    function init_float
+    (
+        sign : std_logic;
+        exponent : integer range -2**t_exponent'high to 2**t_exponent'high-1;
+        mantissa : t_mantissa
+    )
+    return float_record
+    is
+    begin
+        return (sign => sign,
+                exponent => to_signed(exponent,t_exponent'length),
+                mantissa => mantissa);
+    end init_float;
 
     function get_signed_mantissa
     (
