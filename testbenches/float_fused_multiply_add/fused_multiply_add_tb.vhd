@@ -6,6 +6,10 @@ LIBRARY ieee  ;
     use work.float_alu_pkg.all;
     use work.float_type_definitions_pkg.all;
     use work.float_to_real_conversions_pkg.all;
+    use work.float_adder_pkg.all;
+    use work.float_multiplier_pkg.all;
+    use work.normalizer_pkg.all;
+    use work.denormalizer_pkg.all;
 
 library vunit_lib;
     context vunit_lib.vunit_context;
@@ -38,13 +42,14 @@ architecture vunit_simulation of fused_multiply_add_tb is
         21.7988346,
         15.3825920,
         1.9349673);
-
+------------------------------------------------------------------------
     constant right : float_array := (
         1.296720,
         3.238572,
         5.746730,
         -7.92395,
         -9.10365);
+------------------------------------------------------------------------
 
     function multiplier_result_values return float_array
     is
@@ -57,8 +62,10 @@ architecture vunit_simulation of fused_multiply_add_tb is
         return retval;
         
     end multiplier_result_values;
+------------------------------------------------------------------------
 
     constant multiply_results : float_array := multiplier_result_values;
+------------------------------------------------------------------------
 
     function adder_result_values return float_array
     is
@@ -71,11 +78,15 @@ architecture vunit_simulation of fused_multiply_add_tb is
         return retval;
         
     end adder_result_values;
+------------------------------------------------------------------------
 
     constant add_results : float_array := adder_result_values;
+------------------------------------------------------------------------
 
     signal mult_index : natural := 0;
     signal add_index : natural := 0;
+
+    alias self is float_alu;
 
 
 begin
@@ -112,7 +123,15 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
-            create_float_alu(float_alu);
+            create_adder(self.float_adder);
+            create_normalizer(self.adder_normalizer);
+
+            create_float_multiplier(self.float_multiplier);
+
+            if adder_is_ready(self.float_adder) then
+                request_normalizer(self.adder_normalizer, get_result(self.float_adder));
+            end if;
+
             CASE simulation_counter is
                 WHEN 3 => multiply(float_alu, to_float(left(0)), to_float(right(0)));
                 WHEN 4 => multiply(float_alu, to_float(left(1)), to_float(right(1)));
@@ -143,7 +162,7 @@ begin
                 add_result_real <= to_real(get_add_result(float_alu));
 
                 add_index <= add_index + 1;
-                test_result := to_real(get_add_result(float_alu)) - add_results(mult_index);
+                test_result := to_real(get_add_result(float_alu)) - add_results(add_index);
                 check(abs(test_result) < 1.0e-3, "adder error is " & real'image(test_result));
             end if;
 
