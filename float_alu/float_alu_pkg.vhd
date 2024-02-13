@@ -91,6 +91,12 @@ package float_alu_pkg is
     function get_converted_float ( self : float_alu_record)
         return float_record;
 ------------------------------------------------------------------------
+    function float_to_int_is_ready ( self : float_alu_record)
+        return boolean;
+------------------------------------------------------------------------
+    function get_converted_integer ( self : float_alu_record)
+        return integer;
+------------------------------------------------------------------------
 end package float_alu_pkg;
 
 package body float_alu_pkg is
@@ -260,7 +266,7 @@ package body float_alu_pkg is
     return boolean
     is
     begin
-        return (normalizer_is_ready(self.adder_normalizer)) and self.int_to_float_pipeline(number_of_normalizer_pipeline_stages) = '1';
+        return self.int_to_float_pipeline(number_of_normalizer_pipeline_stages) = '1';
     end int_to_float_is_ready;
 
 ------------------------------------------------------------------------
@@ -275,5 +281,24 @@ package body float_alu_pkg is
     end get_converted_float;
 
 --------------------------------------------------
+    function float_to_int_is_ready
+    (
+        self : float_alu_record
+    )
+    return boolean
+    is
+    begin
+        return self.float_to_int_pipeline(number_of_denormalizer_pipeline_stages) = '1';
+    end float_to_int_is_ready;
+--------------------------------------------------
+    function get_converted_integer
+    (
+        self : float_alu_record
+    )
+    return integer
+    is
+    begin
+        return get_integer(self.float_adder.denormalizer);
+    end get_converted_integer;
 --------------------------------------------------
 end package body float_alu_pkg;
