@@ -18,13 +18,15 @@ package float_alu_pkg is
         float_multiplier : float_multiplier_record ;
 
         int_to_float_pipeline : std_logic_vector(number_of_normalizer_pipeline_stages downto 0);
+        float_to_int_pipeline : std_logic_vector(number_of_denormalizer_pipeline_stages downto 0);
 
     end record;
 
     constant init_float_alu : float_alu_record := (
-            init_float_adder ,
-            init_normalizer  ,
-            init_float_multiplier,
+            init_float_adder      ,
+            init_normalizer       ,
+            init_float_multiplier ,
+            (others => '0')       ,
             (others => '0')  );
         
 
@@ -97,18 +99,20 @@ package body float_alu_pkg is
     is
     begin
 
-        create_adder(self.float_adder);
+        create_denormalizer(self.float_adder.denormalizer);
+        self.float_adder.adder_result <= (self.float_adder.denormalizer.feedthrough_pipeline(number_of_denormalizer_pipeline_stages) + self.float_adder.denormalizer.denormalizer_pipeline(number_of_denormalizer_pipeline_stages));
+        self.float_adder.adder_is_done <= denormalizer_is_ready(self.float_adder.denormalizer) and self.float_to_int_pipeline(self.float_to_int_pipeline'left) = '0';
         create_normalizer(self.adder_normalizer);
 
         create_float_multiplier(self.float_multiplier);
 
-        if adder_is_ready(self.float_adder) then
-            request_normalizer(self.adder_normalizer, get_result(self.float_adder));
+        if self.float_adder.adder_is_done then
+            request_normalizer(self.adder_normalizer, self.float_adder.adder_result);
         end if;
-        self.int_to_float_pipeline(0) <= '0';
-        for i in 1 to number_of_normalizer_pipeline_stages loop
-            self.int_to_float_pipeline(i) <= self.int_to_float_pipeline(i-1);
-        end loop;
+
+        self.int_to_float_pipeline <= self.int_to_float_pipeline(self.int_to_float_pipeline'left-1 downto 0) & '0';
+        self.float_to_int_pipeline <= self.float_to_int_pipeline(self.float_to_int_pipeline'left-1 downto 0) & '0';
+
     end procedure;
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
@@ -230,6 +234,7 @@ package body float_alu_pkg is
     ) is
     begin
         request_scaling(self.float_adder.denormalizer, number_to_be_converted, desired_radix);
+        self.float_to_int_pipeline(0) <= '1';
     end convert_float_to_integer;
 --------------------------------------------------
     procedure convert_integer_to_float

@@ -132,7 +132,7 @@ begin
                 WHEN others => -- do nothing
             end CASE;
 
-            if multiplier_is_ready(float_alu) and mult_index < right'length then
+            if multiplier_is_ready(float_alu) then
                 mult_index      <= mult_index + 1;
                 test_multiplier <= to_real(get_multiplier_result(float_alu));
                 test_result := to_real(get_multiplier_result(float_alu)) - multiply_results(mult_index);
@@ -151,7 +151,7 @@ begin
             if add_index >= right'length then
                 if int_to_float_sequencer < right'length then
                     int_to_float_sequencer <= int_to_float_sequencer + 1;
-                    -- convert_float_to_integer(float_alu, to_float(left(int_to_float_sequencer)), 24);
+                    convert_float_to_integer(float_alu, to_float(left(int_to_float_sequencer)), 24);
                     convert_integer_to_float(float_alu, int_to_float_sequencer, 0);
                 end if;
             end if;
