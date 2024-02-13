@@ -79,6 +79,8 @@ architecture vunit_simulation of float_alu_tb is
 
     signal int_to_float_sequencer : natural := 0;
 
+    signal float_to_int_ready : boolean := false;
+
 begin
 
 ------------------------------------------------------------------------
@@ -155,6 +157,7 @@ begin
                     convert_integer_to_float(float_alu, int_to_float_sequencer, 0);
                 end if;
             end if;
+            float_to_int_ready <= int_to_float_is_ready(float_alu);
 
         end if; -- rising_edge
     end process stimulus;	

@@ -252,6 +252,7 @@ package body float_alu_pkg is
         
     end convert_integer_to_float;
 
+------------------------------------------------------------------------
     function int_to_float_is_ready
     (
         self : float_alu_record
@@ -259,7 +260,7 @@ package body float_alu_pkg is
     return boolean
     is
     begin
-        return (not normalizer_is_ready(self.adder_normalizer)) and self.int_to_float_pipeline(number_of_normalizer_pipeline_stages) = '1';
+        return (normalizer_is_ready(self.adder_normalizer)) and self.int_to_float_pipeline(number_of_normalizer_pipeline_stages) = '1';
     end int_to_float_is_ready;
 
 ------------------------------------------------------------------------
