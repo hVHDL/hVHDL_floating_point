@@ -139,7 +139,7 @@ begin
                 check(abs(test_result) < 1.0e-3, "multiply error is " & real'image(test_result));
             end if;
 
-            if add_is_ready(float_alu) and add_index < right'length then
+            if add_is_ready(float_alu) then
                 add_result      <= get_add_result(float_alu);
                 add_result_real <= to_real(get_add_result(float_alu));
 
@@ -152,7 +152,7 @@ begin
                 if int_to_float_sequencer < right'length then
                     int_to_float_sequencer <= int_to_float_sequencer + 1;
                     -- convert_float_to_integer(float_alu, to_float(left(int_to_float_sequencer)), 24);
-                    convert_integer_to_float(float_alu, int_to_float_sequencer, 1);
+                    convert_integer_to_float(float_alu, int_to_float_sequencer, 0);
                 end if;
             end if;
 

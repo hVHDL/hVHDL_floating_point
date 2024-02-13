@@ -17,12 +17,16 @@ package float_alu_pkg is
 
         float_multiplier : float_multiplier_record ;
 
+        int_to_float_pipeline : std_logic_vector(number_of_normalizer_pipeline_stages downto 0);
+
     end record;
 
     constant init_float_alu : float_alu_record := (
-            init_float_adder      ,
-            init_normalizer       ,
-            init_float_multiplier);
+            init_float_adder ,
+            init_normalizer  ,
+            init_float_multiplier,
+            (others => '0')  );
+        
 
 ------------------------------------------------------------------------
     procedure create_float_alu (
@@ -30,43 +34,43 @@ package float_alu_pkg is
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
     procedure multiply (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         left, right : float_record);
 
     procedure multiply_and_increment_counter (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         signal counter_to_be_incremented : inout integer;
         left, right : float_record);
 ------------------------------------------------------------------------
-    function multiplier_is_ready ( alu_object : float_alu_record)
+    function multiplier_is_ready ( self : float_alu_record)
         return boolean;
 ------------------------------------------------------------------------
-    function get_multiplier_result ( alu_object : float_alu_record)
+    function get_multiplier_result ( self : float_alu_record)
         return float_record;
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
     procedure add (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         left, right : float_record);
 
     procedure add_and_increment_counter (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         signal counter_to_be_incremented : inout integer;
         left, right : float_record);
 
     procedure subtract (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         left, right : float_record);
 
     procedure subtract_and_increment_counter (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         signal counter_to_be_incremented : inout integer;
         left, right : float_record);
 ------------------------------------------------------------------------
-    function add_is_ready ( alu_object : float_alu_record)
+    function add_is_ready ( self : float_alu_record)
         return boolean;
 ------------------------------------------------------------------------
-    function get_add_result ( alu_object : float_alu_record)
+    function get_add_result ( self : float_alu_record)
         return float_record;
 ------------------------------------------------------------------------
     procedure convert_float_to_integer (
@@ -78,6 +82,9 @@ package float_alu_pkg is
         signal self : out float_alu_record;
         number_to_be_converted : in integer;
         radix_of_converted_number : in integer);
+------------------------------------------------------------------------
+    function int_to_float_is_ready ( self : float_alu_record)
+        return boolean;
 ------------------------------------------------------------------------
 end package float_alu_pkg;
 
@@ -98,24 +105,28 @@ package body float_alu_pkg is
         if adder_is_ready(self.float_adder) then
             request_normalizer(self.adder_normalizer, get_result(self.float_adder));
         end if;
+        self.int_to_float_pipeline(0) <= '0';
+        for i in 1 to number_of_normalizer_pipeline_stages loop
+            self.int_to_float_pipeline(i) <= self.int_to_float_pipeline(i-1);
+        end loop;
     end procedure;
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
     procedure multiply
     (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         left, right : float_record
     ) is
     begin
 
         request_float_multiplier(
-            alu_object.float_multiplier,
+            self.float_multiplier,
             left, right);
     end multiply;
 
     procedure multiply_and_increment_counter
     (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         signal counter_to_be_incremented : inout integer;
         left, right : float_record
     ) is
@@ -124,7 +135,7 @@ package body float_alu_pkg is
         counter_to_be_incremented <= counter_to_be_incremented + 1;
 
         request_float_multiplier(
-            alu_object.float_multiplier,
+            self.float_multiplier,
             left, right);
 
     end multiply_and_increment_counter;
@@ -132,83 +143,83 @@ package body float_alu_pkg is
 ------------------------------------------------------------------------
     function multiplier_is_ready
     (
-        alu_object : float_alu_record
+        self : float_alu_record
     )
     return boolean
     is
     begin
-        return float_multiplier_is_ready(alu_object.float_multiplier);
+        return float_multiplier_is_ready(self.float_multiplier);
     end multiplier_is_ready;
 ------------------------------------------------------------------------
     function get_multiplier_result
     (
-        alu_object : float_alu_record
+        self : float_alu_record
     )
     return float_record
     is
     begin
-        return get_multiplier_result(alu_object.float_multiplier);
+        return get_multiplier_result(self.float_multiplier);
     end get_multiplier_result;
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
     procedure add
     (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         left, right : float_record
     ) is
     begin
-        pipelined_add(alu_object.float_adder, left, right);
+        pipelined_add(self.float_adder, left, right);
     end add;
 
     procedure add_and_increment_counter
     (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         signal counter_to_be_incremented : inout integer;
         left, right : float_record
     ) is
     begin
         counter_to_be_incremented <= counter_to_be_incremented + 1;
-        pipelined_add(alu_object.float_adder, left, right);
+        pipelined_add(self.float_adder, left, right);
     end add_and_increment_counter;
 ------------------------------------------------------------------------
     procedure subtract
     (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         left, right : float_record
     ) is
     begin
-        pipelined_add(alu_object.float_adder, left, -right);
+        pipelined_add(self.float_adder, left, -right);
     end subtract;
 
     procedure subtract_and_increment_counter
     (
-        signal alu_object : inout float_alu_record;
+        signal self : inout float_alu_record;
         signal counter_to_be_incremented : inout integer;
         left, right : float_record
     ) is
     begin
         counter_to_be_incremented <= counter_to_be_incremented + 1;
-        pipelined_add(alu_object.float_adder, left, -right);
+        pipelined_add(self.float_adder, left, -right);
     end subtract_and_increment_counter;
 ------------------------------------------------------------------------
     function add_is_ready
     (
-        alu_object : float_alu_record
+        self : float_alu_record
     )
     return boolean
     is
     begin
-        return normalizer_is_ready(alu_object.adder_normalizer);
+        return normalizer_is_ready(self.adder_normalizer) and self.int_to_float_pipeline(number_of_normalizer_pipeline_stages) = '0';
     end add_is_ready;
 ------------------------------------------------------------------------
     function get_add_result
     (
-        alu_object : float_alu_record
+        self : float_alu_record
     )
     return float_record
     is
     begin
-        return get_normalizer_result(alu_object.adder_normalizer);
+        return get_normalizer_result(self.adder_normalizer);
     end get_add_result;
 ------------------------------------------------------------------------
     procedure convert_float_to_integer
@@ -229,8 +240,19 @@ package body float_alu_pkg is
     ) is
     begin
         to_float(self.adder_normalizer, number_to_be_converted, radix_of_converted_number);
+        self.int_to_float_pipeline(0) <= '1';
         
     end convert_integer_to_float;
+
+    function int_to_float_is_ready
+    (
+        self : float_alu_record
+    )
+    return boolean
+    is
+    begin
+        return (not normalizer_is_ready(self.adder_normalizer)) and self.int_to_float_pipeline(number_of_normalizer_pipeline_stages) = '1';
+    end int_to_float_is_ready;
 
 --------------------------------------------------
 --------------------------------------------------
