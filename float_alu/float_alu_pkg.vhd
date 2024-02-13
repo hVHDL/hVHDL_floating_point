@@ -168,7 +168,7 @@ package body float_alu_pkg is
         left, right : float_record
     ) is
     begin
-        pipelined_add(self.float_adder, left, right);
+        request_add(self.float_adder, left, right);
     end add;
 
     procedure add_and_increment_counter
@@ -179,7 +179,7 @@ package body float_alu_pkg is
     ) is
     begin
         counter_to_be_incremented <= counter_to_be_incremented + 1;
-        pipelined_add(self.float_adder, left, right);
+        request_add(self.float_adder, left, right);
     end add_and_increment_counter;
 ------------------------------------------------------------------------
     procedure subtract
@@ -188,7 +188,7 @@ package body float_alu_pkg is
         left, right : float_record
     ) is
     begin
-        pipelined_add(self.float_adder, left, -right);
+        request_add(self.float_adder, left, -right);
     end subtract;
 
     procedure subtract_and_increment_counter
@@ -199,7 +199,7 @@ package body float_alu_pkg is
     ) is
     begin
         counter_to_be_incremented <= counter_to_be_incremented + 1;
-        pipelined_add(self.float_adder, left, -right);
+        request_add(self.float_adder, left, -right);
     end subtract_and_increment_counter;
 ------------------------------------------------------------------------
     function add_is_ready

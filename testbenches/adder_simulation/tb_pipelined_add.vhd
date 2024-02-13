@@ -64,10 +64,10 @@ begin
             simulation_counter <= simulation_counter + 1;
             create_adder(adder);
             CASE simulation_counter is
-                WHEN 0 => pipelined_add(adder, to_float(1.5), to_float(0.5));
-                WHEN 1 => pipelined_add(adder, to_float(2.5), to_float(0.5));
-                WHEN 2 => pipelined_add(adder, to_float(-1.5), to_float(0.5));
-                WHEN 3 => pipelined_subtract(adder, to_float(-1.5), to_float(0.5));
+                WHEN 0 => request_add(adder, to_float(1.5), to_float(0.5));
+                WHEN 1 => request_add(adder, to_float(2.5), to_float(0.5));
+                WHEN 2 => request_add(adder, to_float(-1.5), to_float(0.5));
+                WHEN 3 => request_subtraction(adder, to_float(-1.5), to_float(0.5));
                 WHEN others => -- do nothing
             end CASE;
 

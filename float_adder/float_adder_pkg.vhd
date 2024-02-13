@@ -28,14 +28,6 @@ package float_adder_pkg is
         signal self : out float_adder_record;
         left, right : float_record);
 ------------------------------------------------------------------------
-    procedure pipelined_add (
-        signal self : out float_adder_record;
-        left, right : float_record );
-------------------------------------------------------------------------
-    procedure pipelined_subtract (
-        signal self : out float_adder_record;
-        left, right : float_record );
-------------------------------------------------------------------------
     function adder_is_ready (float_self : float_adder_record)
         return boolean;
 ------------------------------------------------------------------------
@@ -64,7 +56,7 @@ package body float_adder_pkg is
         left, right : float_record
     ) is
     begin
-        pipelined_add(self, left, right);
+        request_scaling(self.denormalizer, left, right);
     end request_add;
 
 ------------------------------------------------------------------------
@@ -74,26 +66,8 @@ package body float_adder_pkg is
         left, right : float_record
     ) is
     begin
-        pipelined_subtract(self, left, right);
-    end request_subtraction;
-------------------------------------------------------------------------
-    procedure pipelined_add
-    (
-        signal self : out float_adder_record;
-        left, right : float_record 
-    ) is
-    begin
-        request_scaling(self.denormalizer, left, right);
-    end pipelined_add;
-------------------------------------------------------------------------
-    procedure pipelined_subtract
-    (
-        signal self : out float_adder_record;
-        left, right : float_record 
-    ) is
-    begin
         request_scaling(self.denormalizer, left, -right);
-    end pipelined_subtract;
+    end request_subtraction;
 ------------------------------------------------------------------------
     function adder_is_ready
     (
