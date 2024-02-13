@@ -20,7 +20,7 @@ architecture vunit_simulation of float_alu_tb is
     signal simulator_clock : std_logic;
     constant clock_per : time := 1 ns;
     constant clock_half_per : time := 0.5 ns;
-    constant simtime_in_clocks : integer := 50;
+    constant simtime_in_clocks : integer := 100;
 
     signal simulation_counter : natural := 0;
     -----------------------------------
@@ -77,6 +77,8 @@ architecture vunit_simulation of float_alu_tb is
     signal mult_index : natural := 0;
     signal add_index : natural := 0;
 
+    signal int_to_float_sequencer : natural := 0;
+
 begin
 
 ------------------------------------------------------------------------
@@ -130,20 +132,28 @@ begin
                 WHEN others => -- do nothing
             end CASE;
 
-            if multiplier_is_ready(float_alu) then
+            if multiplier_is_ready(float_alu) and mult_index < right'length then
                 mult_index      <= mult_index + 1;
                 test_multiplier <= to_real(get_multiplier_result(float_alu));
                 test_result := to_real(get_multiplier_result(float_alu)) - multiply_results(mult_index);
                 check(abs(test_result) < 1.0e-3, "multiply error is " & real'image(test_result));
             end if;
 
-            if add_is_ready(float_alu) then
+            if add_is_ready(float_alu) and add_index < right'length then
                 add_result      <= get_add_result(float_alu);
                 add_result_real <= to_real(get_add_result(float_alu));
 
                 add_index <= add_index + 1;
                 test_result := to_real(get_add_result(float_alu)) - add_results(add_index);
                 check(abs(test_result) < 1.0e-3, "adder error is " & real'image(test_result));
+            end if;
+
+            if add_index >= right'length then
+                if int_to_float_sequencer < right'length then
+                    int_to_float_sequencer <= int_to_float_sequencer + 1;
+                    -- convert_float_to_integer(float_alu, to_float(left(int_to_float_sequencer)), 24);
+                    convert_integer_to_float(float_alu, int_to_float_sequencer, 1);
+                end if;
             end if;
 
         end if; -- rising_edge
