@@ -11,14 +11,19 @@ library ieee;
 
 package float_alu_pkg is
 ------------------------------------------------------------------------
+    constant fmac_pipeline_depth         : natural := float_multiplier_pipeline_depth + number_of_normalizer_pipeline_stages + number_of_denormalizer_pipeline_stages;
+    constant int_to_float_pipeline_depth : natural := number_of_normalizer_pipeline_stages + 1;
+    constant float_to_int_pipeline_depth : natural := number_of_denormalizer_pipeline_stages + 1;
+------------------------------------------------------------------------
     type float_alu_record is record
         float_adder        : float_adder_record  ;
         adder_normalizer   : normalizer_record   ;
 
         float_multiplier : float_multiplier_record ;
 
-        int_to_float_pipeline : std_logic_vector(number_of_normalizer_pipeline_stages downto 0);
-        float_to_int_pipeline : std_logic_vector(number_of_denormalizer_pipeline_stages downto 0);
+        int_to_float_pipeline : std_logic_vector(int_to_float_pipeline_depth-1 downto 0);
+        float_to_int_pipeline : std_logic_vector(float_to_int_pipeline_depth-1 downto 0);
+        fmac_pipeline         : std_logic_vector(fmac_pipeline_depth downto 0);
 
     end record;
 
@@ -26,6 +31,7 @@ package float_alu_pkg is
             init_float_adder      ,
             init_normalizer       ,
             init_float_multiplier ,
+            (others => '0')       ,
             (others => '0')       ,
             (others => '0')  );
         
@@ -109,7 +115,7 @@ package body float_alu_pkg is
     begin
 
         create_denormalizer(self.float_adder.denormalizer);
-        self.float_adder.adder_result <= (self.float_adder.denormalizer.feedthrough_pipeline(number_of_denormalizer_pipeline_stages) + self.float_adder.denormalizer.denormalizer_pipeline(number_of_denormalizer_pipeline_stages));
+        self.float_adder.adder_result  <= (self.float_adder.denormalizer.feedthrough_pipeline(number_of_denormalizer_pipeline_stages) + self.float_adder.denormalizer.denormalizer_pipeline(number_of_denormalizer_pipeline_stages));
         self.float_adder.adder_is_done <= denormalizer_is_ready(self.float_adder.denormalizer) and self.float_to_int_pipeline(self.float_to_int_pipeline'left) = '0';
         create_normalizer(self.adder_normalizer);
 

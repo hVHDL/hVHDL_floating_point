@@ -7,6 +7,8 @@ library ieee;
 
 package float_multiplier_pkg is
 ------------------------------------------------------------------------
+    constant float_multiplier_pipeline_depth : natural := 3;
+------------------------------------------------------------------------
     type float_multiplier_record is record
 
         left   : float_record;
@@ -16,7 +18,7 @@ package float_multiplier_pkg is
         sign                           : std_logic;
         exponent                       : t_exponent;
         mantissa_multiplication_result : unsigned(mantissa_high*2+1 downto 0);
-        shift_register                 : std_logic_vector(2 downto 0);
+        shift_register                 : std_logic_vector(float_multiplier_pipeline_depth-1 downto 0);
     end record;
 
     constant init_float_multiplier : float_multiplier_record := (zero, zero, zero, '0', (others => '0'),(others => '0'), (others => '0'));
