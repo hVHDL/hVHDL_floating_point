@@ -130,6 +130,7 @@ begin
             CASE simulation_counter is
                 WHEN 3 => fmac(float_alu, to_float(1.0), to_float(2.0), to_float(3.0));
                 WHEN 4 => fmac(float_alu, to_float(2.0), to_float(3.0), to_float(-4.0));
+                WHEN 5 => fmac(float_alu, to_float(10.0), to_float(-10.0), to_float(100.1));
                 WHEN others => -- do nothing
             end CASE;
 
