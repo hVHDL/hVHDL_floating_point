@@ -11,15 +11,30 @@ library ieee;
 
 package float_alu_pkg is
 ------------------------------------------------------------------------
+
+    -- these can be used for externally time the operations, see the testbench
     constant fmac_pipeline_depth         : natural := float_multiplier_pipeline_depth + number_of_normalizer_pipeline_stages + number_of_denormalizer_pipeline_stages;
     constant int_to_float_pipeline_depth : natural := number_of_normalizer_pipeline_stages + 1;
     constant float_to_int_pipeline_depth : natural := number_of_denormalizer_pipeline_stages + 1;
+
+    type float_alu_timing_parameters is record
+        fmac_pipeline_depth         : natural;
+        int_to_float_pipeline_depth : natural;
+        float_to_int_pipeline_depth : natural;
+    end record;
+
+    constant alu_timing : float_alu_timing_parameters :=(
+        fmac_pipeline_depth         ,
+        int_to_float_pipeline_depth ,
+        float_to_int_pipeline_depth);
+
 ------------------------------------------------------------------------
     type float_alu_record is record
         float_adder        : float_adder_record  ;
         adder_normalizer   : normalizer_record   ;
 
         float_multiplier : float_multiplier_record ;
+        multiplier_bypass_pipeline : float_array(2 downto 0);
 
         int_to_float_pipeline : std_logic_vector(int_to_float_pipeline_depth-1 downto 0);
         float_to_int_pipeline : std_logic_vector(float_to_int_pipeline_depth-1 downto 0);
@@ -31,6 +46,7 @@ package float_alu_pkg is
             init_float_adder      ,
             init_normalizer       ,
             init_float_multiplier ,
+            (others => zero)      ,
             (others => '0')       ,
             (others => '0')       ,
             (others => '0')  );
@@ -103,6 +119,10 @@ package float_alu_pkg is
     function get_converted_integer ( self : float_alu_record)
         return integer;
 ------------------------------------------------------------------------
+    procedure fmac (
+        signal self : inout float_alu_record;
+        a,x,b : float_record);
+------------------------------------------------------------------------
 end package float_alu_pkg;
 
 package body float_alu_pkg is
@@ -125,8 +145,15 @@ package body float_alu_pkg is
             request_normalizer(self.adder_normalizer, self.float_adder.adder_result);
         end if;
 
+        if multiplier_is_ready(self) and self.fmac_pipeline(2) = '1' then
+            add(self, get_multiplier_result(self), self.multiplier_bypass_pipeline(self.multiplier_bypass_pipeline'left));
+        end if;
+
+        self.multiplier_bypass_pipeline <= self.multiplier_bypass_pipeline(self.multiplier_bypass_pipeline'left-1 downto 0) & zero;
+
         self.int_to_float_pipeline <= self.int_to_float_pipeline(self.int_to_float_pipeline'left-1 downto 0) & '0';
         self.float_to_int_pipeline <= self.float_to_int_pipeline(self.float_to_int_pipeline'left-1 downto 0) & '0';
+        self.fmac_pipeline <= self.fmac_pipeline(self.fmac_pipeline'left-1 downto 0) & '0';
 
     end procedure;
 ------------------------------------------------------------------------
@@ -306,5 +333,17 @@ package body float_alu_pkg is
     begin
         return get_integer(self.float_adder.denormalizer);
     end get_converted_integer;
+--------------------------------------------------
+    procedure fmac
+    (
+        signal self : inout float_alu_record;
+        a,x,b : float_record
+    ) is
+    begin
+        multiply(self, a, x);
+        self.multiplier_bypass_pipeline(0) <= b;
+        self.fmac_pipeline(0) <= '1';
+        
+    end fmac;
 --------------------------------------------------
 end package body float_alu_pkg;

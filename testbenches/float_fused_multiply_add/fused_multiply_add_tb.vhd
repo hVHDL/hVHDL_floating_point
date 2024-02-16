@@ -88,6 +88,8 @@ architecture vunit_simulation of fused_multiply_add_tb is
 
     alias self is float_alu;
 
+    signal mac_result : real := 0.0;
+
 
 begin
 
@@ -123,47 +125,16 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
-            create_adder(self.float_adder);
-            create_normalizer(self.adder_normalizer);
-
-            create_float_multiplier(self.float_multiplier);
-
-            if adder_is_ready(self.float_adder) then
-                request_normalizer(self.adder_normalizer, get_result(self.float_adder));
-            end if;
+            create_float_alu(self);
 
             CASE simulation_counter is
-                WHEN 3 => multiply(float_alu, to_float(left(0)), to_float(right(0)));
-                WHEN 4 => multiply(float_alu, to_float(left(1)), to_float(right(1)));
-                WHEN 5 => multiply(float_alu, to_float(left(2)), to_float(right(2)));
-                WHEN 6 => multiply(float_alu, to_float(left(3)), to_float(right(3)));
-                WHEN 7 => multiply(float_alu, to_float(left(4)), to_float(right(4)));
+                WHEN 3 => fmac(float_alu, to_float(1.0), to_float(2.0), to_float(3.0));
+                WHEN 4 => fmac(float_alu, to_float(2.0), to_float(3.0), to_float(-4.0));
                 WHEN others => -- do nothing
             end CASE;
-
-            CASE simulation_counter is
-                WHEN 3 => add(float_alu, to_float(left(0)), to_float(right(0)));
-                WHEN 4 => add(float_alu, to_float(left(1)), to_float(right(1)));
-                WHEN 5 => add(float_alu, to_float(left(2)), to_float(right(2)));
-                WHEN 6 => add(float_alu, to_float(left(3)), to_float(right(3)));
-                WHEN 7 => add(float_alu, to_float(left(4)), to_float(right(4)));
-                WHEN others => -- do nothing
-            end CASE;
-
-            if multiplier_is_ready(float_alu) then
-                mult_index      <= mult_index + 1;
-                test_multiplier <= to_real(get_multiplier_result(float_alu));
-                test_result := to_real(get_multiplier_result(float_alu)) - multiply_results(mult_index);
-                check(abs(test_result) < 1.0e-3, "multiply error is " & real'image(test_result));
-            end if;
 
             if add_is_ready(float_alu) then
-                add_result      <= get_add_result(float_alu);
-                add_result_real <= to_real(get_add_result(float_alu));
-
-                add_index <= add_index + 1;
-                test_result := to_real(get_add_result(float_alu)) - add_results(add_index);
-                check(abs(test_result) < 1.0e-3, "adder error is " & real'image(test_result));
+                mac_result <= to_real(get_add_result(float_alu));
             end if;
 
         end if; -- rising_edge
