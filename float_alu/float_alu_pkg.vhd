@@ -151,7 +151,7 @@ package body float_alu_pkg is
             request_normalizer(self.adder_normalizer, self.float_adder.adder_result);
         end if;
 
-        if multiplier_is_ready(self) and self.fmac_pipeline(2) = '1' then
+        if multiplier_is_ready(self) and self.fmac_pipeline(mult_pipeline_depth-1) = '1' then
             add(self, get_multiplier_result(self), self.multiplier_bypass_pipeline(self.multiplier_bypass_pipeline'left));
         end if;
 
