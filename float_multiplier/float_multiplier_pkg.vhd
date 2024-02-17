@@ -62,6 +62,7 @@ package body float_multiplier_pkg is
             result.mantissa := raw_result(mantissa_high*2+1 downto mantissa_high+1);
         else
             result.mantissa := raw_result(mantissa_high*2 downto mantissa_high);
+            result.exponent := left.exponent + right.exponent - 1;
         end if;
         return result;
         
