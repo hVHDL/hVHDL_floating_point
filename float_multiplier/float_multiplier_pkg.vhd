@@ -36,9 +36,6 @@ package float_multiplier_pkg is
     function get_multiplier_result ( self : float_multiplier_record)
         return float_record;
 ------------------------------------------------------------------------
-    function mult ( left,right : natural)
-        return unsigned;
-------------------------------------------------------------------------
     function "*" ( left, right : float_record)
         return float_record;
 ------------------------------------------------------------------------
@@ -49,32 +46,23 @@ end package float_multiplier_pkg;
 
 package body float_multiplier_pkg is
 ------------------------------------------------------------------------
-    function mult
-    (
-        left,right : natural
-    )
-    return unsigned 
-    is
-        variable result : unsigned(mantissa_length*2+1 downto 0) := (others => '0');
-
-    begin
-        result := to_unsigned(left, mantissa_length+1) * to_unsigned(right,mantissa_length+1);
-        
-        return result(mantissa_high*2+1 downto mantissa_high+1);
-    end mult;
-
-------------------------------------------------------------------------
     function "*"
     (
         left, right : float_record
     ) return float_record
     is
         variable result : float_record := zero;
+        variable raw_result : unsigned(mantissa_high*2+1 downto 0) := (others => '0');
     begin
 
         result.sign     := left.sign xor right.sign;
         result.exponent := left.exponent + right.exponent;
-        result.mantissa := mult(to_integer(left.mantissa) , to_integer(right.mantissa));
+        raw_result      := left.mantissa * right.mantissa;
+        if raw_result(mantissa_high*2+1) = '1' then
+            result.mantissa := raw_result(mantissa_high*2+1 downto mantissa_high+1);
+        else
+            result.mantissa := raw_result(mantissa_high*2 downto mantissa_high);
+        end if;
         return result;
         
     end function;
@@ -91,7 +79,6 @@ package body float_multiplier_pkg is
         self.sign                           <= self.left.sign xor self.right.sign;
         self.exponent                       <= self.left.exponent + self.right.exponent;
         self.mantissa_multiplication_result <= self.left.mantissa * self.right.mantissa;
-
 
         if self.mantissa_multiplication_result(mantissa_high*2+1) = '1' then
             self.result <= (
