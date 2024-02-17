@@ -346,7 +346,10 @@ package body float_alu_pkg is
         a,x,b : float_record
     ) is
     begin
-        multiply(self, a, x);
+        self.float_multiplier.shift_register(0) <= '1';
+        self.float_multiplier.left <= a;
+        self.float_multiplier.right <= x;
+
         self.multiplier_bypass_pipeline(0) <= b;
         self.fmac_pipeline(0) <= '1';
         
