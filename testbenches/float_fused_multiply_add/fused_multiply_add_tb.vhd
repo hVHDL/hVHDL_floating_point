@@ -90,6 +90,12 @@ architecture vunit_simulation of fused_multiply_add_tb is
 
     signal mac_result : real := 0.0;
 
+    signal request_pipeline : std_logic_vector(alu_timing.madd_pipeline_depth-1 downto 0);
+    type real_array is array (natural range <>) of real;
+    signal a : real_array(request_pipeline'range) := (others => 0.0);
+    signal b : real_array(request_pipeline'range) := (others => 0.0);
+    signal c : real_array(request_pipeline'range) := (others => 0.0);
+
 
 begin
 
@@ -121,21 +127,50 @@ begin
 
         variable test_result : real := 0.0;
 
+        procedure test_fmadd
+        (
+            left, right, add : real
+        ) is
+        begin
+            fmac(float_alu, to_float(left), to_float(right), to_float(add));
+            request_pipeline(0) <= '1';
+            a(0) <= left;
+            b(0) <= right;
+            c(0) <= add;
+            
+        end test_fmadd;
+        procedure test_fmadd
+        (
+            left, right, add : integer
+        ) is
+        begin
+            test_fmadd(real(left), real(right), real(add));
+        end test_fmadd;
+
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
             create_float_alu(self);
+            request_pipeline <= request_pipeline(request_pipeline'left-1 downto 0) & '0';
+            a <= a(a'left-1 downto 0) & 0.0;
+            b <= b(a'left-1 downto 0) & 0.0;
+            c <= c(a'left-1 downto 0) & 0.0;
 
             CASE simulation_counter is
-                WHEN 3 => fmac(float_alu, to_float(1.0), to_float(2.0), to_float(3.0));
-                WHEN 4 => fmac(float_alu, to_float(2.0), to_float(3.0), to_float(-4.0));
-                WHEN 5 => fmac(float_alu, to_float(10.0), to_float(-10.0), to_float(100.1));
+                WHEN 2 => test_fmadd(1.9273592, 3.2835729, -5.2935);
+                WHEN 3 => test_fmadd(1,2,3);
+                WHEN 4 => test_fmadd(2.0,3.0,-4.0);
+                WHEN 5 => test_fmadd(10.0,-10.0,100.1);
+                WHEN 9 => test_fmadd(-10.0,10.0,-100.1);
                 WHEN others => -- do nothing
             end CASE;
 
+            check(add_is_ready(float_alu) = (request_pipeline(request_pipeline'left) = '1'));
+
             if add_is_ready(float_alu) then
                 mac_result <= to_real(get_add_result(float_alu));
+                check(abs(to_real(get_add_result(float_alu)) - (a(a'left)*b(b'left) + c(c'left))) < 1.0e-5, "error was " & real'image(to_real(get_add_result(float_alu)) - (a(a'left)*b(b'left) + c(c'left))));
             end if;
 
         end if; -- rising_edge

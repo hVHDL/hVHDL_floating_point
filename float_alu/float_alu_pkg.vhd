@@ -13,12 +13,12 @@ package float_alu_pkg is
 ------------------------------------------------------------------------
 
     -- these can be used for externally time the operations, see the testbench
-    constant fmac_pipeline_depth         : natural := float_multiplier_pipeline_depth + number_of_normalizer_pipeline_stages + number_of_denormalizer_pipeline_stages;
+    constant fmac_pipeline_depth         : natural := 1+2+3+number_of_normalizer_pipeline_stages + number_of_denormalizer_pipeline_stages;
     constant int_to_float_pipeline_depth : natural := number_of_normalizer_pipeline_stages + 1;
     constant float_to_int_pipeline_depth : natural := number_of_denormalizer_pipeline_stages + 1;
 
     type float_alu_timing_parameters is record
-        fmac_pipeline_depth         : natural;
+        madd_pipeline_depth         : natural;
         int_to_float_pipeline_depth : natural;
         float_to_int_pipeline_depth : natural;
     end record;
