@@ -82,6 +82,14 @@ architecture vunit_simulation of float_alu_tb is
     signal float_to_int_ready : boolean := false;
     signal int_to_float_ready : boolean := false;
 
+    signal add_request_pipeline : std_logic_vector(alu_timing.add_pipeline_depth-1 downto 0);
+    type real_array is array (natural range <>) of real;
+    signal a : real_array(add_request_pipeline'range) := (others => 0.0);
+    signal b : real_array(add_request_pipeline'range) := (others => 0.0);
+    signal c : real_array(add_request_pipeline'range) := (others => 0.0);
+
+    signal mult_request_pipeline : std_logic_vector(alu_timing.mult_pipeline_depth-1 downto 0);
+
 begin
 
 ------------------------------------------------------------------------
@@ -117,23 +125,42 @@ begin
             simulation_counter <= simulation_counter + 1;
 
             create_float_alu(float_alu);
+            add_request_pipeline <= add_request_pipeline(add_request_pipeline'left-1 downto 0) & '0';
+            mult_request_pipeline <= mult_request_pipeline(mult_request_pipeline'left-1 downto 0) & '0';
+            a <= a(a'left-1 downto 0) & 0.0;
+            b <= b(a'left-1 downto 0) & 0.0;
+            c <= c(a'left-1 downto 0) & 0.0;
+
             CASE simulation_counter is
                 WHEN 3 => multiply(float_alu, to_float(left(0)), to_float(right(0)));
+                          mult_request_pipeline(0) <= '1';
                 WHEN 4 => multiply(float_alu, to_float(left(1)), to_float(right(1)));
+                          mult_request_pipeline(0) <= '1';
                 WHEN 5 => multiply(float_alu, to_float(left(2)), to_float(right(2)));
+                          mult_request_pipeline(0) <= '1';
                 WHEN 6 => multiply(float_alu, to_float(left(3)), to_float(right(3)));
+                          mult_request_pipeline(0) <= '1';
                 WHEN 7 => multiply(float_alu, to_float(left(4)), to_float(right(4)));
+                          mult_request_pipeline(0) <= '1';
                 WHEN others => -- do nothing
             end CASE;
 
             CASE simulation_counter is
                 WHEN 3 => add(float_alu, to_float(left(0)), to_float(right(0)));
+                          add_request_pipeline(0) <= '1';
                 WHEN 4 => add(float_alu, to_float(left(1)), to_float(right(1)));
+                          add_request_pipeline(0) <= '1';
                 WHEN 5 => add(float_alu, to_float(left(2)), to_float(right(2)));
+                          add_request_pipeline(0) <= '1';
                 WHEN 6 => add(float_alu, to_float(left(3)), to_float(right(3)));
+                          add_request_pipeline(0) <= '1';
                 WHEN 7 => add(float_alu, to_float(left(4)), to_float(right(4)));
+                          add_request_pipeline(0) <= '1';
                 WHEN others => -- do nothing
             end CASE;
+
+            check(add_is_ready(float_alu) = (add_request_pipeline(add_request_pipeline'left)='1'));
+            check(multiplier_is_ready(float_alu) = (mult_request_pipeline(mult_request_pipeline'left)='1'));
 
             if multiplier_is_ready(float_alu) then
                 mult_index      <= mult_index + 1;
