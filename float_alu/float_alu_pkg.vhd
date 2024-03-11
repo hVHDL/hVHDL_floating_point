@@ -15,7 +15,7 @@ package float_alu_pkg is
     -- these can be used for externally time the operations, see the testbench
     constant mult_pipeline_depth         : natural := 3;
     constant add_pipeline_depth          : natural := 1+2+number_of_normalizer_pipeline_stages + number_of_denormalizer_pipeline_stages;
-    constant fmac_pipeline_depth         : natural := 1+2+3+number_of_normalizer_pipeline_stages + number_of_denormalizer_pipeline_stages;
+    constant madd_pipeline_depth         : natural := 1+2+3+number_of_normalizer_pipeline_stages + number_of_denormalizer_pipeline_stages;
     constant int_to_float_pipeline_depth : natural := number_of_normalizer_pipeline_stages + 1;
     constant float_to_int_pipeline_depth : natural := number_of_denormalizer_pipeline_stages + 1;
 
@@ -30,7 +30,7 @@ package float_alu_pkg is
     constant alu_timing : float_alu_timing_parameters :=(
         add_pipeline_depth          ,
         mult_pipeline_depth         ,
-        fmac_pipeline_depth         ,
+        madd_pipeline_depth         ,
         int_to_float_pipeline_depth ,
         float_to_int_pipeline_depth);
 
@@ -44,7 +44,7 @@ package float_alu_pkg is
 
         int_to_float_pipeline : std_logic_vector(int_to_float_pipeline_depth-1 downto 0);
         float_to_int_pipeline : std_logic_vector(float_to_int_pipeline_depth-1 downto 0);
-        fmac_pipeline         : std_logic_vector(fmac_pipeline_depth downto 0);
+        madd_pipeline         : std_logic_vector(madd_pipeline_depth downto 0);
 
     end record;
 
@@ -125,6 +125,10 @@ package float_alu_pkg is
     function get_converted_integer ( self : float_alu_record)
         return integer;
 ------------------------------------------------------------------------
+    procedure madd (
+        signal self : inout float_alu_record;
+        a,x,b : float_record);
+------------------------------------------------------------------------
     procedure fmac (
         signal self : inout float_alu_record;
         a,x,b : float_record);
@@ -151,7 +155,7 @@ package body float_alu_pkg is
             request_normalizer(self.adder_normalizer, self.float_adder.adder_result);
         end if;
 
-        if float_multiplier_is_ready(self.float_multiplier) and self.fmac_pipeline(mult_pipeline_depth-1) = '1' then
+        if float_multiplier_is_ready(self.float_multiplier) and self.madd_pipeline(mult_pipeline_depth-1) = '1' then
             request_add(self.float_adder, get_multiplier_result(self.float_multiplier), self.multiplier_bypass_pipeline(self.multiplier_bypass_pipeline'left));
         end if;
 
@@ -159,7 +163,7 @@ package body float_alu_pkg is
 
         self.int_to_float_pipeline <= self.int_to_float_pipeline(self.int_to_float_pipeline'left-1 downto 0) & '0';
         self.float_to_int_pipeline <= self.float_to_int_pipeline(self.float_to_int_pipeline'left-1 downto 0) & '0';
-        self.fmac_pipeline <= self.fmac_pipeline(self.fmac_pipeline'left-1 downto 0) & '0';
+        self.madd_pipeline <= self.madd_pipeline(self.madd_pipeline'left-1 downto 0) & '0';
 
     end procedure;
 ------------------------------------------------------------------------
@@ -340,6 +344,21 @@ package body float_alu_pkg is
         return get_integer(self.float_adder.denormalizer);
     end get_converted_integer;
 --------------------------------------------------
+    procedure madd
+    (
+        signal self : inout float_alu_record;
+        a,x,b : float_record
+    ) is
+    begin
+        self.float_multiplier.shift_register(0) <= '1';
+        self.float_multiplier.left <= a;
+        self.float_multiplier.right <= x;
+
+        self.multiplier_bypass_pipeline(0) <= b;
+        self.madd_pipeline(0) <= '1';
+        
+    end madd;
+--------------------------------------------------
     procedure fmac
     (
         signal self : inout float_alu_record;
@@ -351,7 +370,7 @@ package body float_alu_pkg is
         self.float_multiplier.right <= x;
 
         self.multiplier_bypass_pipeline(0) <= b;
-        self.fmac_pipeline(0) <= '1';
+        self.madd_pipeline(0) <= '1';
         
     end fmac;
 --------------------------------------------------
