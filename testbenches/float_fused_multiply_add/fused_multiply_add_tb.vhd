@@ -35,7 +35,7 @@ architecture vunit_simulation of fused_multiply_add_tb is
     signal add_result : float_record := to_float(0.0);
     signal add_result_real : real := 0.0;
 
-    type float_array is array (natural range 0 to 4) of real;
+    subtype float_array is real_vector(natural range 0 to 4);
     constant left : float_array := (
         5.2948629,
         37.2853628,
@@ -91,10 +91,9 @@ architecture vunit_simulation of fused_multiply_add_tb is
     signal mac_result : real := 0.0;
 
     signal request_pipeline : std_logic_vector(alu_timing.madd_pipeline_depth-1 downto 0);
-    type real_array is array (natural range <>) of real;
-    signal a : real_array(request_pipeline'range) := (others => 0.0);
-    signal b : real_array(request_pipeline'range) := (others => 0.0);
-    signal c : real_array(request_pipeline'range) := (others => 0.0);
+    signal a : real_vector(request_pipeline'range) := (others => 0.0);
+    signal b : real_vector(request_pipeline'range) := (others => 0.0);
+    signal c : real_vector(request_pipeline'range) := (others => 0.0);
 
 
 begin

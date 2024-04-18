@@ -31,7 +31,7 @@ architecture vunit_simulation of float_alu_tb is
     signal add_result : float_record := to_float(0.0);
     signal add_result_real : real := 0.0;
 
-    type float_array is array (natural range 0 to 4) of real;
+    subtype float_array is real_vector(natural range 0 to 4);
     constant left : float_array := (
         5.2948629,
         37.2853628,
@@ -83,10 +83,9 @@ architecture vunit_simulation of float_alu_tb is
     signal int_to_float_ready : boolean := false;
 
     signal add_request_pipeline : std_logic_vector(alu_timing.add_pipeline_depth-1 downto 0);
-    type real_array is array (natural range <>) of real;
-    signal a : real_array(add_request_pipeline'range) := (others => 0.0);
-    signal b : real_array(add_request_pipeline'range) := (others => 0.0);
-    signal c : real_array(add_request_pipeline'range) := (others => 0.0);
+    signal a : real_vector(add_request_pipeline'range) := (others => 0.0);
+    signal b : real_vector(add_request_pipeline'range) := (others => 0.0);
+    signal c : real_vector(add_request_pipeline'range) := (others => 0.0);
 
     signal mult_request_pipeline : std_logic_vector(alu_timing.mult_pipeline_depth-1 downto 0);
 
