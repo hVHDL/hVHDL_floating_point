@@ -23,7 +23,7 @@ package float_first_order_filter_pkg is
 ------------------------------------------------------------------------
     procedure create_first_order_filter (
         signal self : inout first_order_filter_record;
-        signal alu_object                : inout float_alu_record;
+        signal float_alu                : inout float_alu_record;
         filter_gain                      : in float_record);
 
 ------------------------------------------------------------------------
@@ -46,7 +46,7 @@ package body float_first_order_filter_pkg is
     procedure create_first_order_filter
     (
         signal self : inout first_order_filter_record;
-        signal alu_object                : inout float_alu_record;
+        signal float_alu                : inout float_alu_record;
         filter_gain                      : in float_record
         
     ) is
@@ -54,26 +54,26 @@ package body float_first_order_filter_pkg is
 
         CASE self.filter_counter is
             WHEN 0 => 
-                subtract(alu_object, self.u, self.y);
+                subtract(float_alu, self.u, self.y);
                 self.filter_counter <= self.filter_counter + 1;
                 self.filter_is_ready <= false;
             WHEN 1 =>
                 self.filter_is_ready <= false;
-                if add_is_ready(alu_object) then
-                    multiply(alu_object  , get_add_result(alu_object) , filter_gain);
+                if add_is_ready(float_alu) then
+                    multiply(float_alu  , get_add_result(float_alu) , filter_gain);
                     self.filter_counter <= self.filter_counter + 1;
                 end if;
 
             WHEN 2 =>
                 self.filter_is_ready <= false;
-                if multiplier_is_ready(alu_object) then
-                    add(alu_object, get_multiplier_result(alu_object), self.y);
+                if multiplier_is_ready(float_alu) then
+                    add(float_alu, get_multiplier_result(float_alu), self.y);
                     self.filter_counter <= self.filter_counter + 1;
                 end if;
             WHEN 3 => 
-                if add_is_ready(alu_object) then
+                if add_is_ready(float_alu) then
                     self.filter_is_ready <= true;
-                    self.y <= get_add_result(alu_object);
+                    self.y <= get_add_result(float_alu);
                     self.filter_counter <= self.filter_counter + 1;
                 else
                     self.filter_is_ready <= false;
