@@ -66,7 +66,7 @@ package body float_to_real_functions_pkg is
     return real
     is
     begin
-        return (abs(number)/2**get_exponent(number));
+        return (abs(number)/2.0**get_exponent(number));
     end get_mantissa;
 ------------------------------------------------------------------------
     function get_sign
