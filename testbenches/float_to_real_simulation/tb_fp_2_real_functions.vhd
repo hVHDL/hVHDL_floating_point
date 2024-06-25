@@ -26,11 +26,14 @@ architecture vunit_simulation of fp2real_functions_tb is
     -----------------------------------
     -- simulation specific signals ----
     constant tested_number : real := 8.0;
-    signal test_4      : float_record := to_float(tested_number);
-    signal test_4_real : real         := to_real(test_4);
 
+    constant init_test4 : float_record := to_float(tested_number);
+    signal test_4      : float_record := init_test4;
+    signal test_4_real : real         := to_real(init_test4);
+
+    /* constant init_test5 : float_record := to_float(tested_number); */
     signal test_5      : float_record := to_float(0.0002);
-    signal test_5_real : real         := to_real(test_4);
+    signal test_5_real : real         := to_real(init_test4);
 
     signal test_exponent : t_exponent := get_exponent(tested_number);
     signal test_mantissa : t_mantissa := get_mantissa(tested_number);

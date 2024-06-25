@@ -25,19 +25,24 @@ architecture vunit_simulation of float_conversions_tb is
     signal simulation_counter : natural := 0;
     -----------------------------------
     -- simulation specific signals ----
+    constant init_test_1 : float_record := to_float(568996.25);
+    constant init_test_2 : float_record := to_float(4.0);
+    constant init_test_3 : float_record := to_float(-3.2);
+    constant init_test_4 : float_record := to_float(8.0);
 
-    signal test_1 : float_record := to_float(568996.25);
-    signal test_2 : float_record := to_float(4.0);
-    signal test_3 : float_record := to_float(-3.2);
-    signal test_4 : float_record := to_float(8.0);
+    signal test_1 : float_record := init_test_1;
+    signal test_2 : float_record := init_test_2;
+    signal test_3 : float_record := init_test_3;
+    signal test_4 : float_record := init_test_4;
 
-    signal test_1_real: real := to_real(test_1);
-    signal test_2_real: real := to_real(test_2);
-    signal test_3_real: real := to_real(test_3);
-    signal test_4_real: real := to_real(test_4);
+    signal test_1_real: real := to_real(init_test_1);
+    signal test_2_real: real := to_real(init_test_2);
+    signal test_3_real: real := to_real(init_test_3);
+    signal test_4_real: real := to_real(init_test_4);
 
-    signal test_float : float_record := to_float(22.1346836);
-    signal test_real : real := to_real(test_float);
+    constant init_test_float : float_record := to_float(22.1346836);
+    signal test_float : float_record := init_test_float;
+    signal test_real : real := to_real(init_test_float);
 
 
 ------------------------------------------------------------------------
