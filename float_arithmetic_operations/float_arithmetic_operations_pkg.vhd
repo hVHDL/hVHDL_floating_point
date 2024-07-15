@@ -21,6 +21,9 @@ package float_arithmetic_operations_pkg is
     function "-" ( right : float_record)
         return float_record;
 
+    function ">" ( left, right : float_record)
+        return boolean;
+
 ------------------------------------------------------------------------
     function number_of_leading_zeroes (
         data : unsigned;
@@ -40,18 +43,24 @@ package body float_arithmetic_operations_pkg is
     (
         left, right : float_record
     )
-    return float_record
+    return boolean
     is
-        variable returned_float : float_record;
+        variable retval : boolean := false;
     begin
-        if left.sign > right.sign then
-            returned_float := left;
-        else
-            -- add additional functions here
-            returned_float := right;
+
+        retval := (left.exponent > right.exponent);
+
+        if left.exponent = right.exponent then
+            if left.mantissa > right.mantissa then
+                retval := true;
+            end if;
         end if;
 
-        return returned_float;
+        if ((left.sign = '1') and (right.sign = '0')) then
+            retval := false;
+        end if;
+
+        return retval;
 
     end ">";
 ------------------------------------------------------------------------
