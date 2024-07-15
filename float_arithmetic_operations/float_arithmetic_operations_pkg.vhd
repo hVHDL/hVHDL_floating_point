@@ -48,7 +48,10 @@ package body float_arithmetic_operations_pkg is
         variable retval : boolean := false;
     begin
 
-        retval := (left.exponent > right.exponent);
+        retval := false;
+        if left.exponent > right.exponent then
+            retval := true;
+        end if;
 
         if left.exponent = right.exponent then
             if left.mantissa > right.mantissa then
@@ -58,6 +61,14 @@ package body float_arithmetic_operations_pkg is
 
         if ((left.sign = '1') and (right.sign = '0')) then
             retval := false;
+        end if;
+
+        if ((left.sign = '0') and (right.sign = '1')) then
+            retval := true;
+        end if;
+
+        if ((left.sign = '1') and (right.sign = '1')) then
+            retval := not retval;
         end if;
 
         return retval;

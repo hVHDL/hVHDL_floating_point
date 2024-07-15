@@ -41,6 +41,8 @@ float_lib.add_source_files(ROOT / "testbenches/float_to_integer_simulation/*.vhd
 
 float_lib.add_source_files(ROOT / "testbenches/float_fused_multiply_add/fused_multiply_add_tb.vhd")
 
+float_lib.add_source_files(ROOT / "testbenches/tb_float_comparisons.vhd")
+
 #denormalized numbers tests, not yet developed
 
 denormal = VU.add_library("denormal")
@@ -73,5 +75,6 @@ denormal.add_source_files(ROOT / "testbenches/float_to_integer_simulation/*.vhd"
 
 # denormal.add_source_files(ROOT / "testbenches/denormalized_numbers/tb_denormal_conversions.vhd")
 denormal.add_source_files(ROOT / "testbenches/denormalized_numbers/saturated_add_tb.vhd")
+# VU.set_sim_option("nvc.sim_flags", ["-w"])
 
 VU.main()
