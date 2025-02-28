@@ -77,4 +77,9 @@ denormal.add_source_files(ROOT / "testbenches/float_to_integer_simulation/*.vhd"
 denormal.add_source_files(ROOT / "testbenches/denormalized_numbers/saturated_add_tb.vhd")
 # VU.set_sim_option("nvc.sim_flags", ["-w"])
 
+generic_lib = VU.add_library("generic_lib")
+generic_lib.add_source_files(ROOT / "float_type_definitions/float_typedefs_generic_pkg.vhd")
+generic_lib.add_source_files(ROOT / "denormalizer/denormalizer_generic_pkg.vhd")
+
+
 VU.main()
