@@ -1,0 +1,85 @@
+
+LIBRARY ieee  ; 
+    USE ieee.NUMERIC_STD.all  ; 
+    USE ieee.std_logic_1164.all  ; 
+    use ieee.math_real.all;
+    
+library vunit_lib;
+    use vunit_lib.run_pkg.all;
+
+entity tb_normalizer is
+  generic (runner_cfg : string);
+end;
+
+architecture vunit_simulation of tb_normalizer is
+
+    signal simulation_running : boolean;
+    signal simulator_clock : std_logic;
+    constant clock_per : time := 1 ns;
+    constant clock_half_per : time := 0.5 ns;
+    constant simtime_in_clocks : integer := 50;
+
+    signal simulation_counter : natural := 0;
+    -----------------------------------
+    -- simulation specific signals ----
+    use ieee.float_pkg.all;
+
+    type float_array is array (natural range <>) of float32;
+
+    function to_float32 (a : real) return float32 is
+    begin
+        return to_float(a, float32'high);
+    end to_float32;
+
+    function get_biased_exponent(a : float32) return integer is
+        constant slv_a : std_logic_vector(a'high-1 downto 0) := to_slv(a(a'high-1 downto 0));
+    begin
+        return to_integer(signed(slv_a(a'high-1 downto 0)));
+    end get_biased_exponent;
+
+    function get_exponent(a : float32) return integer is
+    begin
+        return get_biased_exponent(a) + 128;
+    end get_exponent;
+
+    function get_mantissa(a : float32) return unsigned is
+        constant retval : unsigned(23 downto 0) := unsigned('1' & to_slv(a(-1 downto -23)));
+    begin
+        return retval;
+    end get_mantissa;
+
+
+    constant ctesti       : float32 := to_float32(16.0);
+    signal stesti         : float32 := ctesti;
+    signal test_exponent  : integer := get_biased_exponent(ctesti);
+    signal test_exponent1 : integer := get_exponent(ctesti);
+    signal test_mantissa  : unsigned(23 downto 0) := get_mantissa(ctesti);
+    signal slv_testi      : std_logic_vector(7 downto 0) := to_slv(ctesti(7 downto 0));
+
+begin
+
+------------------------------------------------------------------------
+    simtime : process
+    begin
+        test_runner_setup(runner, runner_cfg);
+        simulation_running <= true;
+        wait for simtime_in_clocks*clock_per;
+        simulation_running <= false;
+        test_runner_cleanup(runner); -- Simulation ends here
+        wait;
+    end process simtime;	
+
+------------------------------------------------------------------------
+    simulator_clock <= not simulator_clock after clock_per/2.0;
+------------------------------------------------------------------------
+
+    stimulus : process(simulator_clock)
+
+    begin
+        if rising_edge(simulator_clock) then
+            simulation_counter <= simulation_counter + 1;
+
+        end if; -- rising_edge
+    end process stimulus;	
+------------------------------------------------------------------------
+end vunit_simulation;
