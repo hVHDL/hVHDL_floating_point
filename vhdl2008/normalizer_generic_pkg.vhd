@@ -2,6 +2,8 @@ library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
 
+    use ieee.float_pkg.float32;
+
     use work.float_typedefs_generic_pkg.all;
 
 package normalizer_generic_pkg is
@@ -46,6 +48,10 @@ package normalizer_generic_pkg is
         ;number_to_be_converted : in integer
         ;radix_of_converted_number : in integer
         ;ref : in float_record);
+------------------------------------------------------------------------
+    function to_ieee_float32(a : float_record) return float32;
+------------------------------------------------------------------------
+    function get_ieee_float32_result ( self : normalizer_record) return float32;
 ------------------------------------------------------------------------
 end package normalizer_generic_pkg;
 
@@ -172,4 +178,38 @@ package body normalizer_generic_pkg is
     end convert_integer_to_float;
 
 --------------------------------------------------
+    function to_ieee_float32(a : float_record) return float32 is
+        variable retval : float32;
+        variable dingdong : a'subtype;
+    begin
+        dingdong :=(
+        a.sign
+        ,a.exponent+126
+        ,shift_left(a.mantissa,1));
+
+        retval(retval'left) := a.sign;
+        for i in 0 to 7 loop
+            retval(i) := dingdong.exponent(i);
+        end loop;
+
+        for i in a.mantissa'range loop
+            if i-a.mantissa'high - 1 >= retval'low then
+                retval(i-dingdong.mantissa'high - 1) := dingdong.mantissa(i);
+            end if;
+        end loop;
+
+        return retval;
+    end to_ieee_float32;
+--------------------------------------------------
+    function get_ieee_float32_result
+    (
+        self : normalizer_record
+    )
+    return float32
+    is
+    begin
+        return to_ieee_float32(self.normalized_data(self.normalized_data'high));
+    end get_ieee_float32_result;
+------------------------------------------------------------------------
+
 end package body normalizer_generic_pkg;

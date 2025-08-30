@@ -103,30 +103,8 @@ architecture vunit_simulation of tb_normalizer is
     signal conv_result : float_zero'subtype := float_zero;
     signal float32_conv_result : float32 := to_float32(0.0);
 
-    function to_ieee_float32(a : float_record) return float32 is
-        variable retval : float32;
-        variable dingdong : a'subtype;
-    begin
-        dingdong :=(
-        a.sign
-        ,a.exponent+126
-        ,shift_left(a.mantissa,1));
 
-        retval(retval'left) := a.sign;
-        for i in 0 to 7 loop
-            retval(i) := dingdong.exponent(i);
-        end loop;
-
-        for i in a.mantissa'range loop
-            if i-a.mantissa'high - 1 >= retval'low then
-                retval(i-dingdong.mantissa'high - 1) := dingdong.mantissa(i);
-            end if;
-        end loop;
-
-        return retval;
-    end to_ieee_float32;
-
-    signal convref : float32 := to_float32(4.0);
+    signal convref : float32 := to_float32(-4.0);
 
 begin
 
@@ -154,7 +132,7 @@ begin
             create_normalizer(normalizer);
 
             if simulation_counter = 0 then
-                to_float(normalizer, 4, 0, float_zero);
+                to_float(normalizer, -4, 0, float_zero);
             end if;
             if normalizer_is_ready(normalizer) then
                 conv_result <= get_normalizer_result(normalizer);
