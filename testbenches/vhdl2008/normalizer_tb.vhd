@@ -24,71 +24,10 @@ architecture vunit_simulation of tb_normalizer is
     -- simulation specific signals ----
     use ieee.float_pkg.all;
 
-    type float_array is array (natural range <>) of float32;
-
     function to_float32 (a : real) return float32 is
     begin
         return to_float(a, float32'high);
     end to_float32;
-
-    function get_biased_exponent(a : float32) return integer is
-        constant slv_a : std_logic_vector(a'high-1 downto 0) := to_slv(a(a'high-1 downto 0));
-    begin
-        return to_integer(signed(slv_a(a'high-1 downto 0)));
-    end get_biased_exponent;
-
-    function get_exponent(a : float32) return integer is
-    begin
-        return get_biased_exponent(a) + 128;
-    end get_exponent;
-
-    function get_mantissa(a : float32) return unsigned is
-        constant retval : unsigned(23 downto 0) := unsigned('1' & to_slv(a(-1 downto -23)));
-    begin
-        return retval;
-    end get_mantissa;
-
-
-    constant ctesti       : float32 := to_float32(16.0);
-    signal stesti         : float32 := ctesti;
-    signal test_exponent  : integer := get_biased_exponent(ctesti);
-    signal test_exponent1 : integer := get_exponent(ctesti);
-    signal test_mantissa  : unsigned(23 downto 0) := get_mantissa(ctesti);
-    signal slv_testi      : std_logic_vector(7 downto 0) := to_slv(ctesti(7 downto 0));
-
-    function to_float32 (a : integer; radix : integer ; bitwidth : natural; maxshift : natural) return float32 is
-        constant uint_a : unsigned(bitwidth-1 downto 0) := to_unsigned(abs(a), bitwidth);
-        variable exponent : signed(7 downto 0) := to_signed(radix,8);
-        variable zerocount : natural := 0;
-        variable retval : float32 := (others => '0');
-    begin
-        for i in uint_a'low to uint_a'high loop
-            if uint_a(i) = '1'
-            then 
-                zerocount := 0;
-            else
-                zerocount := zerocount + 1;
-            end if;
-        end loop;
-        exponent := exponent + zerocount + 128;
-
-
-        for i in float32'range loop
-            if i >=0 then
-                if i < 7 then
-                    retval(i) := exponent(i);
-                else
-                    retval(i) := '0';
-                end if;
-            end if;
-        end loop;
-
-
-        return retval;
-    end to_float32;
-
-    signal should_be_0_3 : float32 := to_float32(8e3, 16,16,0);
-    signal ref : float32 := to_float32(8.0e3/2.0**16);
 
     use work.float_typedefs_generic_pkg.all;
     use work.normalizer_generic_pkg.all;
