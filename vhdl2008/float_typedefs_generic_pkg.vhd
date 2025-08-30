@@ -4,18 +4,9 @@ library ieee;
     use ieee.math_real.all;
 
 package float_typedefs_generic_pkg is
-    generic(
-            g_mantissa_length   : natural := 24
-            ; g_exponent_length : natural := 8);
 
-    constant mantissa_length : natural := g_mantissa_length;
-    constant exponent_length : natural := g_exponent_length;
-
-    constant mantissa_high : integer := g_mantissa_length - 1;
-    constant exponent_high : integer := g_exponent_length - 1;
-
-    subtype t_mantissa is unsigned(mantissa_high downto 0);
-    subtype t_exponent is signed(exponent_high downto 0);
+    subtype t_mantissa is unsigned;
+    subtype t_exponent is signed;
 
     type float_record is record
         sign     : std_logic;
@@ -23,19 +14,13 @@ package float_typedefs_generic_pkg is
         mantissa : t_mantissa;
     end record;
 
-    function init_float (
-        sign : std_logic;
-        exponent : integer range -2**t_exponent'high to 2**t_exponent'high-1;
-        mantissa : t_mantissa)
-    return float_record;
-
     type float_array is array (natural range <>) of float_record;
 
-    constant zero : float_record := ('0', (others => '0'), (others => '0'));
-    constant pos_max : float_record := ('0', (exponent_high => '0', others => '1'), (others => '1'));
+    -- constant zero    : float_record := ('0', (others => '0'), (others => '0'));
+    -- constant pos_max : float_record := ('0', (exponent_high => '0', others => '1'), (others => '1'));
 
 ------------------------------------------------------------------------
-    function get_signed_mantissa ( float_object : float_record)
+    function get_signed_mantissa ( hfloat : float_record)
         return signed;
 ------------------------------------------------------------------------
     function get_exponent ( float_number : float_record)
@@ -77,31 +62,18 @@ end package float_typedefs_generic_pkg;
 
 package body float_typedefs_generic_pkg is
 
-    function init_float
-    (
-        sign : std_logic;
-        exponent : integer range -2**t_exponent'high to 2**t_exponent'high-1;
-        mantissa : t_mantissa
-    )
-    return float_record
-    is
-    begin
-        return (sign => sign,
-                exponent => to_signed(exponent,t_exponent'length),
-                mantissa => mantissa);
-    end init_float;
-
     function get_signed_mantissa
     (
-        float_object : float_record
+        hfloat : float_record
     )
     return signed 
     is
+        constant mantissa_length : natural := hfloat.mantissa'length;
         variable signed_mantissa : signed(mantissa_length+1 downto 0) := (others => '0');
 
     begin
-        signed_mantissa(t_mantissa'range) := signed(float_object.mantissa);
-        if float_object.sign = '1' then
+        signed_mantissa(hfloat.mantissa'range) := signed(hfloat.mantissa);
+        if hfloat.sign = '1' then
             signed_mantissa := -signed_mantissa;
         end if;
 
@@ -187,10 +159,10 @@ package body float_typedefs_generic_pkg is
     return float_record
     is
         variable signed_left_mantissa, signed_right_mantissa : signed(t_mantissa'high+2 downto 0);
-        variable res             : signed(t_mantissa'high+2 downto 0);
-        variable abs_res         : signed(t_mantissa'high+2 downto 0);
-        variable result_exponent : signed(t_exponent'high+1 downto 0) := resize(left.exponent, t_exponent'length+1);
-        variable returned_value : float_record;
+        variable res             : signed(left.mantissa'high+2 downto 0);
+        variable abs_res         : signed(left.mantissa'high+2 downto 0);
+        variable result_exponent : signed(left.exponent'high+1 downto 0)  := resize(left.exponent, left.exponent'length+1);
+        variable returned_value  : left'subtype;
     begin
         signed_left_mantissa  := get_signed_mantissa(left);
         signed_right_mantissa := get_signed_mantissa(right);
@@ -205,8 +177,8 @@ package body float_typedefs_generic_pkg is
 
 
         returned_value := ( res(res'high), 
-                result_exponent(t_exponent'range),
-                unsigned(abs_res(t_mantissa'range)));
+                result_exponent(left.exponent'range),
+                unsigned(abs_res(left.exponent'range)));
 
         return returned_value;
     end "+";
@@ -280,7 +252,7 @@ package body float_typedefs_generic_pkg is
     )
     return float_record
     is
-        variable returned_float : float_record;
+        variable returned_float : right'subtype;
     begin
          returned_float := (sign     => not right.sign,
                             exponent => right.exponent,

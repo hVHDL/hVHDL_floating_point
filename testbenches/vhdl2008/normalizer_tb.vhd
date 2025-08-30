@@ -56,6 +56,41 @@ architecture vunit_simulation of tb_normalizer is
     signal test_mantissa  : unsigned(23 downto 0) := get_mantissa(ctesti);
     signal slv_testi      : std_logic_vector(7 downto 0) := to_slv(ctesti(7 downto 0));
 
+    function to_float32 (a : integer; radix : integer ; bitwidth : natural; maxshift : natural) return float32 is
+        constant uint_a : unsigned(bitwidth-1 downto 0) := to_unsigned(abs(a), bitwidth);
+        variable exponent : signed(7 downto 0) := (others => '0');
+        variable zerocount : natural := 0;
+        variable retval : float32 := (others => '0');
+    begin
+        for i in uint_a'low to uint_a'high loop
+            if uint_a(i) = '1'
+            then 
+                zerocount := 0;
+            else
+                zerocount := zerocount + 1;
+            end if;
+        end loop;
+        exponent := exponent + zerocount + 128;
+
+
+        for i in float32'range loop
+            if i >=0 then
+                if i < 7 then
+                    retval(i) := exponent(i);
+                else
+                    retval(i) := '0';
+                end if;
+            end if;
+        end loop;
+
+
+        return retval;
+    end to_float32;
+
+    signal should_be_0_3 : float32 := to_float32(8e3, 16,16,0);
+    signal ref : float32 := to_float32(8.0e3/2.0**16);
+
+
 begin
 
 ------------------------------------------------------------------------
