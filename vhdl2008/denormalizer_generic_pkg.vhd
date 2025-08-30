@@ -2,30 +2,26 @@ library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
 
+    use work.float_typedefs_generic_pkg.all;
+
 package denormalizer_generic_pkg is
-    generic(
-                package float_types_pkg is new work.float_typedefs_generic_pkg generic map (<>)
-                ; g_denormalizer_pipeline_depth : natural := 1
-            );
 
-    use float_types_pkg.all;
-
-    constant number_of_denormalizer_pipeline_stages : natural := g_denormalizer_pipeline_depth;
+    constant number_of_denormalizer_pipeline_stages : natural := 2;
 ------------------------------------------------------------------------
-    type intarray is array (integer range number_of_denormalizer_pipeline_stages downto 0) of integer range -2**exponent_high to 2**exponent_high-1;
+    type intarray is array (integer range <>) of integer;
 ------------------------------------------------------------------------
     type denormalizer_record is record
-        denormalizer_pipeline : float_array(number_of_denormalizer_pipeline_stages downto 0);
-        feedthrough_pipeline  : float_array(number_of_denormalizer_pipeline_stages downto 0);
-        shift_register        : std_logic_vector(number_of_denormalizer_pipeline_stages downto 0);
+        denormalizer_pipeline : float_array;
+        feedthrough_pipeline  : float_array;
+        shift_register        : std_logic_vector;
         target_scale_pipeline : intarray;
     end record;
 
-    constant init_denormalizer : denormalizer_record := (
-            denormalizer_pipeline => (others => zero),
-            feedthrough_pipeline  => (others => zero),
-            shift_register        => (others => '0'),
-            target_scale_pipeline => (others => 0));
+    -- constant init_denormalizer : denormalizer_record := (
+    --         denormalizer_pipeline => (others => zero),
+    --         feedthrough_pipeline  => (others => zero),
+    --         shift_register        => (others => '0'),
+    --         target_scale_pipeline => (others => 0));
 
 ------------------------------------------------------------------------
     procedure create_denormalizer (
@@ -79,6 +75,8 @@ package body denormalizer_generic_pkg is
         signal self : inout denormalizer_record
     ) 
     is
+        constant number_of_denormalizer_pipeline_stages : natural := self.denormalizer_pipeline'length;
+        constant mantissa_length : natural := self.denormalizer_pipeline(0).mantissa'length;
     begin
 
         self.shift_register(0) <= '0';
@@ -130,6 +128,7 @@ package body denormalizer_generic_pkg is
         left : in float_record;
         right : in integer
     ) is
+        constant mantissa_length : natural := self.denormalizer_pipeline(0).mantissa'length;
     begin
         self.shift_register(0) <= '1';
         self.denormalizer_pipeline(0) <= left;
@@ -186,7 +185,7 @@ package body denormalizer_generic_pkg is
     )
     return float_record
     is
-        variable float : float_record := zero;
+        variable retval : right'subtype;
         variable shift_width : integer;
     begin
         shift_width := to_integer(set_exponent_to - right.exponent);
@@ -196,11 +195,11 @@ package body denormalizer_generic_pkg is
         if shift_width < 0 then
             shift_width := 0;
         end if;
-        float := (sign     => right.sign,
+        retval := (sign     => right.sign,
                   exponent => right.exponent + shift_width,
                   mantissa => shift_right(right.mantissa , shift_width));
 
-        return float;
+        return retval;
         
     end denormalize_float;
 ------------------------------------------------------------------------
@@ -211,6 +210,7 @@ package body denormalizer_generic_pkg is
     )
     return float_record
     is
+        constant mantissa_length : natural := right.mantissa'length;
     begin
 
         return denormalize_float(right, set_exponent_to, mantissa_length);
