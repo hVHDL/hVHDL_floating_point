@@ -5,3 +5,5 @@
 vunit_out/
 *.cf
 *.o
+*.fst
+*.fst.*
