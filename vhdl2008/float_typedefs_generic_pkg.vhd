@@ -158,6 +158,7 @@ package body float_typedefs_generic_pkg is
     )
     return float_record
     is
+        subtype t_mantissa is left.mantissa'subtype;
         variable signed_left_mantissa, signed_right_mantissa : signed(t_mantissa'high+2 downto 0);
         variable res             : signed(left.mantissa'high+2 downto 0);
         variable abs_res         : signed(left.mantissa'high+2 downto 0);
