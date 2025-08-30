@@ -14,7 +14,7 @@ end;
 architecture vunit_simulation of tb_normalizer is
 
     signal simulation_running : boolean;
-    signal simulator_clock : std_logic;
+    signal simulator_clock : std_logic := '0';
     constant clock_per : time := 1 ns;
     constant clock_half_per : time := 0.5 ns;
     constant simtime_in_clocks : integer := 50;
@@ -93,6 +93,14 @@ architecture vunit_simulation of tb_normalizer is
     use work.float_typedefs_generic_pkg.all;
     use work.normalizer_generic_pkg.all;
 
+    constant float_zero : float_record :=(sign => '0', exponent => x"00", mantissa => x"000000");
+
+    constant init_normalizer : normalizer_record := (
+        normalizer_is_requested => "00"
+        ,normalized_data => (1 downto 0 => float_zero));
+
+    signal normalizer : init_normalizer'subtype := init_normalizer;
+    signal conv_result : float_zero'subtype := float_zero;
 
 begin
 
@@ -116,6 +124,15 @@ begin
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
+
+            create_normalizer(normalizer);
+
+            if simulation_counter = 0 then
+                to_float(normalizer, 8000, 16, float_zero);
+            end if;
+            if normalizer_is_ready(normalizer) then
+                conv_result <= get_normalizer_result(normalizer);
+            end if;
 
         end if; -- rising_edge
     end process stimulus;	

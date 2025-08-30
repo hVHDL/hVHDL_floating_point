@@ -83,5 +83,5 @@ generic_lib.add_source_files(ROOT / "vhdl2008/denormalizer_generic_pkg.vhd")
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/normalizer_tb.vhd")
 
 
-VU.set_sim_option("nvc.sim_flags", ["-w"])
+VU.set_sim_option("nvc.sim_flags", ["-w", "--dump-arrays"])
 VU.main()

@@ -6,14 +6,11 @@ library ieee;
 
 package normalizer_generic_pkg is
 ------------------------------------------------------------------------
-
-
     type normalizer_record is record
         normalizer_is_requested : std_logic_vector;
         normalized_data         : float_array;
     end record;
 
-    -- constant init_normalizer : normalizer_record := ((others => '0'), (others => zero));
 ------------------------------------------------------------------------
     procedure create_normalizer (
         signal self : inout normalizer_record);
@@ -59,7 +56,7 @@ package body normalizer_generic_pkg is
         signal self : inout normalizer_record
     ) 
     is
-        constant number_of_normalizer_pipeline_stages : natural := self.normalized_data'length;
+        constant number_of_normalizer_pipeline_stages : natural := self.normalized_data'high;
         constant mantissa_high : natural := self.normalized_data(0).mantissa'high;
     begin
 
