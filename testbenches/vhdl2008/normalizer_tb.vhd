@@ -93,7 +93,7 @@ architecture vunit_simulation of tb_normalizer is
     use work.float_typedefs_generic_pkg.all;
     use work.normalizer_generic_pkg.all;
 
-    constant float_zero : float_record :=(sign => '0', exponent => x"00", mantissa => x"000000");
+    constant float_zero : float_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 
     constant init_normalizer : normalizer_record := (
         normalizer_is_requested => "00"
@@ -128,7 +128,7 @@ begin
             create_normalizer(normalizer);
 
             if simulation_counter = 0 then
-                to_float(normalizer, 8000, 16, float_zero);
+                to_float(normalizer, 4, 4, float_zero);
             end if;
             if normalizer_is_ready(normalizer) then
                 conv_result <= get_normalizer_result(normalizer);
