@@ -58,7 +58,7 @@ architecture vunit_simulation of tb_normalizer is
 
     function to_float32 (a : integer; radix : integer ; bitwidth : natural; maxshift : natural) return float32 is
         constant uint_a : unsigned(bitwidth-1 downto 0) := to_unsigned(abs(a), bitwidth);
-        variable exponent : signed(7 downto 0) := (others => '0');
+        variable exponent : signed(7 downto 0) := to_signed(radix,8);
         variable zerocount : natural := 0;
         variable retval : float32 := (others => '0');
     begin
@@ -89,6 +89,9 @@ architecture vunit_simulation of tb_normalizer is
 
     signal should_be_0_3 : float32 := to_float32(8e3, 16,16,0);
     signal ref : float32 := to_float32(8.0e3/2.0**16);
+
+    use work.float_typedefs_generic_pkg.all;
+    use work.normalizer_generic_pkg.all;
 
 
 begin

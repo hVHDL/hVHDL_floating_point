@@ -78,6 +78,7 @@ denormal.add_source_files(ROOT / "testbenches/denormalized_numbers/saturated_add
 
 generic_lib = VU.add_library("generic_lib")
 generic_lib.add_source_files(ROOT / "vhdl2008/float_typedefs_generic_pkg.vhd")
+generic_lib.add_source_files(ROOT / "vhdl2008/normalizer_generic_pkg.vhd")
 generic_lib.add_source_files(ROOT / "vhdl2008/denormalizer_generic_pkg.vhd")
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/normalizer_tb.vhd")
 
