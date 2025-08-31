@@ -12,6 +12,8 @@ package normalizer_generic_pkg is
         normalizer_is_requested : std_logic_vector;
         normalized_data         : float_array;
     end record;
+    function normalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : float_record) 
+        return normalizer_record;
 
 ------------------------------------------------------------------------
     procedure create_normalizer (
@@ -56,6 +58,16 @@ package normalizer_generic_pkg is
 end package normalizer_generic_pkg;
 
 package body normalizer_generic_pkg is
+------------------------------------------------------------------------
+    function normalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : float_record) 
+    return normalizer_record is
+        constant init_normalizer : normalizer_record := (
+            normalizer_is_requested => (number_of_pipeline_stages-1 downto 0 => '0')
+            ,normalized_data => (number_of_pipeline_stages-1 downto 0 => floatref));
+    begin
+        return init_normalizer;
+    end normalizer_typeref;
+
 ------------------------------------------------------------------------
     procedure create_normalizer 
     (

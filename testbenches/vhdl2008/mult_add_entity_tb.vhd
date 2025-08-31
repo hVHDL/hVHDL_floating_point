@@ -6,7 +6,7 @@ LIBRARY ieee  ;
     use ieee.math_real.all;
     
 library vunit_lib;
-    use vunit_lib.run_pkg.all;
+    context vunit_lib.vunit_context;
 
 entity mult_add_entity_tb is
   generic (runner_cfg : string);
@@ -35,15 +35,12 @@ architecture vunit_simulation of mult_add_entity_tb is
 
     constant float_zero : float_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 
-    constant init_normalizer : normalizer_record := (
-        normalizer_is_requested => "00"
-        ,normalized_data => (1 downto 0 => float_zero));
+    constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => float_zero);
 
     signal normalizer : init_normalizer'subtype := init_normalizer;
     signal conv_result : float_zero'subtype := float_zero;
+
     signal float32_conv_result : float32 := to_float32(0.0);
-
-
     signal convref : float32 := to_float32(-4.0);
 
 begin
@@ -54,6 +51,7 @@ begin
         test_runner_setup(runner, runner_cfg);
         simulation_running <= true;
         wait for simtime_in_clocks*clock_per;
+        check(convref = float32_conv_result);
         simulation_running <= false;
         test_runner_cleanup(runner); -- Simulation ends here
         wait;
