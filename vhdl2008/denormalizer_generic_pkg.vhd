@@ -17,11 +17,8 @@ package denormalizer_generic_pkg is
         target_scale_pipeline : intarray;
     end record;
 
-    -- constant init_denormalizer : denormalizer_record := (
-    --         denormalizer_pipeline => (others => zero),
-    --         feedthrough_pipeline  => (others => zero),
-    --         shift_register        => (others => '0'),
-    --         target_scale_pipeline => (others => 0));
+    function denormalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : float_record) 
+        return denormalizer_record;
 
 ------------------------------------------------------------------------
     procedure create_denormalizer (
@@ -69,6 +66,17 @@ package denormalizer_generic_pkg is
 end package denormalizer_generic_pkg;
 
 package body denormalizer_generic_pkg is
+------------------------------------------------------------------------
+    function denormalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : float_record) 
+    return denormalizer_record is
+        constant init_denormalizer : denormalizer_record := (
+            denormalizer_pipeline  => (number_of_pipeline_stages-1 downto 0 => floatref)
+            ,feedthrough_pipeline  => (number_of_pipeline_stages-1 downto 0 => floatref)
+            ,shift_register        => (number_of_pipeline_stages-1 downto 0 => '0')
+            ,target_scale_pipeline => (number_of_pipeline_stages-1 downto 0 => 0));
+    begin
+        return init_denormalizer;
+    end denormalizer_typeref;
 ------------------------------------------------------------------------
     procedure create_denormalizer 
     (
