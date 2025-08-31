@@ -1,4 +1,33 @@
 
+LIBRARY ieee  ; 
+    USE ieee.NUMERIC_STD.all  ; 
+    USE ieee.std_logic_1164.all  ; 
+
+    use work.float_typedefs_generic_pkg.all;
+
+entity multiply_add is
+    port(clock : in std_logic
+        ;a : in float_record
+        ;b : in float_record
+        ;c : in float_record
+        ;result           : out float_record
+        ;mpy_add_is_ready : out boolean
+    );
+end multiply_add;
+
+architecture testi of multiply_add is
+
+    use work.float_typedefs_generic_pkg.all;
+    use work.normalizer_generic_pkg.all;
+    use work.denormalizer_generic_pkg.all;
+    use work.float_adder_pkg.all;
+    use work.float_multiplier_pkg.all;
+
+begin
+
+
+end testi;
+
 
 LIBRARY ieee  ; 
     USE ieee.NUMERIC_STD.all  ; 
@@ -56,8 +85,8 @@ architecture vunit_simulation of mult_add_entity_tb is
     use work.float_to_real_conversions_pkg.all;
 
     constant float1 : float_zero'subtype := to_float(-84.5);
-    constant float2 : float_zero'subtype := to_float(2.0);
-    constant float3 : float_zero'subtype := to_float(84.5);
+    constant float2 : float_zero'subtype := to_float(1.5);
+    constant float3 : float_zero'subtype := to_float(84.5/2.0);
 
     use work.float_multiplier_pkg.all;
     constant init_multiplier : float_multiplier_record := multiplier_typeref(float_zero);
@@ -89,7 +118,6 @@ begin
             simulation_counter <= simulation_counter + 1;
 
             create_normalizer(normalizer);
-            create_denormalizer(denormalizer);
             create_adder(adder);
             create_float_multiplier(multiplier);
 
@@ -100,7 +128,6 @@ begin
             if float_multiplier_is_ready(multiplier) then
                 request_add(adder,get_multiplier_result(multiplier), float3);
             end if;
-
             if adder_is_ready(adder) 
             then
                 request_normalizer(normalizer, get_result(adder));
@@ -108,7 +135,7 @@ begin
 
             if normalizer_is_ready(normalizer) then
                 request_denormalizer(denormalizer, get_normalizer_result(normalizer), 20);
-                conv_result <= get_normalizer_result(normalizer);
+                conv_result         <= get_normalizer_result(normalizer);
                 float32_conv_result <= to_ieee_float32(get_normalizer_result(normalizer));
             end if;
 
