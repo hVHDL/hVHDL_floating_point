@@ -179,7 +179,7 @@ package body float_typedefs_generic_pkg is
 
         returned_value := ( res(res'high), 
                 result_exponent(left.exponent'range),
-                unsigned(abs_res(left.exponent'range)));
+                unsigned(abs_res(left.mantissa'range)));
 
         return returned_value;
     end "+";

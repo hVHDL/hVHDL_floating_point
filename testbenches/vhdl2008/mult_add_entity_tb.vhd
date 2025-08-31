@@ -32,6 +32,7 @@ architecture vunit_simulation of mult_add_entity_tb is
 
     use work.float_typedefs_generic_pkg.all;
     use work.normalizer_generic_pkg.all;
+    use work.denormalizer_generic_pkg.all;
 
     constant float_zero : float_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 
@@ -42,6 +43,18 @@ architecture vunit_simulation of mult_add_entity_tb is
 
     signal float32_conv_result : float32 := to_float32(0.0);
     signal convref : float32 := to_float32(-4.0);
+
+    constant init_denormalizer : denormalizer_record := denormalizer_typeref(2, floatref => float_zero);
+    signal denormalizer : init_denormalizer'subtype := init_denormalizer;
+
+    use work.float_adder_pkg.all;
+    constant init_adder : float_adder_record := adder_typeref(2, float_zero);
+    signal adder : init_adder'subtype := init_adder;
+
+    use work.float_to_real_conversions_pkg.all;
+
+    constant float1 : float_zero'subtype := to_float(112.5);
+    constant float2 : float_zero'subtype := to_float(-116.5);
 
 begin
 
@@ -68,11 +81,19 @@ begin
             simulation_counter <= simulation_counter + 1;
 
             create_normalizer(normalizer);
+            create_denormalizer(denormalizer);
+            create_adder(adder);
 
             if simulation_counter = 0 then
-                to_float(normalizer, -4, 0, float_zero);
+                request_add(adder, float1, float2);
             end if;
+            if adder_is_ready(adder) 
+            then
+                request_normalizer(normalizer, get_result(adder));
+            end if;
+
             if normalizer_is_ready(normalizer) then
+                request_denormalizer(denormalizer, get_normalizer_result(normalizer), 20);
                 conv_result <= get_normalizer_result(normalizer);
                 float32_conv_result <= to_ieee_float32(get_normalizer_result(normalizer));
             end if;

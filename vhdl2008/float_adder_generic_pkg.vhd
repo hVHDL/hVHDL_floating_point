@@ -3,7 +3,6 @@ library ieee;
     use ieee.numeric_std.all;
 
     use work.float_typedefs_generic_pkg.all;
-    -- use work.float_arithmetic_operations_pkg.all;
     use work.denormalizer_generic_pkg.all;
 
 package float_adder_pkg is
@@ -14,8 +13,8 @@ package float_adder_pkg is
         adder_is_done : boolean;
     end record;
 
-    -- constant init_adder : float_adder_record := (init_denormalizer, zero, false);
-    -- constant init_float_adder : float_adder_record := init_adder;
+    function adder_typeref(denorm_pipeline_stages : natural := 2; floatref : float_record) 
+        return float_adder_record;
 ------------------------------------------------------------------------
     procedure create_adder (
         signal self : inout float_adder_record);
@@ -38,6 +37,16 @@ end package float_adder_pkg;
 
 package body float_adder_pkg is
 ------------------------------------------------------------------------
+    function adder_typeref(denorm_pipeline_stages : natural := 2; floatref : float_record) return float_adder_record
+    is
+        constant init_adder : float_adder_record := (
+        denormalizer   => denormalizer_typeref(denorm_pipeline_stages, floatref)
+        ,adder_result  => floatref
+        ,adder_is_done => false);
+    begin
+        return init_adder;
+    end adder_typeref;
+------------------------------------------------------------------------
     procedure create_adder
     (
         signal self : inout float_adder_record
@@ -45,7 +54,9 @@ package body float_adder_pkg is
         constant number_of_denormalizer_pipeline_stages : natural := self.denormalizer.feedthrough_pipeline'high;
     begin
         create_denormalizer(self.denormalizer);
-        self.adder_result <= (self.denormalizer.feedthrough_pipeline(number_of_denormalizer_pipeline_stages) + self.denormalizer.denormalizer_pipeline(number_of_denormalizer_pipeline_stages));
+        self.adder_result  <= 
+            (self.denormalizer.feedthrough_pipeline(number_of_denormalizer_pipeline_stages) 
+            + self.denormalizer.denormalizer_pipeline(number_of_denormalizer_pipeline_stages));
         self.adder_is_done <= denormalizer_is_ready(self.denormalizer);
 
     end create_adder;

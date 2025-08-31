@@ -83,7 +83,7 @@ package body denormalizer_generic_pkg is
         signal self : inout denormalizer_record
     ) 
     is
-        constant number_of_denormalizer_pipeline_stages : natural := self.denormalizer_pipeline'length;
+        constant number_of_denormalizer_pipeline_stages : natural := self.denormalizer_pipeline'high;
         constant mantissa_length : natural := self.denormalizer_pipeline(0).mantissa'length;
     begin
 
