@@ -2,7 +2,6 @@ library ieee;
     use ieee.std_logic_1164.all;
     use ieee.numeric_std.all;
 
-    use work.float_arithmetic_operations_pkg.all;
     use work.float_typedefs_generic_pkg.all;
 
 package float_multiplier_pkg is
