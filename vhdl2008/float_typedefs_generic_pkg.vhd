@@ -10,8 +10,8 @@ package float_typedefs_generic_pkg is
 
     type float_record is record
         sign     : std_logic;
-        exponent : t_exponent;
-        mantissa : t_mantissa;
+        exponent : signed;
+        mantissa : unsigned;
     end record;
 
     type float_array is array (natural range <>) of float_record;

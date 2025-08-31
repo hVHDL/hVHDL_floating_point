@@ -129,6 +129,9 @@ architecture testi of multiply_add is
 
 begin
 
+
+    mpya_out.is_ready <= '1' when normalizer_is_ready(normalizer) else '0';
+
     process(clock) is
     begin
         if rising_edge(clock) 
@@ -136,6 +139,23 @@ begin
             create_normalizer(normalizer);
             create_adder(adder);
             create_float_multiplier(multiplier);
+
+            if mpya_in.is_requested = '1' then
+                -- request_float_multiplier(multiplier
+                -- ,to_float(mpya_in.mpy_a)
+                -- ,to_float(mpya_in.mpy_b));
+            end if;
+
+            if float_multiplier_is_ready(multiplier) then
+                -- request_add(adder
+                -- ,get_multiplier_result(multiplier)
+                -- ,to_float(mpya_in.add_a));
+            end if;
+
+            if adder_is_ready(adder) 
+            then
+                request_normalizer(normalizer, get_result(adder));
+            end if;
 
         end if; -- rising edge
     end process;
@@ -241,6 +261,7 @@ begin
             if float_multiplier_is_ready(multiplier) then
                 request_add(adder,get_multiplier_result(multiplier), float3);
             end if;
+
             if adder_is_ready(adder) 
             then
                 request_normalizer(normalizer, get_result(adder));
