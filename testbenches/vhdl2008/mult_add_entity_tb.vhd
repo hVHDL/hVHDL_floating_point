@@ -41,8 +41,10 @@ architecture vunit_simulation of mult_add_entity_tb is
     signal normalizer : init_normalizer'subtype := init_normalizer;
     signal conv_result : float_zero'subtype := float_zero;
 
+    constant check_value : real := -84.5;
+
     signal float32_conv_result : float32 := to_float32(0.0);
-    signal convref : float32 := to_float32(-4.0);
+    signal convref : float32 := to_float32(check_value);
 
     constant init_denormalizer : denormalizer_record := denormalizer_typeref(2, floatref => float_zero);
     signal denormalizer : init_denormalizer'subtype := init_denormalizer;
@@ -53,8 +55,14 @@ architecture vunit_simulation of mult_add_entity_tb is
 
     use work.float_to_real_conversions_pkg.all;
 
-    constant float1 : float_zero'subtype := to_float(112.5);
-    constant float2 : float_zero'subtype := to_float(-116.5);
+    constant float1 : float_zero'subtype := to_float(-84.5);
+    constant float2 : float_zero'subtype := to_float(2.0);
+    constant float3 : float_zero'subtype := to_float(84.5);
+
+    use work.float_multiplier_pkg.all;
+    constant init_multiplier : float_multiplier_record := multiplier_typeref(float_zero);
+    signal multiplier : init_multiplier'subtype := init_multiplier;
+
 
 begin
 
@@ -83,10 +91,16 @@ begin
             create_normalizer(normalizer);
             create_denormalizer(denormalizer);
             create_adder(adder);
+            create_float_multiplier(multiplier);
 
             if simulation_counter = 0 then
-                request_add(adder, float1, float2);
+                request_float_multiplier(multiplier, float1, float2);
             end if;
+            
+            if float_multiplier_is_ready(multiplier) then
+                request_add(adder,get_multiplier_result(multiplier), float3);
+            end if;
+
             if adder_is_ready(adder) 
             then
                 request_normalizer(normalizer, get_result(adder));

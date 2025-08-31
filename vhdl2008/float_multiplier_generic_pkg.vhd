@@ -10,17 +10,17 @@ package float_multiplier_pkg is
 ------------------------------------------------------------------------
     type float_multiplier_record is record
 
-        left   : float_record;
-        right  : float_record;
-        result : float_record;
-
+        left                           : float_record;
+        right                          : float_record;
+        result                         : float_record;
         sign                           : std_logic;
         exponent                       : signed;
         mantissa_multiplication_result : unsigned; -- (mantissa_high*2+1 downto 0);
         shift_register                 : std_logic_vector; --(float_multiplier_pipeline_depth-1 downto 0);
     end record;
 
-    -- constant init_float_multiplier : float_multiplier_record := (zero, zero, zero, '0', (others => '0'),(others => '0'), (others => '0'));
+    function multiplier_typeref(floatref : float_record) 
+        return float_multiplier_record;
 ------------------------------------------------------------------------
     procedure create_float_multiplier (
         signal self : inout float_multiplier_record);
@@ -44,6 +44,26 @@ package float_multiplier_pkg is
 end package float_multiplier_pkg;
 
 package body float_multiplier_pkg is
+------------------------------------------------------------------------
+    function multiplier_typeref(floatref : float_record) return float_multiplier_record
+    is
+        constant zero : floatref'subtype := (sign => '0', mantissa => (others => '0'), exponent => (others => '0'));
+        constant mpy  : unsigned(floatref.mantissa'high*2+1 downto 0) := (others => '0');
+        constant shift_register : std_logic_vector(2 downto 0) := (others => '0');
+
+        constant init_multiplier : float_multiplier_record := (
+            left      => zero
+            ,right    => zero
+            ,result   => zero
+            ,sign     => '0'
+            ,exponent => zero.exponent
+            ,mantissa_multiplication_result => mpy
+            ,shift_register                 => shift_register
+            );
+
+    begin
+        return init_multiplier;
+    end multiplier_typeref;
 ------------------------------------------------------------------------
     function "*"
     (
