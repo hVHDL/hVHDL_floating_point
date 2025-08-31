@@ -3,28 +3,142 @@ LIBRARY ieee  ;
     USE ieee.NUMERIC_STD.all  ; 
     USE ieee.std_logic_1164.all  ; 
 
+package multiply_add_pkg is
+
+    type multiply_add_in_record is record
+        mpy_a : std_logic_vector;
+        mpy_b : std_logic_vector;
+        add_a : std_logic_vector;
+        is_requested : std_logic;
+    end record;
+
+    type multiply_add_out_record is record
+        result : std_logic_vector;
+        is_ready : std_logic;
+    end record;
+
+    procedure init_multiply_add(signal self_in : out multiply_add_in_record);
+
+    procedure multiply_add(signal self_in : out multiply_add_in_record
+        ;a : std_logic_vector
+        ;b : std_logic_vector
+        ;c : std_logic_vector);
+
+end package multiply_add_pkg;
+
+package body multiply_add_pkg is
+
+    procedure init_multiply_add(signal self_in : out multiply_add_in_record) 
+    is
+    begin
+        self_in.mpy_a <= (self_in.mpy_a'range => '0');
+        self_in.mpy_b <= (self_in.mpy_b'range => '0');
+        self_in.add_a <= (self_in.add_a'range => '0');
+        self_in.is_requested <= '0';
+    end procedure;
+
+    procedure multiply_add(signal self_in : out multiply_add_in_record
+        ;a : std_logic_vector
+        ;b : std_logic_vector
+        ;c : std_logic_vector
+    ) 
+    is
+    begin
+        self_in.mpy_a <= a;
+        self_in.mpy_b <= b;
+        self_in.add_a <= c;
+        self_in.is_requested <= '1';
+    end procedure;
+
+    procedure multiply(signal self_in : out multiply_add_in_record
+        ;a : std_logic_vector
+        ;b : std_logic_vector
+    ) 
+    is
+    begin
+        self_in.mpy_a <= a;
+        self_in.mpy_b <= b;
+        self_in.add_a <= (self_in.add_a'range => '0');
+        self_in.is_requested <= '1';
+    end procedure;
+
+    procedure add(signal self_in : out multiply_add_in_record
+        ;a : std_logic_vector
+        ;b : std_logic_vector
+    ) 
+    is
+    begin
+        self_in.mpy_a <= a;
+        self_in.mpy_b <= a;  -- should be 1.0
+        self_in.add_a <= b;
+        self_in.is_requested <= '0';
+    end procedure;
+
+    procedure sub(signal self_in : out multiply_add_in_record
+        ;a : std_logic_vector
+        ;b : std_logic_vector
+    ) 
+    is
+    begin
+        self_in.mpy_a <= a;
+        self_in.mpy_b <= a;  -- should be 1.0
+        self_in.add_a <= b; -- should be inverted
+        self_in.is_requested <= '0';
+    end procedure;
+
+end package body multiply_add_pkg;
+
+LIBRARY ieee  ; 
+    USE ieee.NUMERIC_STD.all  ; 
+    USE ieee.std_logic_1164.all  ; 
+
+    use work.multiply_add_pkg.all;
     use work.float_typedefs_generic_pkg.all;
 
 entity multiply_add is
+    generic(
+        g_exponent_length  : natural := 8
+        ;g_mantissa_length : natural := 24
+    );
     port(clock : in std_logic
-        ;a : in float_record
-        ;b : in float_record
-        ;c : in float_record
-        ;result           : out float_record
-        ;mpy_add_is_ready : out boolean
+        ;mpya_in   : in multiply_add_in_record
+        ;mpya_out  : out multiply_add_out_record
     );
 end multiply_add;
 
 architecture testi of multiply_add is
 
-    use work.float_typedefs_generic_pkg.all;
     use work.normalizer_generic_pkg.all;
     use work.denormalizer_generic_pkg.all;
     use work.float_adder_pkg.all;
     use work.float_multiplier_pkg.all;
 
+    constant float_zero : float_record := (
+            sign => '0'
+            , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))
+            , mantissa => (g_mantissa_length-1 downto 0 => (g_mantissa_length-1 downto 0 => '0')));
+
+    constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => float_zero);
+    signal normalizer : init_normalizer'subtype := init_normalizer;
+
+    constant init_adder : float_adder_record := adder_typeref(2, float_zero);
+    signal adder : init_adder'subtype := init_adder;
+
+    constant init_multiplier : float_multiplier_record := multiplier_typeref(float_zero);
+    signal multiplier : init_multiplier'subtype := init_multiplier;
+
 begin
 
+    process(clock) is
+    begin
+        if rising_edge(clock) 
+        then
+            create_normalizer(normalizer);
+            create_adder(adder);
+            create_float_multiplier(multiplier);
+
+        end if; -- rising edge
+    end process;
 
 end testi;
 
@@ -59,21 +173,20 @@ architecture vunit_simulation of mult_add_entity_tb is
         return to_float(a, float32'high);
     end to_float32;
 
+    constant check_value : real := -84.5;
+
     use work.float_typedefs_generic_pkg.all;
     use work.normalizer_generic_pkg.all;
     use work.denormalizer_generic_pkg.all;
 
     constant float_zero : float_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 
-    constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => float_zero);
-
-    signal normalizer : init_normalizer'subtype := init_normalizer;
-    signal conv_result : float_zero'subtype := float_zero;
-
-    constant check_value : real := -84.5;
-
     signal float32_conv_result : float32 := to_float32(0.0);
     signal convref : float32 := to_float32(check_value);
+    signal conv_result : float_zero'subtype := float_zero;
+
+    constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => float_zero);
+    signal normalizer : init_normalizer'subtype := init_normalizer;
 
     constant init_denormalizer : denormalizer_record := denormalizer_typeref(2, floatref => float_zero);
     signal denormalizer : init_denormalizer'subtype := init_denormalizer;
