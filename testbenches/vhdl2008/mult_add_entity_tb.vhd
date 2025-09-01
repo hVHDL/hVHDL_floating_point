@@ -5,6 +5,7 @@ LIBRARY ieee  ;
 
 package multiply_add_pkg is
 
+-----------------------------------------------------
     type multiply_add_in_record is record
         mpy_a : std_logic_vector;
         mpy_b : std_logic_vector;
@@ -12,22 +13,77 @@ package multiply_add_pkg is
         is_requested : std_logic;
     end record;
 
+-----------------------------------------------------
     type multiply_add_out_record is record
-        result : std_logic_vector;
+        result   : std_logic_vector;
         is_ready : std_logic;
     end record;
 
+-----------------------------------------------------
+    type mpya_subtype_record is record
+        mpya_in  : multiply_add_in_record;
+        mpya_out : multiply_add_out_record;
+    end record;
+
+-----------------------------------------------------
+    function create_mpya_typeref(
+        exponent_length  : natural := 8
+        ;mantissa_length : natural := 23)
+    return mpya_subtype_record;
+
+-----------------------------------------------------
     procedure init_multiply_add(signal self_in : out multiply_add_in_record);
 
+-----------------------------------------------------
     procedure multiply_add(signal self_in : out multiply_add_in_record
         ;a : std_logic_vector
         ;b : std_logic_vector
         ;c : std_logic_vector);
+-----------------------------------------------------
+    function mpya_is_ready(mpya_out : multiply_add_out_record) 
+        return boolean;
+-----------------------------------------------------
+    function get_mpya_result(mpya_out : multiply_add_out_record) return std_logic_vector;
+-----------------------------------------------------
 
 end package multiply_add_pkg;
 
 package body multiply_add_pkg is
 
+-----------------------------------------------------
+    function create_mpya_typeref(exponent_length : natural := 8 ; mantissa_length : natural := 23)
+    return mpya_subtype_record is
+
+        constant retval : mpya_subtype_record :=(
+            mpya_in => (
+                mpy_a  => (exponent_length + mantissa_length downto 0 => '0')
+                ,mpy_b => (exponent_length + mantissa_length downto 0 => '0')
+                ,add_a => (exponent_length + mantissa_length downto 0 => '0')
+                ,is_requested => '0')
+            ,mpya_out => (
+                result    => (exponent_length + mantissa_length downto 0 => '0')
+                ,is_ready => '0')
+            );
+
+    begin
+
+        return retval;
+
+    end create_mpya_typeref;
+
+-----------------------------------------------------
+    function mpya_is_ready(mpya_out : multiply_add_out_record) return boolean
+    is
+    begin
+        return mpya_out.is_ready = '1';
+    end mpya_is_ready;
+-----------------------------------------------------
+    function get_mpya_result(mpya_out : multiply_add_out_record) return std_logic_vector
+    is
+    begin
+        return mpya_out.result;
+    end get_mpya_result;
+-----------------------------------------------------
     procedure init_multiply_add(signal self_in : out multiply_add_in_record) 
     is
     begin
@@ -37,6 +93,7 @@ package body multiply_add_pkg is
         self_in.is_requested <= '0';
     end procedure;
 
+-----------------------------------------------------
     procedure multiply_add(signal self_in : out multiply_add_in_record
         ;a : std_logic_vector
         ;b : std_logic_vector
@@ -50,6 +107,7 @@ package body multiply_add_pkg is
         self_in.is_requested <= '1';
     end procedure;
 
+-----------------------------------------------------
     procedure multiply(signal self_in : out multiply_add_in_record
         ;a : std_logic_vector
         ;b : std_logic_vector
@@ -62,6 +120,7 @@ package body multiply_add_pkg is
         self_in.is_requested <= '1';
     end procedure;
 
+-----------------------------------------------------
     procedure add(signal self_in : out multiply_add_in_record
         ;a : std_logic_vector
         ;b : std_logic_vector
@@ -74,6 +133,7 @@ package body multiply_add_pkg is
         self_in.is_requested <= '0';
     end procedure;
 
+-----------------------------------------------------
     procedure sub(signal self_in : out multiply_add_in_record
         ;a : std_logic_vector
         ;b : std_logic_vector
@@ -85,6 +145,7 @@ package body multiply_add_pkg is
         self_in.add_a <= b; -- should be inverted
         self_in.is_requested <= '0';
     end procedure;
+-----------------------------------------------------
 
 end package body multiply_add_pkg;
 
@@ -101,7 +162,7 @@ entity multiply_add is
         ;g_mantissa_length : natural := 24
     );
     port(clock : in std_logic
-        ;mpya_in   : in multiply_add_in_record
+        ;mpya_in   : in  multiply_add_in_record
         ;mpya_out  : out multiply_add_out_record
     );
 end multiply_add;
@@ -114,7 +175,7 @@ architecture testi of multiply_add is
     use work.float_multiplier_pkg.all;
 
     constant float_zero : float_record := (
-            sign => '0'
+            sign       => '0'
             , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))
             , mantissa => (g_mantissa_length-1 downto 0 => (g_mantissa_length-1 downto 0 => '0')));
 
@@ -126,6 +187,9 @@ architecture testi of multiply_add is
 
     constant init_multiplier : float_multiplier_record := multiplier_typeref(float_zero);
     signal multiplier : init_multiplier'subtype := init_multiplier;
+
+    constant init_float_array : float_array(2 downto 0) := (2 downto 0 => float_zero);
+    signal add_array : init_float_array'subtype := init_float_array;
 
 begin
 
@@ -141,16 +205,19 @@ begin
             create_adder(adder);
             create_float_multiplier(multiplier);
 
+            add_array <= add_array(add_array'high-1 downto 0) & float_zero;
+
             if mpya_in.is_requested = '1' then
                 request_float_multiplier(multiplier
                 ,to_float(mpya_in.mpy_a, float_zero)
                 ,to_float(mpya_in.mpy_b, float_zero));
+                add_array(0) <= to_float(mpya_in.add_a, float_zero);
             end if;
 
             if float_multiplier_is_ready(multiplier) then
                 request_add(adder
                 ,get_multiplier_result(multiplier)
-                ,to_float(mpya_in.add_a, float_zero));
+                ,add_array(add_array'high));
             end if;
 
             if adder_is_ready(adder) 
@@ -226,6 +293,15 @@ architecture vunit_simulation of mult_add_entity_tb is
     constant init_multiplier : float_multiplier_record := multiplier_typeref(float_zero);
     signal multiplier : init_multiplier'subtype := init_multiplier;
 
+    use work.multiply_add_pkg.all;
+    constant mpya_ref : mpya_subtype_record := create_mpya_typeref(8,24);
+
+    signal mpya_in  : mpya_ref.mpya_in'subtype  := mpya_ref.mpya_in;
+    signal mpya_out : mpya_ref.mpya_out'subtype := mpya_ref.mpya_out;
+
+    signal mpya_result : float_zero'subtype := float_zero;
+    signal real_mpya_result : real := 0.0;
+
 
 begin
 
@@ -251,13 +327,33 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
+            init_multiply_add(mpya_in);
+
             create_normalizer(normalizer);
             create_adder(adder);
             create_float_multiplier(multiplier);
 
-            if simulation_counter = 0 then
-                request_float_multiplier(multiplier, float1, float2);
-            end if;
+            CASE simulation_counter is
+                WHEN 0 =>
+                    request_float_multiplier(multiplier, float1, float2);
+                    multiply_add(mpya_in 
+                    ,to_std_logic(float1)
+                    ,to_std_logic(float2)
+                    ,to_std_logic(float3));
+
+                WHEN 1 =>
+                    multiply_add(mpya_in 
+                    ,to_std_logic(float1)
+                    ,to_std_logic(float1)
+                    ,to_std_logic(float3));
+                WHEN 2 =>
+                    multiply_add(mpya_in 
+                    ,to_std_logic(float2)
+                    ,to_std_logic(float2)
+                    ,to_std_logic(float2));
+
+                WHEN others => -- do nothing
+            end CASE;
             
             if float_multiplier_is_ready(multiplier) then
                 request_add(adder,get_multiplier_result(multiplier), float3);
@@ -274,7 +370,21 @@ begin
                 float32_conv_result <= to_ieee_float32(get_normalizer_result(normalizer));
             end if;
 
+            if mpya_is_ready(mpya_out)
+            then
+                mpya_result <= to_float(get_mpya_result(mpya_out), float_zero);
+                real_mpya_result <= to_real(to_float(get_mpya_result(mpya_out), float_zero));
+            end if;
+
         end if; -- rising_edge
     end process stimulus;	
+------------------------------------------------------------------------
+    dut : entity work.multiply_add
+    port map(
+        simulator_clock
+        ,mpya_in
+        ,mpya_out
+    );
+
 ------------------------------------------------------------------------
 end vunit_simulation;

@@ -58,7 +58,7 @@ package float_typedefs_generic_pkg is
         return std_logic_vector;
 ------------------------------------------------------------------------
     function to_float (
-        slv : std_logic_vector
+        slv       : std_logic_vector
         ;floatref : float_record)
     return float_record;
 ------------------------------------------------------------------------
@@ -272,8 +272,10 @@ package body float_typedefs_generic_pkg is
     )
     return std_logic_vector 
     is
+        constant slvref : std_logic_vector := float_number.sign & std_logic_vector(float_number.exponent) & std_logic_vector(float_number.mantissa);
+        constant slvref1 : std_logic_vector(slvref'high downto 0) := float_number.sign & std_logic_vector(float_number.exponent) & std_logic_vector(float_number.mantissa);
     begin
-        return float_number.sign & std_logic_vector(float_number.exponent) & std_logic_vector(float_number.mantissa);
+        return slvref1;
     end to_std_logic;
 ------------------------------------------------------------------------
     function to_float
@@ -287,7 +289,7 @@ package body float_typedefs_generic_pkg is
     begin
         retval.sign     := slv(slv'left);
         retval.exponent := signed(slv(slv'left-1 downto slv'left-1-retval.exponent'high));
-        retval.mantissa := unsigned(slv(slv'left-1-retval.exponent'high downto 0));
+        retval.mantissa := unsigned(slv(slv'left-1-retval.exponent'high-1 downto 0));
 
         return retval;
     end to_float;

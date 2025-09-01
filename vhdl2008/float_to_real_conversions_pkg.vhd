@@ -17,10 +17,10 @@ package float_to_real_conversions_pkg is
     function to_real ( float_number : float_record)
         return real;
 ------------------------------------------------------------------------
-    function to_float (
-        float : std_logic_vector
-        ;ref : float_record := float_zero)
-    return float_record ;
+    -- function to_float (
+    --     float : std_logic_vector
+    --     ;ref : float_record := float_zero)
+    -- return float_record ;
 ------------------------------------------------------------------------
     function get_sign ( number : real)
         return std_logic;
