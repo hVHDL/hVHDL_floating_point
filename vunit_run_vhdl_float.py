@@ -83,6 +83,8 @@ generic_lib.add_source_files(ROOT / "vhdl2008/denormalizer_generic_pkg.vhd")
 generic_lib.add_source_files(ROOT / "vhdl2008/float_multiplier_generic_pkg.vhd")
 generic_lib.add_source_files(ROOT / "vhdl2008/float_adder_generic_pkg.vhd")
 generic_lib.add_source_files(ROOT / "vhdl2008/float_to_real_conversions_pkg.vhd")
+generic_lib.add_source_files(ROOT / "vhdl2008/multiply_add_entity.vhd")
+generic_lib.add_source_files(ROOT / "vhdl2008/multiply_add_arch_hfloat.vhd")
 
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/normalizer_tb.vhd")
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/mult_add_entity_tb.vhd")
