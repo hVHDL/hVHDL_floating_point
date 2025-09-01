@@ -131,6 +131,7 @@ begin
 
 
     mpya_out.is_ready <= '1' when normalizer_is_ready(normalizer) else '0';
+    mpya_out.result   <= to_std_logic(get_normalizer_result(normalizer));
 
     process(clock) is
     begin
