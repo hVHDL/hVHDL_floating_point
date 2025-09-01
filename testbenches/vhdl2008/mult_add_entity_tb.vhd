@@ -141,15 +141,15 @@ begin
             create_float_multiplier(multiplier);
 
             if mpya_in.is_requested = '1' then
-                -- request_float_multiplier(multiplier
-                -- ,to_float(mpya_in.mpy_a)
-                -- ,to_float(mpya_in.mpy_b));
+                request_float_multiplier(multiplier
+                ,to_float(mpya_in.mpy_a, float_zero)
+                ,to_float(mpya_in.mpy_b, float_zero));
             end if;
 
             if float_multiplier_is_ready(multiplier) then
-                -- request_add(adder
-                -- ,get_multiplier_result(multiplier)
-                -- ,to_float(mpya_in.add_a));
+                request_add(adder
+                ,get_multiplier_result(multiplier)
+                ,to_float(mpya_in.add_a, float_zero));
             end if;
 
             if adder_is_ready(adder) 
