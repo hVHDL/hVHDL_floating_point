@@ -2,10 +2,19 @@
 
 from pathlib import Path
 from vunit import VUnit
+import argparse
 
+# Parse extra arguments
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--dump-arrays",
+    action="store_true",
+    help="Enable dumping arrays in the NVC simulator"
+)
+args, vunit_args = parser.parse_known_args()
 # ROOT
 ROOT = Path(__file__).resolve().parent
-VU = VUnit.from_argv()
+VU = VUnit.from_argv(vunit_args)
 
 float_lib = VU.add_library("float_lib")
 float_lib.add_source_files(ROOT / "float_type_definitions/float_word_length_24_bit_pkg.vhd")
@@ -90,5 +99,7 @@ generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/normalizer_tb.vhd")
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/mult_add_entity_tb.vhd")
 
 
-VU.set_sim_option("nvc.sim_flags", ["-w", "--dump-arrays"])
+if args.dump_arrays:
+    VU.set_sim_option("nvc.sim_flags", ["-w", "--dump-arrays"])
+
 VU.main()

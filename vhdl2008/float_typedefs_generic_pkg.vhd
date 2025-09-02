@@ -20,12 +20,12 @@ package float_typedefs_generic_pkg is
     constant hfloat32_ref : float_record :=(
         sign => '0'
         ,exponent => (7 downto 0 => x"00")
-        ,mantissa => (22 downto 0 => x"000000"));
+        ,mantissa => (22 downto 0 => (22 downto 0 => '0')));
 
     constant hfloat40_ref : float_record :=(
         sign => '0'
         ,exponent => (7 downto 0 => x"00")
-        ,mantissa => (30 downto 0 => x"000000"));
+        ,mantissa => (30 downto 0 => (30 downto 0 => '0')));
 
 ------------------------------------------------------------------------
     function get_signed_mantissa ( hfloat : float_record)
