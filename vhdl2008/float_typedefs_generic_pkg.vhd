@@ -16,8 +16,16 @@ package float_typedefs_generic_pkg is
 
     type float_array is array (natural range <>) of float_record;
 
-    -- constant zero    : float_record := ('0', (others => '0'), (others => '0'));
-    -- constant pos_max : float_record := ('0', (exponent_high => '0', others => '1'), (others => '1'));
+    -- common instantiations
+    constant hfloat32_ref : float_record :=(
+        sign => '0'
+        ,exponent => (7 downto 0 => x"00")
+        ,mantissa => (22 downto 0 => x"000000"));
+
+    constant hfloat40_ref : float_record :=(
+        sign => '0'
+        ,exponent => (7 downto 0 => x"00")
+        ,mantissa => (30 downto 0 => x"000000"));
 
 ------------------------------------------------------------------------
     function get_signed_mantissa ( hfloat : float_record)
