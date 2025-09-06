@@ -7,8 +7,6 @@ library ieee;
     use work.normalizer_generic_pkg.all;
 
 package float_to_real_conversions_pkg is
-    constant mantissa_high : natural := 23;
-    constant mantissa_length : natural := 24;
     constant float_zero : float_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 ------------------------------------------------------------------------
     function to_float ( real_number : real)
@@ -33,8 +31,12 @@ package float_to_real_conversions_pkg is
         number : real
         ;exponent_length : natural := 8) return signed;
 ------------------------------------------------------------------------
-    function get_mantissa ( number : real)
-        return unsigned;
+    function get_mantissa
+    (
+        number : real
+        ;mantissa_length : natural := 24
+    )
+    return unsigned;
 ------------------------------------------------------------------------
 end package float_to_real_conversions_pkg;
 
@@ -109,11 +111,12 @@ package body float_to_real_conversions_pkg is
     function get_mantissa
     (
         number : real
+        ;mantissa_length : natural := 24
     )
     return unsigned
     is
     begin
-        return to_unsigned(integer(get_mantissa(number) * 2.0**mantissa_high), mantissa_length);
+        return to_unsigned(integer(get_mantissa(number) * 2.0**(mantissa_length-1)), mantissa_length);
     end get_mantissa;
 ------------------------------------------------------------------------
     function to_float
@@ -147,7 +150,7 @@ package body float_to_real_conversions_pkg is
         else
             sign := 1.0;
         end if;
-        mantissa := real(to_integer(float_number.mantissa))/2.0**(mantissa_length);
+        mantissa := real(to_integer(float_number.mantissa))/2.0**(float_number.mantissa'length);
         exponent := (2.0**real(to_integer(float_number.exponent)));
 
         return sign * exponent * mantissa;
