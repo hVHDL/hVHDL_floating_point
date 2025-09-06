@@ -5,9 +5,6 @@ library ieee;
 
 package float_typedefs_generic_pkg is
 
-    subtype t_mantissa is unsigned;
-    subtype t_exponent is signed;
-
     type float_record is record
         sign     : std_logic;
         exponent : signed;
