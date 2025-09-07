@@ -57,6 +57,8 @@ architecture vunit_simulation of mult_add_entity_tb is
     signal mpya_result : float_zero'subtype := float_zero;
     signal real_mpya_result : real := 0.0;
 
+    use work.normalizer_generic_pkg.to_ieee_float32;
+
 
 begin
 
@@ -66,7 +68,7 @@ begin
         test_runner_setup(runner, runner_cfg);
         simulation_running <= true;
         wait for simtime_in_clocks*clock_per;
-        -- check(convref = float32_conv_result);
+        check(convref = float32_conv_result);
         simulation_running <= false;
         test_runner_cleanup(runner); -- Simulation ends here
         wait;
@@ -88,27 +90,26 @@ begin
             -- create_adder(adder);
             -- create_float_multiplier(multiplier);
             --
-            -- CASE simulation_counter is
-            --     WHEN 0 =>
-            --         request_float_multiplier(multiplier, float1, float2);
-            --         multiply_add(mpya_in 
-            --         ,to_std_logic(float1)
-            --         ,to_std_logic(float2)
-            --         ,to_std_logic(float3));
-            --
-            --     WHEN 1 =>
-            --         multiply_add(mpya_in 
-            --         ,to_std_logic(float1)
-            --         ,to_std_logic(float1)
-            --         ,to_std_logic(float3));
-            --     WHEN 2 =>
-            --         multiply_add(mpya_in 
-            --         ,to_std_logic(float2)
-            --         ,to_std_logic(float2)
-            --         ,to_std_logic(float2));
+            CASE simulation_counter is
+                WHEN 0 =>
+                    multiply_add(mpya_in 
+                    ,to_std_logic(float1)
+                    ,to_std_logic(float2)
+                    ,to_std_logic(float3));
 
-            --     WHEN others => -- do nothing
-            -- end CASE;
+                -- WHEN 1 =>
+                --     multiply_add(mpya_in 
+                --     ,to_std_logic(float1)
+                --     ,to_std_logic(float1)
+                --     ,to_std_logic(float3));
+                -- WHEN 2 =>
+                --     multiply_add(mpya_in 
+                --     ,to_std_logic(float2)
+                --     ,to_std_logic(float2)
+                --     ,to_std_logic(float2));
+
+                WHEN others => -- do nothing
+            end CASE;
             --
             -- if float_multiplier_is_ready(multiplier) then
             --     request_add(adder,get_multiplier_result(multiplier), float3);
@@ -125,11 +126,12 @@ begin
             --     float32_conv_result <= to_ieee_float32(get_normalizer_result(normalizer));
             -- end if;
             --
-            -- if mpya_is_ready(mpya_out)
-            -- then
-            --     mpya_result <= to_float(get_mpya_result(mpya_out), float_zero);
-            --     real_mpya_result <= to_real(to_float(get_mpya_result(mpya_out), float_zero));
-            -- end if;
+            if mpya_is_ready(mpya_out)
+            then
+                mpya_result         <= to_float(get_mpya_result(mpya_out), float_zero);
+                real_mpya_result    <= to_real(to_float(get_mpya_result(mpya_out), float_zero));
+                float32_conv_result <= to_ieee_float32(to_float(get_mpya_result(mpya_out), float_zero));
+            end if;
 
         end if; -- rising_edge
     end process stimulus;	

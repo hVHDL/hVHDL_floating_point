@@ -3,7 +3,6 @@ library ieee;
     use ieee.numeric_std.all;
 
     use ieee.float_pkg.float32;
-
     use work.float_typedefs_generic_pkg.all;
 
 package normalizer_generic_pkg is
@@ -204,11 +203,19 @@ package body normalizer_generic_pkg is
             retval(i) := dingdong.exponent(i);
         end loop;
 
-        for i in a.mantissa'range loop
-            if i-a.mantissa'high - 1 >= retval'low then
-                retval(i-dingdong.mantissa'high - 1) := dingdong.mantissa(i);
-            end if;
-        end loop;
+        if a.mantissa'length >= 23 then
+            for i in a.mantissa'range loop
+                if i-a.mantissa'high - 1 >= retval'low then
+                    retval(i-dingdong.mantissa'high - 1) := dingdong.mantissa(i);
+                end if;
+            end loop;
+        else
+            for i in a.mantissa'high downto a.mantissa'high-23 loop
+                if i-a.mantissa'high - 1 >= retval'low then
+                    retval(i-dingdong.mantissa'high - 1) := dingdong.mantissa(i);
+                end if;
+            end loop;
+        end if;
 
         return retval;
     end to_ieee_float32;
