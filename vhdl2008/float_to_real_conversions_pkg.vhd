@@ -9,16 +9,13 @@ library ieee;
 package float_to_real_conversions_pkg is
     constant float_zero : float_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 ------------------------------------------------------------------------
-    function to_float ( real_number : real)
-        return float_record;
+    function to_float (
+        real_number : real
+        ;exponent_length : natural
+        ;mantissa_length : natural) return float_record;
 ------------------------------------------------------------------------
     function to_real ( float_number : float_record)
         return real;
-------------------------------------------------------------------------
-    -- function to_float (
-    --     float : std_logic_vector
-    --     ;ref : float_record := float_zero)
-    -- return float_record ;
 ------------------------------------------------------------------------
     function get_sign ( number : real)
         return std_logic;
@@ -34,7 +31,7 @@ package float_to_real_conversions_pkg is
     function get_mantissa
     (
         number : real
-        ;mantissa_length : natural := 24
+        ;mantissa_length : natural
     )
     return unsigned;
 ------------------------------------------------------------------------
@@ -111,7 +108,7 @@ package body float_to_real_conversions_pkg is
     function get_mantissa
     (
         number : real
-        ;mantissa_length : natural := 24
+        ;mantissa_length : natural
     )
     return unsigned
     is
@@ -122,6 +119,8 @@ package body float_to_real_conversions_pkg is
     function to_float
     (
         real_number : real
+        ;exponent_length : natural
+        ;mantissa_length : natural
     )
     return float_record
     is
@@ -130,7 +129,7 @@ package body float_to_real_conversions_pkg is
 
         return normalize((sign   => get_sign(real_number),
                         exponent => get_exponent(real_number),
-                        mantissa => get_mantissa(real_number)));
+                        mantissa => get_mantissa(real_number , mantissa_length)));
         
     end to_float;
 ------------------------------------------------------------------------

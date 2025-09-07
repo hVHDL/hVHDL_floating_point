@@ -158,7 +158,7 @@ LIBRARY ieee  ;
 entity multiply_add is
     generic(
         g_exponent_length  : natural := 8
-        ;g_mantissa_length : natural := 24
+        ;g_mantissa_length : natural := 23
     );
     port(clock : in std_logic
         ;mpya_in   : in  multiply_add_in_record
