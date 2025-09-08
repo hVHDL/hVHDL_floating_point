@@ -2,6 +2,8 @@ LIBRARY ieee  ;
     USE ieee.NUMERIC_STD.all  ; 
     USE ieee.std_logic_1164.all  ; 
 
+    use work.float_typedefs_generic_pkg.float_record;
+
 package multiply_add_pkg is
 
 -----------------------------------------------------
@@ -30,6 +32,9 @@ package multiply_add_pkg is
         ;mantissa_length : natural := 23)
     return mpya_subtype_record;
 
+-----------------------------------------------------
+    function create_mpya_typeref(floatref : float_record)
+        return mpya_subtype_record;
 -----------------------------------------------------
     procedure init_multiply_add(signal self_in : out multiply_add_in_record);
 
@@ -68,6 +73,28 @@ package body multiply_add_pkg is
 
         return retval;
 
+    end create_mpya_typeref;
+
+-----------------------------------------------------
+    function create_mpya_typeref(floatref : float_record)
+    return mpya_subtype_record is
+
+        constant exponent_length : natural := floatref.exponent'length;
+        constant mantissa_length : natural := floatref.mantissa'length;
+
+        constant retval : mpya_subtype_record :=(
+            mpya_in => (
+                mpy_a  => (exponent_length + mantissa_length downto 0 => '0')
+                ,mpy_b => (exponent_length + mantissa_length downto 0 => '0')
+                ,add_a => (exponent_length + mantissa_length downto 0 => '0')
+                ,is_requested => '0')
+            ,mpya_out => (
+                result    => (exponent_length + mantissa_length downto 0 => '0')
+                ,is_ready => '0')
+            );
+
+    begin
+        return retval;
     end create_mpya_typeref;
 
 -----------------------------------------------------

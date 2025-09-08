@@ -35,7 +35,7 @@ architecture vunit_simulation of mult_add_entity_tb is
 
     function to_float(a : real) return float_record is
     begin
-        return to_float(a,8,23);
+        return to_float(a,8,30);
     end to_float;
 
     constant float_zero : float_record := to_float(0.0);
@@ -49,7 +49,7 @@ architecture vunit_simulation of mult_add_entity_tb is
     constant float3 : float_zero'subtype := to_float(84.5/2.0);
 
     use work.multiply_add_pkg.all;
-    constant mpya_ref : mpya_subtype_record := create_mpya_typeref(8,23);
+    constant mpya_ref : mpya_subtype_record := create_mpya_typeref(float_zero);
 
     signal mpya_in  : mpya_ref.mpya_in'subtype  := mpya_ref.mpya_in;
     signal mpya_out : mpya_ref.mpya_out'subtype := mpya_ref.mpya_out;
@@ -58,7 +58,6 @@ architecture vunit_simulation of mult_add_entity_tb is
     signal real_mpya_result : real := 0.0;
 
     use work.normalizer_generic_pkg.to_ieee_float32;
-
 
 begin
 
@@ -141,8 +140,6 @@ begin
     port map(
         simulator_clock
         ,mpya_in
-        ,mpya_out
-    );
-
+        ,mpya_out);
 ------------------------------------------------------------------------
 end vunit_simulation;
