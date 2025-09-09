@@ -3,6 +3,8 @@ library ieee;
     use ieee.numeric_std.all;
     use ieee.math_real.all;
 
+    use ieee.float_pkg.float32;
+
 package float_typedefs_generic_pkg is
 
     type float_record is record
@@ -66,6 +68,8 @@ package float_typedefs_generic_pkg is
         slv       : std_logic_vector
         ;floatref : float_record)
     return float_record;
+------------------------------------------------------------------------
+    function to_ieee_float32(a : float_record) return float32;
 ------------------------------------------------------------------------
 
 end package float_typedefs_generic_pkg;
@@ -300,5 +304,31 @@ package body float_typedefs_generic_pkg is
         return retval;
     end to_float;
 ------------------------------------------------------------------------
+    function to_ieee_float32(a : float_record) return float32 is
+        variable retval : float32 := (others => '0');
+        variable dingdong : a'subtype;
+        variable exponent : signed(7 downto 0);
+    begin
+        dingdong :=(
+        a.sign
+        ,a.exponent+126
+        ,shift_left(a.mantissa,1));
+
+        retval(retval'left) := a.sign;
+        exponent := resize(dingdong.exponent,8);
+
+        for i in exponent'range loop
+            retval(i) := exponent(i);
+        end loop;
+
+        for i in a.mantissa'range loop
+            if i-a.mantissa'high - 1 >= retval'low then
+                retval(i-dingdong.mantissa'high - 1) := dingdong.mantissa(i);
+            end if;
+        end loop;
+
+        return retval;
+    end to_ieee_float32;
+--------------------------------------------------
 
 end package body float_typedefs_generic_pkg;

@@ -57,7 +57,7 @@ architecture vunit_simulation of mult_add_entity_tb is
     signal mpya_result : float_zero'subtype := float_zero;
     signal real_mpya_result : real := 0.0;
 
-    use work.normalizer_generic_pkg.to_ieee_float32;
+    use work.float_typedefs_generic_pkg.to_ieee_float32;
 
 begin
 

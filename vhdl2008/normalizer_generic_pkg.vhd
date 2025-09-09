@@ -11,6 +11,7 @@ package normalizer_generic_pkg is
         normalizer_is_requested : std_logic_vector;
         normalized_data         : float_array;
     end record;
+
     function normalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : float_record) 
         return normalizer_record;
 
@@ -34,12 +35,8 @@ package normalizer_generic_pkg is
         radix       : in integer
         ;ref        : in float_record);
 ------------------------------------------------------------------------
-    function normalize
-    (
-        float_number : float_record;
-        max_shift    : integer
-    )
-    return float_record;
+    function normalize ( float_number : float_record; max_shift    : integer)
+        return float_record;
 
     function normalize ( float_number : float_record)
         return float_record;
@@ -50,8 +47,6 @@ package normalizer_generic_pkg is
         ;radix_of_converted_number : in integer
         ;ref : in float_record);
 ------------------------------------------------------------------------
-    function to_ieee_float32(a : float_record) return float32;
-------------------------------------------------------------------------
     function get_ieee_float32_result ( self : normalizer_record) return float32;
 ------------------------------------------------------------------------
 end package normalizer_generic_pkg;
@@ -60,9 +55,11 @@ package body normalizer_generic_pkg is
 ------------------------------------------------------------------------
     function normalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : float_record) 
     return normalizer_record is
+
         constant init_normalizer : normalizer_record := (
             normalizer_is_requested => (number_of_pipeline_stages-1 downto 0 => '0')
-            ,normalized_data => (number_of_pipeline_stages-1 downto 0 => floatref));
+            ,normalized_data        => (number_of_pipeline_stages-1 downto 0 => floatref));
+
     begin
         return init_normalizer;
     end normalizer_typeref;
@@ -189,31 +186,12 @@ package body normalizer_generic_pkg is
     end convert_integer_to_float;
 
 --------------------------------------------------
-    function to_ieee_float32(a : float_record) return float32 is
-        variable retval : float32 := (others => '0');
-        variable dingdong : a'subtype;
-        variable exponent : signed(7 downto 0);
+    function to_hfloat(a : float32; hfloatref : float_record) return float_record is
+        variable retval : hfloatref'subtype;
+        -- variable mantissa : 
     begin
-        dingdong :=(
-        a.sign
-        ,a.exponent+126
-        ,shift_left(a.mantissa,1));
-
-        retval(retval'left) := a.sign;
-        exponent := resize(dingdong.exponent,8);
-
-        for i in exponent'range loop
-            retval(i) := exponent(i);
-        end loop;
-
-        for i in a.mantissa'range loop
-            if i-a.mantissa'high - 1 >= retval'low then
-                retval(i-dingdong.mantissa'high - 1) := dingdong.mantissa(i);
-            end if;
-        end loop;
-
-        return retval;
-    end to_ieee_float32;
+        return hfloatref;
+    end to_hfloat;
 --------------------------------------------------
     function get_ieee_float32_result
     (
