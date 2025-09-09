@@ -291,10 +291,11 @@ package body float_typedefs_generic_pkg is
     return float_record 
     is
         variable retval : floatref'subtype := (sign => '0', exponent => (floatref.exponent'range => '0'), mantissa => (floatref.mantissa'range => '0'));
+        constant c_slv : std_logic_vector(slv'high downto slv'low) := slv;
     begin
-        retval.sign     := slv(slv'left);
-        retval.exponent := signed(slv(slv'left-1 downto slv'left-1-retval.exponent'high));
-        retval.mantissa := unsigned(slv(slv'left-1-retval.exponent'high-1 downto 0));
+        retval.sign     := c_slv(c_slv'left);
+        retval.exponent := signed(c_slv(c_slv'left-1 downto c_slv'left-1-retval.exponent'high));
+        retval.mantissa := unsigned(c_slv(c_slv'left-1-retval.exponent'high-1 downto 0));
 
         return retval;
     end to_float;
