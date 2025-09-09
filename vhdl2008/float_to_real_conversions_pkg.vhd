@@ -9,7 +9,7 @@ library ieee;
 package float_to_real_conversions_pkg is
     constant hfloat_zero : hfloat_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 ------------------------------------------------------------------------
-    function to_float (
+    function to_hfloat (
         real_number : real
         ;exponent_length : natural
         ;mantissa_length : natural) return hfloat_record;
@@ -116,7 +116,7 @@ package body float_to_real_conversions_pkg is
         return to_unsigned(integer(get_mantissa(number) * 2.0**(mantissa_length-1)), mantissa_length);
     end get_mantissa;
 ------------------------------------------------------------------------
-    function to_float
+    function to_hfloat
     (
         real_number : real
         ;exponent_length : natural
@@ -131,7 +131,7 @@ package body float_to_real_conversions_pkg is
                         exponent => get_exponent(real_number),
                         mantissa => get_mantissa(real_number , mantissa_length)));
         
-    end to_float;
+    end to_hfloat;
 ------------------------------------------------------------------------
     function to_real
     (
@@ -156,7 +156,7 @@ package body float_to_real_conversions_pkg is
         
     end to_real;
 ------------------------------------------------------------------------
-    function to_float
+    function to_hfloat
     (
         float : std_logic_vector
         ;ref : hfloat_record := hfloat_zero
@@ -171,7 +171,7 @@ package body float_to_real_conversions_pkg is
         retval.mantissa := unsigned(float(float'left-exponent_high-2 downto 0));
 
         return retval;
-    end to_float;
+    end to_hfloat;
 ------------------------------------------------------------------------
     function to_std_logic_vector
     (
