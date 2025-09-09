@@ -5,6 +5,9 @@ architecture hfloat of multiply_add is
     use work.float_adder_pkg.all;
     use work.float_multiplier_pkg.all;
 
+    constant g_exponent_length : natural := g_floatref.exponent'length;
+    constant g_mantissa_length : natural := g_floatref.mantissa'length;
+
     constant float_zero : float_record := (
             sign       => '0'
             , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))

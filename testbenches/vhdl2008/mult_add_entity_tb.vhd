@@ -136,7 +136,7 @@ begin
     end process stimulus;	
 ------------------------------------------------------------------------
     dut : entity work.multiply_add
-    generic map(float_zero.exponent'length,float_zero.mantissa'length)
+    generic map(float_zero)
     port map(
         simulator_clock
         ,mpya_in

@@ -184,8 +184,10 @@ LIBRARY ieee  ;
 
 entity multiply_add is
     generic(
-        g_exponent_length  : natural := 8
-        ;g_mantissa_length : natural := 23
+        g_floatref : float_record := 
+        (sign     => '0'
+        ,exponent => (7 downto 0  => '0')
+        ,mantissa => (23 downto 0 => '0'))
     );
     port(clock : in std_logic
         ;mpya_in   : in  multiply_add_in_record
