@@ -7,14 +7,14 @@ library ieee;
     use work.normalizer_generic_pkg.all;
 
 package float_to_real_conversions_pkg is
-    constant float_zero : float_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
+    constant float_zero : hfloat_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 ------------------------------------------------------------------------
     function to_float (
         real_number : real
         ;exponent_length : natural
-        ;mantissa_length : natural) return float_record;
+        ;mantissa_length : natural) return hfloat_record;
 ------------------------------------------------------------------------
-    function to_real ( float_number : float_record)
+    function to_real ( float_number : hfloat_record)
         return real;
 ------------------------------------------------------------------------
     function get_sign ( number : real)
@@ -122,7 +122,7 @@ package body float_to_real_conversions_pkg is
         ;exponent_length : natural
         ;mantissa_length : natural
     )
-    return float_record
+    return hfloat_record
     is
 
     begin
@@ -135,7 +135,7 @@ package body float_to_real_conversions_pkg is
 ------------------------------------------------------------------------
     function to_real
     (
-        float_number : float_record
+        float_number : hfloat_record
     )
     return real
     is
@@ -159,9 +159,9 @@ package body float_to_real_conversions_pkg is
     function to_float
     (
         float : std_logic_vector
-        ;ref : float_record := float_zero
+        ;ref : hfloat_record := float_zero
     )
-    return float_record 
+    return hfloat_record 
     is
         variable retval : ref'subtype;
         constant exponent_high : natural := ref.exponent'high;
@@ -175,7 +175,7 @@ package body float_to_real_conversions_pkg is
 ------------------------------------------------------------------------
     function to_std_logic_vector
     (
-        float : float_record
+        float : hfloat_record
     )
     return std_logic_vector 
     is

@@ -10,16 +10,16 @@ package float_multiplier_pkg is
 ------------------------------------------------------------------------
     type float_multiplier_record is record
 
-        left                           : float_record;
-        right                          : float_record;
-        result                         : float_record;
+        left                           : hfloat_record;
+        right                          : hfloat_record;
+        result                         : hfloat_record;
         sign                           : std_logic;
         exponent                       : signed;
         mantissa_multiplication_result : unsigned; -- (mantissa_high*2+1 downto 0);
         shift_register                 : std_logic_vector; --(float_multiplier_pipeline_depth-1 downto 0);
     end record;
 
-    function multiplier_typeref(floatref : float_record) 
+    function multiplier_typeref(floatref : hfloat_record) 
         return float_multiplier_record;
 ------------------------------------------------------------------------
     procedure create_float_multiplier (
@@ -27,16 +27,16 @@ package float_multiplier_pkg is
 ------------------------------------------------------------------------
     procedure request_float_multiplier (
         signal self : out float_multiplier_record;
-        left, right : float_record);
+        left, right : hfloat_record);
 ------------------------------------------------------------------------
     function float_multiplier_is_ready (self : float_multiplier_record)
         return boolean;
 ------------------------------------------------------------------------
     function get_multiplier_result ( self : float_multiplier_record)
-        return float_record;
+        return hfloat_record;
 ------------------------------------------------------------------------
-    function "*" ( left, right : float_record)
-        return float_record;
+    function "*" ( left, right : hfloat_record)
+        return hfloat_record;
 ------------------------------------------------------------------------
     function float_multiplier_is_busy ( self : float_multiplier_record)
         return boolean;
@@ -45,7 +45,7 @@ end package float_multiplier_pkg;
 
 package body float_multiplier_pkg is
 ------------------------------------------------------------------------
-    function multiplier_typeref(floatref : float_record) return float_multiplier_record
+    function multiplier_typeref(floatref : hfloat_record) return float_multiplier_record
     is
         constant zero : floatref'subtype := (sign => '0', mantissa => (others => '0'), exponent => (others => '0'));
         constant mpy  : unsigned(floatref.mantissa'high*2+1 downto 0) := (others => '0');
@@ -67,8 +67,8 @@ package body float_multiplier_pkg is
 ------------------------------------------------------------------------
     function "*"
     (
-        left, right : float_record
-    ) return float_record
+        left, right : hfloat_record
+    ) return hfloat_record
     is
         variable result : left'subtype;
         constant mantissa_high : natural := left.mantissa'high;
@@ -122,7 +122,7 @@ package body float_multiplier_pkg is
     procedure request_float_multiplier
     (
         signal self : out float_multiplier_record;
-        left, right : float_record
+        left, right : hfloat_record
     ) is
     begin
         self.shift_register(0) <= '1';
@@ -147,7 +147,7 @@ package body float_multiplier_pkg is
     (
         self : float_multiplier_record
     )
-    return float_record
+    return hfloat_record
     is
     begin
         return self.result;

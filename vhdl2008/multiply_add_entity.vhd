@@ -2,7 +2,7 @@ LIBRARY ieee  ;
     USE ieee.NUMERIC_STD.all  ; 
     USE ieee.std_logic_1164.all  ; 
 
-    use work.float_typedefs_generic_pkg.float_record;
+    use work.float_typedefs_generic_pkg.hfloat_record;
 
 package multiply_add_pkg is
 
@@ -33,7 +33,7 @@ package multiply_add_pkg is
     return mpya_subtype_record;
 
 -----------------------------------------------------
-    function create_mpya_typeref(floatref : float_record)
+    function create_mpya_typeref(floatref : hfloat_record)
         return mpya_subtype_record;
 -----------------------------------------------------
     procedure init_multiply_add(signal self_in : out multiply_add_in_record);
@@ -76,7 +76,7 @@ package body multiply_add_pkg is
     end create_mpya_typeref;
 
 -----------------------------------------------------
-    function create_mpya_typeref(floatref : float_record)
+    function create_mpya_typeref(floatref : hfloat_record)
     return mpya_subtype_record is
 
         constant exponent_length : natural := floatref.exponent'length;
@@ -184,7 +184,7 @@ LIBRARY ieee  ;
 
 entity multiply_add is
     generic(
-        g_floatref : float_record := 
+        g_floatref : hfloat_record := 
         (sign     => '0'
         ,exponent => (7 downto 0  => '0')
         ,mantissa => (23 downto 0 => '0'))

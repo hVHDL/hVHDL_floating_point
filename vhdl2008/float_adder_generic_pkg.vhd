@@ -9,11 +9,11 @@ package float_adder_pkg is
 ------------------------------------------------------------------------
     type float_adder_record is record
         denormalizer : denormalizer_record;
-        adder_result : float_record;
+        adder_result : hfloat_record;
         adder_is_done : boolean;
     end record;
 
-    function adder_typeref(denorm_pipeline_stages : natural := 2; floatref : float_record) 
+    function adder_typeref(denorm_pipeline_stages : natural := 2; floatref : hfloat_record) 
         return float_adder_record;
 ------------------------------------------------------------------------
     procedure create_adder (
@@ -21,23 +21,23 @@ package float_adder_pkg is
 ------------------------------------------------------------------------
     procedure request_add (
         signal self : out float_adder_record;
-        left, right : float_record);
+        left, right : hfloat_record);
 ------------------------------------------------------------------------
     procedure request_subtraction (
         signal self : out float_adder_record;
-        left, right : float_record);
+        left, right : hfloat_record);
 ------------------------------------------------------------------------
     function adder_is_ready (float_self : float_adder_record)
         return boolean;
 ------------------------------------------------------------------------
     function get_result ( self : float_adder_record)
-        return float_record;
+        return hfloat_record;
 ------------------------------------------------------------------------
 end package float_adder_pkg;
 
 package body float_adder_pkg is
 ------------------------------------------------------------------------
-    function adder_typeref(denorm_pipeline_stages : natural := 2; floatref : float_record) return float_adder_record
+    function adder_typeref(denorm_pipeline_stages : natural := 2; floatref : hfloat_record) return float_adder_record
     is
         constant init_adder : float_adder_record := (
         denormalizer   => denormalizer_typeref(denorm_pipeline_stages, floatref)
@@ -65,7 +65,7 @@ package body float_adder_pkg is
     procedure request_add
     (
         signal self : out float_adder_record;
-        left, right : float_record
+        left, right : hfloat_record
     ) is
     begin
         request_scaling(self.denormalizer, left, right);
@@ -75,7 +75,7 @@ package body float_adder_pkg is
     procedure request_subtraction
     (
         signal self : out float_adder_record;
-        left, right : float_record
+        left, right : hfloat_record
     ) is
     begin
         request_scaling(self.denormalizer, left, -right);
@@ -96,7 +96,7 @@ package body float_adder_pkg is
     (
         self : float_adder_record
     )
-    return float_record
+    return hfloat_record
     is
     begin
         return self.adder_result;

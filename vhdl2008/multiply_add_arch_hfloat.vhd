@@ -8,7 +8,7 @@ architecture hfloat of multiply_add is
     constant g_exponent_length : natural := g_floatref.exponent'length;
     constant g_mantissa_length : natural := g_floatref.mantissa'length;
 
-    constant float_zero : float_record := (
+    constant float_zero : hfloat_record := (
             sign       => '0'
             , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))
             , mantissa => (g_mantissa_length-1 downto 0 => (g_mantissa_length-1 downto 0 => '0')));

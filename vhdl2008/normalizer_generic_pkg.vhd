@@ -12,7 +12,7 @@ package normalizer_generic_pkg is
         normalized_data         : float_array;
     end record;
 
-    function normalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : float_record) 
+    function normalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : hfloat_record) 
         return normalizer_record;
 
 ------------------------------------------------------------------------
@@ -21,31 +21,31 @@ package normalizer_generic_pkg is
 ------------------------------------------------------------------------
     procedure request_normalizer (
         signal self : out normalizer_record;
-        float_input : in float_record);
+        float_input : in hfloat_record);
 ------------------------------------------------------------------------
     function normalizer_is_ready (self : normalizer_record)
         return boolean;
 ------------------------------------------------------------------------
     function get_normalizer_result ( self : normalizer_record)
-        return float_record;
+        return hfloat_record;
 ------------------------------------------------------------------------
     procedure to_float (
         signal self : out normalizer_record;
         int_input   : in integer;
         radix       : in integer
-        ;ref        : in float_record);
+        ;ref        : in hfloat_record);
 ------------------------------------------------------------------------
-    function normalize ( float_number : float_record; max_shift    : integer)
-        return float_record;
+    function normalize ( float_number : hfloat_record; max_shift    : integer)
+        return hfloat_record;
 
-    function normalize ( float_number : float_record)
-        return float_record;
+    function normalize ( float_number : hfloat_record)
+        return hfloat_record;
 ------------------------------------------------------------------------
     procedure convert_integer_to_float (
         signal self : out normalizer_record
         ;number_to_be_converted : in integer
         ;radix_of_converted_number : in integer
-        ;ref : in float_record);
+        ;ref : in hfloat_record);
 ------------------------------------------------------------------------
     function get_ieee_float32_result ( self : normalizer_record) return float32;
 ------------------------------------------------------------------------
@@ -53,7 +53,7 @@ end package normalizer_generic_pkg;
 
 package body normalizer_generic_pkg is
 ------------------------------------------------------------------------
-    function normalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : float_record) 
+    function normalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : hfloat_record) 
     return normalizer_record is
 
         constant init_normalizer : normalizer_record := (
@@ -85,7 +85,7 @@ package body normalizer_generic_pkg is
     procedure request_normalizer
     (
         signal self : out normalizer_record;
-        float_input              : in float_record
+        float_input              : in hfloat_record
     ) is
     begin
         self.normalizer_is_requested(self.normalizer_is_requested'low) <= '1';
@@ -98,7 +98,7 @@ package body normalizer_generic_pkg is
         signal self : out normalizer_record
         ;int_input  : in integer
         ;radix      : in integer
-        ;ref        : in float_record
+        ;ref        : in hfloat_record
     ) is
         variable float_to_be_scaled : ref'subtype;
         variable float_sign : std_logic;
@@ -135,7 +135,7 @@ package body normalizer_generic_pkg is
     (
         self : normalizer_record
     )
-    return float_record
+    return hfloat_record
     is
     begin
         return self.normalized_data(self.normalized_data'high);
@@ -143,10 +143,10 @@ package body normalizer_generic_pkg is
 ------------------------------------------------------------------------
     function normalize
     (
-        float_number : float_record;
+        float_number : hfloat_record;
         max_shift : integer
     )
-    return float_record
+    return hfloat_record
     is
         variable number_of_zeroes : natural := 0;
 
@@ -162,9 +162,9 @@ package body normalizer_generic_pkg is
 
     function normalize
     (
-        float_number : float_record
+        float_number : hfloat_record
     )
-    return float_record
+    return hfloat_record
     is
         variable number_of_zeroes : natural := 0;
         constant mantissa_high : natural := float_number.mantissa'high;
@@ -178,7 +178,7 @@ package body normalizer_generic_pkg is
         signal self : out normalizer_record
         ;number_to_be_converted : in integer
         ;radix_of_converted_number : in integer
-        ;ref : in float_record
+        ;ref : in hfloat_record
     ) is
     begin
         to_float(self, number_to_be_converted, radix_of_converted_number, ref);
@@ -186,7 +186,7 @@ package body normalizer_generic_pkg is
     end convert_integer_to_float;
 
 --------------------------------------------------
-    function to_hfloat(a : float32; hfloatref : float_record) return float_record is
+    function to_hfloat(a : float32; hfloatref : hfloat_record) return hfloat_record is
         variable retval : hfloatref'subtype;
         -- variable mantissa : 
     begin

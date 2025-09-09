@@ -32,7 +32,7 @@ architecture vunit_simulation of tb_normalizer is
     use work.float_typedefs_generic_pkg.all;
     use work.normalizer_generic_pkg.all;
 
-    constant float_zero : float_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
+    constant float_zero : hfloat_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 
     constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => float_zero);
 

@@ -7,53 +7,53 @@ library ieee;
 
 package float_typedefs_generic_pkg is
 
-    type float_record is record
+    type hfloat_record is record
         sign     : std_logic;
         exponent : signed;
         mantissa : unsigned;
     end record;
 
-    type float_array is array (natural range <>) of float_record;
+    type float_array is array (natural range <>) of hfloat_record;
 
     -- common instantiations
-    constant hfloat32_ref : float_record :=(
+    constant hfloat32_ref : hfloat_record :=(
         sign => '0'
         ,exponent => (7 downto 0 => x"00")
         ,mantissa => (22 downto 0 => (22 downto 0 => '0')));
 
-    constant hfloat40_ref : float_record :=(
+    constant hfloat40_ref : hfloat_record :=(
         sign => '0'
         ,exponent => (7 downto 0 => x"00")
         ,mantissa => (30 downto 0 => (30 downto 0 => '0')));
 
 ------------------------------------------------------------------------
-    function get_signed_mantissa ( hfloat : float_record)
+    function get_signed_mantissa ( hfloat : hfloat_record)
         return signed;
 ------------------------------------------------------------------------
-    function get_exponent ( float_number : float_record)
+    function get_exponent ( float_number : hfloat_record)
         return integer;
 ------------------------------------------------------------------------
-    function get_mantissa ( float_number : float_record)
+    function get_mantissa ( float_number : hfloat_record)
         return integer;
 ------------------------------------------------------------------------
-    function get_sign ( float_number : float_record)
+    function get_sign ( float_number : hfloat_record)
         return std_logic ;
 ------------------------------------------------------------------------
-    function "+" ( left, right : float_record)
-        return float_record;
+    function "+" ( left, right : hfloat_record)
+        return hfloat_record;
 ------------------------------------------------------------------------
     function "/" (
-        left : float_record;
+        left : hfloat_record;
         constant right : integer)
-    return float_record;
+    return hfloat_record;
 ------------------------------------------------------------------------
-    function "=" ( left, right : float_record)
+    function "=" ( left, right : hfloat_record)
         return boolean;
 ------------------------------------------------------------------------
-    function "-" ( right : float_record)
-        return float_record;
+    function "-" ( right : hfloat_record)
+        return hfloat_record;
 
-    function ">" ( left, right : float_record)
+    function ">" ( left, right : hfloat_record)
         return boolean;
 ------------------------------------------------------------------------
     function number_of_leading_zeroes (
@@ -61,15 +61,15 @@ package float_typedefs_generic_pkg is
         max_shift : integer)
     return integer;
 ------------------------------------------------------------------------
-    function to_std_logic ( float_number : float_record)
+    function to_std_logic ( float_number : hfloat_record)
         return std_logic_vector;
 ------------------------------------------------------------------------
     function to_float (
         slv       : std_logic_vector
-        ;floatref : float_record)
-    return float_record;
+        ;floatref : hfloat_record)
+    return hfloat_record;
 ------------------------------------------------------------------------
-    function to_ieee_float32(a : float_record) return float32;
+    function to_ieee_float32(a : hfloat_record) return float32;
 ------------------------------------------------------------------------
 
 end package float_typedefs_generic_pkg;
@@ -78,7 +78,7 @@ package body float_typedefs_generic_pkg is
 
     function get_signed_mantissa
     (
-        hfloat : float_record
+        hfloat : hfloat_record
     )
     return signed 
     is
@@ -97,7 +97,7 @@ package body float_typedefs_generic_pkg is
 ------------------------------------------------------------------------
     function get_exponent
     (
-        float_number : float_record
+        float_number : hfloat_record
     )
     return integer
     is
@@ -109,7 +109,7 @@ package body float_typedefs_generic_pkg is
 ------------------------------------------------------------------------
     function get_mantissa
     (
-        float_number : float_record
+        float_number : hfloat_record
     )
     return integer
     is
@@ -121,7 +121,7 @@ package body float_typedefs_generic_pkg is
 ------------------------------------------------------------------------
     function get_sign
     (
-        float_number : float_record
+        float_number : hfloat_record
     )
     return std_logic 
     is
@@ -132,7 +132,7 @@ package body float_typedefs_generic_pkg is
 ------------------------------------------------------------------------
     function ">"
     (
-        left, right : float_record
+        left, right : hfloat_record
     )
     return boolean
     is
@@ -168,9 +168,9 @@ package body float_typedefs_generic_pkg is
 ------------------------------------------------------------------------
     function "+"
     (
-        left, right : float_record
+        left, right : hfloat_record
     )
-    return float_record
+    return hfloat_record
     is
         subtype t_mantissa is left.mantissa'subtype;
         variable signed_left_mantissa, signed_right_mantissa : signed(t_mantissa'high+2 downto 0);
@@ -200,10 +200,10 @@ package body float_typedefs_generic_pkg is
 ------------------------------------------------------------------------
     function "/"
     (
-        left : float_record;
+        left : hfloat_record;
         constant right : integer
     )
-    return float_record
+    return hfloat_record
     is
     begin
         assert right - 2 = 0 report "only division by 2 allowed in floats" severity failure;
@@ -214,7 +214,7 @@ package body float_typedefs_generic_pkg is
 ------------------------------------------------------------------------
     function "="
     (
-        left, right : float_record
+        left, right : hfloat_record
     )
     return boolean
     is
@@ -263,9 +263,9 @@ package body float_typedefs_generic_pkg is
 ------------------------------------------------------------------------
     function "-"
     (
-        right : float_record
+        right : hfloat_record
     )
-    return float_record
+    return hfloat_record
     is
         variable returned_float : right'subtype;
     begin
@@ -277,7 +277,7 @@ package body float_typedefs_generic_pkg is
 ------------------------------------------------------------------------
     function to_std_logic
     (
-        float_number : float_record
+        float_number : hfloat_record
     )
     return std_logic_vector 
     is
@@ -290,9 +290,9 @@ package body float_typedefs_generic_pkg is
     function to_float
     (
         slv : std_logic_vector
-        ;floatref : float_record
+        ;floatref : hfloat_record
     )
-    return float_record 
+    return hfloat_record 
     is
         variable retval : floatref'subtype := (sign => '0', exponent => (floatref.exponent'range => '0'), mantissa => (floatref.mantissa'range => '0'));
         constant c_slv : std_logic_vector(slv'high downto slv'low) := slv;
@@ -304,7 +304,7 @@ package body float_typedefs_generic_pkg is
         return retval;
     end to_float;
 ------------------------------------------------------------------------
-    function to_ieee_float32(a : float_record) return float32 is
+    function to_ieee_float32(a : hfloat_record) return float32 is
         variable retval : float32 := (others => '0');
         variable dingdong : a'subtype;
         variable exponent : signed(7 downto 0);

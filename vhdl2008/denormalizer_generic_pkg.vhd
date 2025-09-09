@@ -17,7 +17,7 @@ package denormalizer_generic_pkg is
         target_scale_pipeline : intarray;
     end record;
 
-    function denormalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : float_record) 
+    function denormalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : hfloat_record) 
         return denormalizer_record;
 
 ------------------------------------------------------------------------
@@ -26,48 +26,48 @@ package denormalizer_generic_pkg is
 ------------------------------------------------------------------------
     procedure request_denormalizer (
         signal self : out denormalizer_record;
-        denormalized_number : in float_record;
+        denormalized_number : in hfloat_record;
         target_scale : in integer);
 ------------------------------------------------------------------------
     procedure request_scaling (
         signal self : out denormalizer_record;
-        left,right : in float_record);
+        left,right : in hfloat_record);
 
     procedure request_scaling (
         signal self : out denormalizer_record;
-        left : in float_record;
+        left : in hfloat_record;
         right : in integer);
 ------------------------------------------------------------------------
     function denormalizer_is_ready (self : denormalizer_record)
         return boolean;
 ------------------------------------------------------------------------
     function get_denormalized_result ( self : denormalizer_record)
-        return float_record;
+        return hfloat_record;
 ------------------------------------------------------------------------
     function get_integer ( self : denormalizer_record)
         return integer;
 ------------------------------------------------------------------------
     function denormalize_float (
-        right           : float_record;
+        right           : hfloat_record;
         set_exponent_to : integer)
-    return float_record;
+    return hfloat_record;
 
     function denormalize_float (
-        right           : float_record;
+        right           : hfloat_record;
         set_exponent_to : integer;
         max_shift       : integer)
-    return float_record;
+    return hfloat_record;
 ------------------------------------------------------------------------
     procedure convert_float_to_integer (
         signal self : out denormalizer_record;
-        number_to_be_converted : float_record;
+        number_to_be_converted : hfloat_record;
         desired_radix : in integer);
 ------------------------------------------------------------------------
 end package denormalizer_generic_pkg;
 
 package body denormalizer_generic_pkg is
 ------------------------------------------------------------------------
-    function denormalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : float_record) 
+    function denormalizer_typeref (number_of_pipeline_stages : natural := 2; floatref : hfloat_record) 
     return denormalizer_record is
         constant init_denormalizer : denormalizer_record := (
             denormalizer_pipeline  => (number_of_pipeline_stages-1 downto 0 => floatref)
@@ -101,7 +101,7 @@ package body denormalizer_generic_pkg is
     procedure request_denormalizer
     (
         signal self : out denormalizer_record;
-        denormalized_number : in float_record;
+        denormalized_number : in hfloat_record;
         target_scale : in integer
     ) is
     begin
@@ -114,7 +114,7 @@ package body denormalizer_generic_pkg is
     procedure request_scaling
     (
         signal self : out denormalizer_record;
-        left,right : in float_record
+        left,right : in hfloat_record
     ) is
     begin
         self.shift_register(0) <= '1';
@@ -133,7 +133,7 @@ package body denormalizer_generic_pkg is
     procedure request_scaling
     (
         signal self : out denormalizer_record;
-        left : in float_record;
+        left : in hfloat_record;
         right : in integer
     ) is
         constant mantissa_length : natural := self.denormalizer_pipeline(0).mantissa'length;
@@ -179,7 +179,7 @@ package body denormalizer_generic_pkg is
     (
         self : denormalizer_record
     )
-    return float_record
+    return hfloat_record
     is
     begin
         return self.denormalizer_pipeline(self.denormalizer_pipeline'left);
@@ -187,11 +187,11 @@ package body denormalizer_generic_pkg is
 ------------------------------------------------------------------------
     function denormalize_float
     (
-        right           : float_record;
+        right           : hfloat_record;
         set_exponent_to : integer;
         max_shift       : integer
     )
-    return float_record
+    return hfloat_record
     is
         variable retval : right'subtype;
         variable shift_width : integer;
@@ -213,10 +213,10 @@ package body denormalizer_generic_pkg is
 ------------------------------------------------------------------------
     function denormalize_float
     (
-        right           : float_record;
+        right           : hfloat_record;
         set_exponent_to : integer
     )
-    return float_record
+    return hfloat_record
     is
         constant mantissa_length : natural := right.mantissa'length;
     begin
@@ -228,7 +228,7 @@ package body denormalizer_generic_pkg is
     procedure convert_float_to_integer
     (
         signal self : out denormalizer_record;
-        number_to_be_converted : float_record;
+        number_to_be_converted : hfloat_record;
         desired_radix : in integer
     ) is
     begin

@@ -33,12 +33,12 @@ architecture vunit_simulation of mult_add_entity_tb is
     use work.float_typedefs_generic_pkg.all;
     use work.float_to_real_conversions_pkg.all;
 
-    function to_float(a : real) return float_record is
+    function to_float(a : real) return hfloat_record is
     begin
         return to_float(a,8,30);
     end to_float;
 
-    constant float_zero : float_record := to_float(0.0);
+    constant float_zero : hfloat_record := to_float(0.0);
 
     signal float32_conv_result : float32 := to_float32(0.0);
     signal convref             : float32 := to_float32(check_value);
