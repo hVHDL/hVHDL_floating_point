@@ -190,8 +190,9 @@ package body normalizer_generic_pkg is
 
 --------------------------------------------------
     function to_ieee_float32(a : float_record) return float32 is
-        variable retval : float32;
+        variable retval : float32 := (others => '0');
         variable dingdong : a'subtype;
+        variable exponent : signed(7 downto 0);
     begin
         dingdong :=(
         a.sign
@@ -199,23 +200,17 @@ package body normalizer_generic_pkg is
         ,shift_left(a.mantissa,1));
 
         retval(retval'left) := a.sign;
-        for i in 0 to 7 loop
-            retval(i) := dingdong.exponent(i);
+        exponent := resize(dingdong.exponent,8);
+
+        for i in exponent'range loop
+            retval(i) := exponent(i);
         end loop;
 
-        if a.mantissa'length >= 23 then
-            for i in a.mantissa'range loop
-                if i-a.mantissa'high - 1 >= retval'low then
-                    retval(i-dingdong.mantissa'high - 1) := dingdong.mantissa(i);
-                end if;
-            end loop;
-        else
-            for i in a.mantissa'high downto a.mantissa'high-23 loop
-                if i-a.mantissa'high - 1 >= retval'low then
-                    retval(i-dingdong.mantissa'high - 1) := dingdong.mantissa(i);
-                end if;
-            end loop;
-        end if;
+        for i in a.mantissa'range loop
+            if i-a.mantissa'high - 1 >= retval'low then
+                retval(i-dingdong.mantissa'high - 1) := dingdong.mantissa(i);
+            end if;
+        end loop;
 
         return retval;
     end to_ieee_float32;
