@@ -32,12 +32,12 @@ architecture vunit_simulation of tb_normalizer is
     use work.float_typedefs_generic_pkg.all;
     use work.normalizer_generic_pkg.all;
 
-    constant float_zero : hfloat_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
+    constant hfloat_zero : hfloat_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 
-    constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => float_zero);
+    constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => hfloat_zero);
 
     signal normalizer : init_normalizer'subtype := init_normalizer;
-    signal conv_result : float_zero'subtype := float_zero;
+    signal conv_result : hfloat_zero'subtype := hfloat_zero;
     signal float32_conv_result : float32 := to_float32(0.0);
 
 
@@ -70,7 +70,7 @@ begin
             create_normalizer(normalizer);
 
             if simulation_counter = 0 then
-                to_float(normalizer, -4, 0, float_zero);
+                to_float(normalizer, -4, 0, hfloat_zero);
             end if;
             if normalizer_is_ready(normalizer) then
                 conv_result <= get_normalizer_result(normalizer);

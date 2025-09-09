@@ -7,7 +7,7 @@ library ieee;
     use work.normalizer_generic_pkg.all;
 
 package float_to_real_conversions_pkg is
-    constant float_zero : hfloat_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
+    constant hfloat_zero : hfloat_record :=(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
 ------------------------------------------------------------------------
     function to_float (
         real_number : real
@@ -159,7 +159,7 @@ package body float_to_real_conversions_pkg is
     function to_float
     (
         float : std_logic_vector
-        ;ref : hfloat_record := float_zero
+        ;ref : hfloat_record := hfloat_zero
     )
     return hfloat_record 
     is
