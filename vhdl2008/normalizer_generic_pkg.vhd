@@ -29,7 +29,7 @@ package normalizer_generic_pkg is
     function get_normalizer_result ( self : normalizer_record)
         return hfloat_record;
 ------------------------------------------------------------------------
-    procedure to_float (
+    procedure convert_to_hfloat (
         signal self : out normalizer_record;
         int_input   : in integer;
         radix       : in integer
@@ -41,7 +41,7 @@ package normalizer_generic_pkg is
     function normalize ( float_number : hfloat_record)
         return hfloat_record;
 ------------------------------------------------------------------------
-    procedure convert_integer_to_float (
+    procedure convert_integer_to_hfloat (
         signal self : out normalizer_record
         ;number_to_be_converted : in integer
         ;radix_of_converted_number : in integer
@@ -93,7 +93,7 @@ package body normalizer_generic_pkg is
         
     end request_normalizer;
 
-    procedure to_float
+    procedure convert_to_hfloat
     (
         signal self : out normalizer_record
         ;int_input  : in integer
@@ -117,7 +117,7 @@ package body normalizer_generic_pkg is
         self.normalizer_is_requested(self.normalizer_is_requested'low) <= '1';
         self.normalized_data(self.normalized_data'low) <= float_to_be_scaled;
         
-    end to_float;
+    end convert_to_hfloat;
 
 ------------------------------------------------------------------------
     function normalizer_is_ready
@@ -173,7 +173,7 @@ package body normalizer_generic_pkg is
         return normalize(float_number => float_number, max_shift => mantissa_high);
     end normalize;
 ------------------------------------------------------------------------
-    procedure convert_integer_to_float
+    procedure convert_integer_to_hfloat
     (
         signal self : out normalizer_record
         ;number_to_be_converted : in integer
@@ -181,9 +181,9 @@ package body normalizer_generic_pkg is
         ;ref : in hfloat_record
     ) is
     begin
-        to_float(self, number_to_be_converted, radix_of_converted_number, ref);
+        convert_to_hfloat(self, number_to_be_converted, radix_of_converted_number, ref);
         
-    end convert_integer_to_float;
+    end convert_integer_to_hfloat;
 
 --------------------------------------------------
     function to_hfloat(a : float32; hfloatref : hfloat_record) return hfloat_record is

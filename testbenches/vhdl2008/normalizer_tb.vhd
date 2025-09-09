@@ -70,7 +70,7 @@ begin
             create_normalizer(normalizer);
 
             if simulation_counter = 0 then
-                to_float(normalizer, -4, 0, hfloat_zero);
+                convert_integer_to_hfloat(normalizer, -4, 0, hfloat_zero);
             end if;
             if normalizer_is_ready(normalizer) then
                 conv_result <= get_normalizer_result(normalizer);

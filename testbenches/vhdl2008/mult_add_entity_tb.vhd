@@ -42,7 +42,7 @@ architecture vunit_simulation of mult_add_entity_tb is
 
     signal float32_conv_result : float32 := to_float32(0.0);
     signal convref             : float32 := to_float32(check_value);
-    signal conv_result         : hfloat_zero'subtype := float_zero;
+    signal conv_result         : hfloat_zero'subtype := hfloat_zero;
 
     constant float1 : hfloat_zero'subtype := to_float(-84.5);
     constant float2 : hfloat_zero'subtype := to_float(1.5);
@@ -54,7 +54,7 @@ architecture vunit_simulation of mult_add_entity_tb is
     signal mpya_in  : mpya_ref.mpya_in'subtype  := mpya_ref.mpya_in;
     signal mpya_out : mpya_ref.mpya_out'subtype := mpya_ref.mpya_out;
 
-    signal mpya_result : hfloat_zero'subtype := float_zero;
+    signal mpya_result : hfloat_zero'subtype := hfloat_zero;
     signal real_mpya_result : real := 0.0;
 
     use work.float_typedefs_generic_pkg.to_ieee_float32;
