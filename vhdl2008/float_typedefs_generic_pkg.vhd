@@ -64,7 +64,7 @@ package float_typedefs_generic_pkg is
     function to_std_logic ( float_number : hfloat_record)
         return std_logic_vector;
 ------------------------------------------------------------------------
-    function to_float (
+    function to_hfloat (
         slv       : std_logic_vector
         ;floatref : hfloat_record)
     return hfloat_record;
@@ -287,7 +287,7 @@ package body float_typedefs_generic_pkg is
         return slvref1;
     end to_std_logic;
 ------------------------------------------------------------------------
-    function to_float
+    function to_hfloat
     (
         slv : std_logic_vector
         ;floatref : hfloat_record
@@ -302,7 +302,7 @@ package body float_typedefs_generic_pkg is
         retval.mantissa := unsigned(c_slv(c_slv'left-1-retval.exponent'high-1 downto 0));
 
         return retval;
-    end to_float;
+    end to_hfloat;
 ------------------------------------------------------------------------
     function to_ieee_float32(a : hfloat_record) return float32 is
         variable retval : float32 := (others => '0');

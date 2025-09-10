@@ -43,9 +43,9 @@ begin
 
             if mpya_in.is_requested = '1' then
                 request_float_multiplier(multiplier
-                ,to_float(mpya_in.mpy_a, hfloat_zero)
-                ,to_float(mpya_in.mpy_b, hfloat_zero));
-                add_array(0) <= to_float(mpya_in.add_a, hfloat_zero);
+                ,to_hfloat(mpya_in.mpy_a, hfloat_zero)
+                ,to_hfloat(mpya_in.mpy_b, hfloat_zero));
+                add_array(0) <= to_hfloat(mpya_in.add_a, hfloat_zero);
             end if;
 
             if float_multiplier_is_ready(multiplier) then

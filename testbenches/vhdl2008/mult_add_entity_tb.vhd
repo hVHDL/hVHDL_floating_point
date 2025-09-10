@@ -33,20 +33,20 @@ architecture vunit_simulation of mult_add_entity_tb is
     use work.float_typedefs_generic_pkg.all;
     use work.float_to_real_conversions_pkg.all;
 
-    function to_float(a : real) return hfloat_record is
+    function to_hfloat(a : real) return hfloat_record is
     begin
-        return to_float(a,8,30);
-    end to_float;
+        return to_hfloat(a,8,30);
+    end to_hfloat;
 
-    constant hfloat_zero : hfloat_record := to_float(0.0);
+    constant hfloat_zero : hfloat_record := to_hfloat(0.0);
 
     signal float32_conv_result : float32 := to_float32(0.0);
     signal convref             : float32 := to_float32(check_value);
     signal conv_result         : hfloat_zero'subtype := hfloat_zero;
 
-    constant float1 : hfloat_zero'subtype := to_float(-84.5);
-    constant float2 : hfloat_zero'subtype := to_float(1.5);
-    constant float3 : hfloat_zero'subtype := to_float(84.5/2.0);
+    constant float1 : hfloat_zero'subtype := to_hfloat(-84.5);
+    constant float2 : hfloat_zero'subtype := to_hfloat(1.5);
+    constant float3 : hfloat_zero'subtype := to_hfloat(84.5/2.0);
 
     use work.multiply_add_pkg.all;
     constant mpya_ref : mpya_subtype_record := create_mpya_typeref(hfloat_zero);
@@ -127,9 +127,9 @@ begin
             --
             if mpya_is_ready(mpya_out)
             then
-                mpya_result         <= to_float(get_mpya_result(mpya_out), hfloat_zero);
-                real_mpya_result    <= to_real(to_float(get_mpya_result(mpya_out), hfloat_zero));
-                float32_conv_result <= to_ieee_float32(to_float(get_mpya_result(mpya_out), hfloat_zero));
+                mpya_result         <= to_hfloat(get_mpya_result(mpya_out), hfloat_zero);
+                real_mpya_result    <= to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
+                float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
             end if;
 
         end if; -- rising_edge

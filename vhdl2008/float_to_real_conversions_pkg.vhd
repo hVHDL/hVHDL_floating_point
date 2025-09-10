@@ -35,6 +35,15 @@ package float_to_real_conversions_pkg is
     )
     return unsigned;
 ------------------------------------------------------------------------
+    function to_hfloat_generic
+    generic( 
+        exponent_length : natural
+        ;mantissa_length : natural)
+    (
+        real_number : real
+    )
+    return hfloat_record;
+------------------------------------------------------------------------
 end package float_to_real_conversions_pkg;
 
 package body float_to_real_conversions_pkg is
@@ -132,6 +141,24 @@ package body float_to_real_conversions_pkg is
                         mantissa => get_mantissa(real_number , mantissa_length)));
         
     end to_hfloat;
+------------------------------------------------------------------------
+    function to_hfloat_generic
+    generic( 
+        exponent_length : natural
+        ;mantissa_length : natural)
+    (
+        real_number : real
+    )
+    return hfloat_record
+    is
+
+    begin
+
+        return normalize((sign   => get_sign(real_number),
+                        exponent => get_exponent(real_number),
+                        mantissa => get_mantissa(real_number , mantissa_length)));
+        
+    end to_hfloat_generic;
 ------------------------------------------------------------------------
     function to_real
     (
