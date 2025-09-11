@@ -14,6 +14,14 @@ package float_to_real_conversions_pkg is
         ;exponent_length : natural
         ;mantissa_length : natural) return hfloat_record;
 ------------------------------------------------------------------------
+    function to_hfloat_slv_generic
+    generic( 
+        exponent_length : natural
+        ;word_length : natural
+    )(
+        real_number : real
+    ) return std_logic_vector ;
+------------------------------------------------------------------------
     function to_real ( float_number : hfloat_record)
         return real;
 ------------------------------------------------------------------------
@@ -38,7 +46,7 @@ package float_to_real_conversions_pkg is
     function to_hfloat_generic
     generic( 
         exponent_length : natural
-        ;mantissa_length : natural)
+        ;word_length : natural)
     (
         real_number : real
     )
@@ -49,6 +57,22 @@ end package float_to_real_conversions_pkg;
 package body float_to_real_conversions_pkg is
 
 
+------------------------------------------------------------------------
+    function to_std_logic_vector
+    (
+        float : hfloat_record
+    )
+    return std_logic_vector 
+    is
+        constant exponent_high : natural := float.exponent'high;
+        constant mantissa_high : natural := float.mantissa'high;
+        variable retval : std_logic_vector(mantissa_high+exponent_high+2 downto 0);
+    begin
+        retval  := float.sign & std_logic_vector(float.exponent) & std_logic_vector(float.mantissa);
+
+        return retval;
+
+    end to_std_logic_vector;
 ------------------------------------------------------------------------
     function get_exponent
     (
@@ -141,16 +165,18 @@ package body float_to_real_conversions_pkg is
                         mantissa => get_mantissa(real_number , mantissa_length)));
         
     end to_hfloat;
+
 ------------------------------------------------------------------------
     function to_hfloat_generic
     generic( 
         exponent_length : natural
-        ;mantissa_length : natural)
+        ;word_length : natural)
     (
         real_number : real
     )
-    return hfloat_record
+    return hfloat_record 
     is
+        constant mantissa_length : natural := word_length - exponent_length - 1;
 
     begin
 
@@ -159,7 +185,31 @@ package body float_to_real_conversions_pkg is
                         mantissa => get_mantissa(real_number , mantissa_length)));
         
     end to_hfloat_generic;
+
 ------------------------------------------------------------------------
+    function to_hfloat_slv_generic
+    generic( 
+        exponent_length : natural
+        ;word_length : natural)
+    (
+        real_number : real
+    )
+    return std_logic_vector 
+    is
+        constant mantissa_length : natural := word_length - exponent_length - 1;
+
+        constant hfloat : hfloat_record := normalize(
+                            (sign    => get_sign(real_number),
+                            exponent => get_exponent(real_number),
+                            mantissa => get_mantissa(real_number , mantissa_length)));
+
+    begin
+
+        return to_std_logic_vector(hfloat);
+
+    end to_hfloat_slv_generic;
+------------------------------------------------------------------------
+
     function to_real
     (
         float_number : hfloat_record
@@ -199,22 +249,6 @@ package body float_to_real_conversions_pkg is
 
         return retval;
     end to_hfloat;
-------------------------------------------------------------------------
-    function to_std_logic_vector
-    (
-        float : hfloat_record
-    )
-    return std_logic_vector 
-    is
-        constant exponent_high : natural := float.exponent'high;
-        constant mantissa_high : natural := float.mantissa'high;
-        variable retval : std_logic_vector(mantissa_high+exponent_high+2 downto 0);
-    begin
-        retval  := float.sign & std_logic_vector(float.exponent) & std_logic_vector(float.mantissa);
-
-        return retval;
-
-    end to_std_logic_vector;
 ------------------------------------------------------------------------
 
 end package body float_to_real_conversions_pkg;

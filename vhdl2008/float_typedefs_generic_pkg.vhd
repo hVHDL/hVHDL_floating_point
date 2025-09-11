@@ -14,6 +14,17 @@ package float_typedefs_generic_pkg is
     end record;
 
     type float_array is array (natural range <>) of hfloat_record;
+------------------------------------------------------------------------
+    function to_hfloat (
+        slv       : std_logic_vector
+        ;floatref : hfloat_record)
+    return hfloat_record;
+------------------------------------------------------------------------
+    function to_std_logic ( float_number : hfloat_record)
+        return std_logic_vector;
+------------------------------------------------------------------------
+    function to_ieee_float32(a : hfloat_record) return float32;
+------------------------------------------------------------------------
 
     -- common instantiations
     constant hfloat32_ref : hfloat_record :=(
@@ -26,19 +37,6 @@ package float_typedefs_generic_pkg is
         ,exponent => (7 downto 0 => x"00")
         ,mantissa => (30 downto 0 => (30 downto 0 => '0')));
 
-------------------------------------------------------------------------
-    function get_signed_mantissa ( hfloat : hfloat_record)
-        return signed;
-------------------------------------------------------------------------
-    function get_exponent ( float_number : hfloat_record)
-        return integer;
-------------------------------------------------------------------------
-    function get_mantissa ( float_number : hfloat_record)
-        return integer;
-------------------------------------------------------------------------
-    function get_sign ( float_number : hfloat_record)
-        return std_logic ;
-------------------------------------------------------------------------
     function "+" ( left, right : hfloat_record)
         return hfloat_record;
 ------------------------------------------------------------------------
@@ -61,15 +59,18 @@ package float_typedefs_generic_pkg is
         max_shift : integer)
     return integer;
 ------------------------------------------------------------------------
-    function to_std_logic ( float_number : hfloat_record)
-        return std_logic_vector;
 ------------------------------------------------------------------------
-    function to_hfloat (
-        slv       : std_logic_vector
-        ;floatref : hfloat_record)
-    return hfloat_record;
+    function get_signed_mantissa ( hfloat : hfloat_record)
+        return signed;
 ------------------------------------------------------------------------
-    function to_ieee_float32(a : hfloat_record) return float32;
+    function get_exponent ( float_number : hfloat_record)
+        return integer;
+------------------------------------------------------------------------
+    function get_mantissa ( float_number : hfloat_record)
+        return integer;
+------------------------------------------------------------------------
+    function get_sign ( float_number : hfloat_record)
+        return std_logic ;
 ------------------------------------------------------------------------
 
 end package float_typedefs_generic_pkg;
