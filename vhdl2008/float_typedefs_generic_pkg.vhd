@@ -297,10 +297,21 @@ package body float_typedefs_generic_pkg is
     is
         variable retval : floatref'subtype := (sign => '0', exponent => (floatref.exponent'range => '0'), mantissa => (floatref.mantissa'range => '0'));
         constant c_slv : std_logic_vector(slv'high downto slv'low) := slv;
+        constant slv_mantissa : std_logic_vector(c_slv'left-1-retval.exponent'high-1 downto 0) := c_slv(c_slv'left-1-retval.exponent'high-1 downto 0);
     begin
         retval.sign     := c_slv(c_slv'left);
         retval.exponent := signed(c_slv(c_slv'left-1 downto c_slv'left-1-retval.exponent'high));
-        retval.mantissa := unsigned(c_slv(c_slv'left-1-retval.exponent'high-1 downto 0));
+
+        if retval.mantissa'length > slv_mantissa'length
+        then
+            for i in slv_mantissa'range loop
+                retval.mantissa(retval.mantissa'high-slv_mantissa'high+ i) := slv_mantissa(i);
+            end loop;
+        else
+            for i in retval.mantissa'range loop
+                retval.mantissa(i) := slv_mantissa(slv_mantissa'high-retval.mantissa'high+i);
+            end loop;
+        end if;
 
         return retval;
     end to_hfloat;

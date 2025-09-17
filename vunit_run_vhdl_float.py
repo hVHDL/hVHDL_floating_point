@@ -98,6 +98,8 @@ generic_lib.add_source_files(ROOT / "vhdl2008/multiply_add_arch_hfloat.vhd")
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/normalizer_tb.vhd")
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/mult_add_entity_tb.vhd")
 
+generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/type_conversions_tb.vhd")
+
 
 if args.dump_arrays:
     VU.set_sim_option("nvc.sim_flags", ["-w", "--dump-arrays"])
