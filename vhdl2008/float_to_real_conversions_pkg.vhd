@@ -131,11 +131,12 @@ package body float_to_real_conversions_pkg is
     function get_mantissa
     (
         number : real
+        ;exponent : natural := 8
     )
     return real
     is
     begin
-        return (abs(number)/2.0**get_exponent(number, 8));
+        return (abs(number)/2.0**get_exponent(number, exponent));
     end get_mantissa;
 ------------------------------------------------------------------------
     function get_mantissa
@@ -145,8 +146,28 @@ package body float_to_real_conversions_pkg is
     )
     return unsigned
     is
+        variable real_exp : real := 0.0;
+        variable real_mantissa : real := 0.0;
+        variable retval : unsigned(mantissa_length-1 downto 0);
     begin
-        return to_unsigned(integer(get_mantissa(number) * 2.0**(mantissa_length-1)), mantissa_length);
+        real_exp := get_exponent(number);
+        if real_exp = 0.0
+        then
+            real_mantissa := abs(number)*2.0**mantissa_length;
+        else
+            real_mantissa := (abs(number) / 2.0**real_exp)*2.0**(mantissa_length-1);
+        end if;
+
+        for i in retval'range loop
+            if real_mantissa >= 2.0**i then
+                real_mantissa := real_mantissa - 2.0**i;
+                retval(i) := '1';
+            else
+                retval(i) := '0';
+            end if;
+        end loop;
+
+        return retval;
     end get_mantissa;
 ------------------------------------------------------------------------
     function to_hfloat
