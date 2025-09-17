@@ -24,6 +24,8 @@ package float_typedefs_generic_pkg is
         return std_logic_vector;
 ------------------------------------------------------------------------
     function to_ieee_float32(a : hfloat_record) return float32;
+--------
+    function float32_to_hfloat (a : float32; hfloatref : hfloat_record) return hfloat_record;
 ------------------------------------------------------------------------
 
     -- common instantiations
@@ -342,5 +344,23 @@ package body float_typedefs_generic_pkg is
         return retval;
     end to_ieee_float32;
 --------------------------------------------------
+    function float32_to_hfloat (a : float32; hfloatref : hfloat_record) return hfloat_record is
+        variable retval : hfloatref'subtype := (
+        sign => a(a'high)
+        , exponent => signed(a(7 downto 0))-126
+        ,mantissa => (others => '0'));
+    begin
+        for i in a(-1 downto -23)'range loop
+            if retval.mantissa'high + i >= 0
+            then
+                retval.mantissa(retval.mantissa'high + i) := a(i);
+            end if;
+        end loop;
+
+        retval.mantissa(retval.mantissa'high) := '1';
+
+        return retval;
+
+    end float32_to_hfloat;
 
 end package body float_typedefs_generic_pkg;
