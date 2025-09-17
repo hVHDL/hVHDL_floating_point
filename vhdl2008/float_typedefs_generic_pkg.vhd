@@ -24,8 +24,11 @@ package float_typedefs_generic_pkg is
         return std_logic_vector;
 ------------------------------------------------------------------------
     function to_ieee_float32(a : hfloat_record) return float32;
+    function to_ieee_float32(a : hfloat_record) return std_logic_vector;
 --------
-    function float32_to_hfloat (a : float32; hfloatref : hfloat_record) return hfloat_record;
+    function to_hfloat (a : float32; hfloatref : hfloat_record) return hfloat_record;
+-------- convert from float32 as std_logic_vector to hfloat_record
+    function float32_to_hfloat(slvref : std_logic_vector; floatref : hfloat_record) return hfloat_record;
 ------------------------------------------------------------------------
 
     -- common instantiations
@@ -343,8 +346,13 @@ package body float_typedefs_generic_pkg is
 
         return retval;
     end to_ieee_float32;
+--
+    function to_ieee_float32(a : hfloat_record) return std_logic_vector is
+    begin
+        return to_slv(to_ieee_float32(a));
+    end to_ieee_float32;
 --------------------------------------------------
-    function float32_to_hfloat (a : float32; hfloatref : hfloat_record) return hfloat_record is
+    function to_hfloat (a : float32; hfloatref : hfloat_record) return hfloat_record is
         variable retval : hfloatref'subtype := (
         sign => a(a'high)
         , exponent => signed(a(7 downto 0))-126
@@ -361,6 +369,12 @@ package body float_typedefs_generic_pkg is
 
         return retval;
 
+    end to_hfloat;
+
+    function float32_to_hfloat(slvref : std_logic_vector; floatref : hfloat_record) return hfloat_record is
+        use ieee.float_pkg.to_float;
+    begin
+        return to_hfloat(to_float(slvref, 8, 23), floatref);
     end float32_to_hfloat;
 
 end package body float_typedefs_generic_pkg;

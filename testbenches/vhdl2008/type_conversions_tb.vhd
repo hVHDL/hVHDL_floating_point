@@ -51,10 +51,12 @@ architecture vunit_simulation of type_conversions_tb is
 
     use work.float_typedefs_generic_pkg.to_ieee_float32;
 
-    constant ref  : real                := math_pi;
-    signal href   : hfloat_zero'subtype := to_hfloat(ref);
-    constant fref : float32             := to_float32(ref);
-    signal href2  : hfloat_zero'subtype := float32_to_hfloat(fref, hfloat_zero);
+    constant ref    : real                := math_pi;
+    constant fref   : float32             := to_float32(ref);
+    constant slvref : std_logic_vector    := to_slv(fref);
+    signal href     : hfloat_zero'subtype := to_hfloat(ref);
+    signal href2    : hfloat_zero'subtype := to_hfloat(fref, hfloat_zero);
+    signal href3    : hfloat_zero'subtype := to_hfloat(to_float(slvref, 8, 23), hfloat_zero);
 
 begin
 
