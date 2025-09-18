@@ -22,13 +22,14 @@ package float_typedefs_generic_pkg is
 ------------------------------------------------------------------------
     function to_std_logic ( float_number : hfloat_record)
         return std_logic_vector;
+    alias to_std_logic_vector is to_std_logic [hfloat_record return STD_LOGIC_VECTOR];
 ------------------------------------------------------------------------
     function to_ieee_float32(a : hfloat_record) return float32;
-    function to_ieee_float32(a : hfloat_record) return std_logic_vector;
+    -- function to_ieee_float32(a : hfloat_record) return std_logic_vector;
 --------
     function to_hfloat (a : float32; hfloatref : hfloat_record) return hfloat_record;
--------- convert from float32 as std_logic_vector to hfloat_record
     function float32_to_hfloat(slvref : std_logic_vector; floatref : hfloat_record) return hfloat_record;
+    -- function float32_to_hfloat(slvref : std_logic_vector; floatref : hfloat_record) return std_logic_vector;
 ------------------------------------------------------------------------
 
     -- common instantiations
@@ -376,5 +377,11 @@ package body float_typedefs_generic_pkg is
     begin
         return to_hfloat(to_float(slvref, 8, 23), floatref);
     end float32_to_hfloat;
+
+    -- function float32_to_hfloat(slvref : std_logic_vector; floatref : hfloat_record) return std_logic_vector is
+    --     use ieee.float_pkg.to_float;
+    -- begin
+    --     return to_std_logic(to_hfloat(to_float(slvref, 8, 23), floatref));
+    -- end float32_to_hfloat;
 
 end package body float_typedefs_generic_pkg;
