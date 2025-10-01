@@ -6,7 +6,6 @@ library ieee;
 
 package denormalizer_generic_pkg is
 
-    constant number_of_denormalizer_pipeline_stages : natural := 2;
 ------------------------------------------------------------------------
     type intarray is array (integer range <>) of integer;
 ------------------------------------------------------------------------
@@ -154,7 +153,7 @@ package body denormalizer_generic_pkg is
     is
         variable returned_value : integer;
     begin
-        if get_sign(self.feedthrough_pipeline(number_of_denormalizer_pipeline_stages)) = '0' then
+        if get_sign(self.feedthrough_pipeline(self.feedthrough_pipeline'high)) = '0' then
             returned_value := (get_mantissa(get_denormalized_result(self)));
         else
             returned_value := -(get_mantissa(get_denormalized_result(self)));
