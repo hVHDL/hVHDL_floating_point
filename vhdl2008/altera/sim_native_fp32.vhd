@@ -2,7 +2,9 @@ LIBRARY ieee  ;
     USE ieee.NUMERIC_STD.all  ; 
     USE ieee.std_logic_1164.all  ; 
 
---- simulation model
+--- simulation 
+--- ,use ip instantiation in synth code instead
+    
 entity native_fp32 is
     port (
         fp32_mult_a   : in  std_logic_vector(31 downto 0) := (others => 'X') -- fp32_mult_a
@@ -18,6 +20,16 @@ architecture sim of native_fp32 is
 
     use ieee.float_pkg.all;
 
+    signal mpy_result   : float32 := (others => '0');
+    signal add_pipeline : float32 := (others => '0');
+
 begin
+
+    pipelined_multiply_add : process(clk)
+    begin
+        mpy_result   <= to_float(fp32_mult_a) * to_float(fp32_mult_b);
+        add_pipeline <= to_float(fp32_adder_a);
+        fp32_result  <= to_slv(mpy_result + add_pipeline);
+    end process;
 
 end sim;

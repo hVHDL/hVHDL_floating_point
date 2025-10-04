@@ -30,34 +30,21 @@ architecture vunit_simulation of mult_add_entity_tb is
 
     constant check_value : real := -84.5;
 
-    use work.float_typedefs_generic_pkg.all;
-    use work.float_to_real_conversions_pkg.all;
-
-    function to_hfloat(a : real) return hfloat_record is
-    begin
-        return to_hfloat(a,8,30);
-    end to_hfloat;
-
-    constant hfloat_zero : hfloat_record := to_hfloat(0.0);
-
     signal float32_conv_result : float32 := to_float32(0.0);
     signal convref             : float32 := to_float32(check_value);
-    signal conv_result         : hfloat_zero'subtype := hfloat_zero;
 
-    constant float1 : hfloat_zero'subtype := to_hfloat(-84.5);
-    constant float2 : hfloat_zero'subtype := to_hfloat(1.5);
-    constant float3 : hfloat_zero'subtype := to_hfloat(84.5/2.0);
+    constant float1 : float32 := to_float32(-84.5);
+    constant float2 : float32 := to_float32(1.5);
+    constant float3 : float32 := to_float32(84.5/2.0);
 
     use work.multiply_add_pkg.all;
-    constant mpya_ref : mpya_subtype_record := create_mpya_typeref(hfloat_zero);
+    constant mpya_ref : mpya_subtype_record := create_mpya_typeref;
 
     signal mpya_in  : mpya_ref.mpya_in'subtype  := mpya_ref.mpya_in;
     signal mpya_out : mpya_ref.mpya_out'subtype := mpya_ref.mpya_out;
 
-    signal mpya_result : hfloat_zero'subtype := hfloat_zero;
+    signal mpya_result : float32 := (others => '0');
     signal real_mpya_result : real := 0.0;
-
-    use work.float_typedefs_generic_pkg.to_ieee_float32;
 
 begin
 
@@ -88,25 +75,24 @@ begin
             CASE simulation_counter is
                 WHEN 0 =>
                     multiply_add(mpya_in 
-                    ,to_std_logic(float1)
-                    ,to_std_logic(float2)
-                    ,to_std_logic(float3));
+                    ,to_slv(float1)
+                    ,to_slv(float2)
+                    ,to_slv(float3));
 
                 WHEN others => -- do nothing
             end CASE;
             --
             if mpya_is_ready(mpya_out)
             then
-                mpya_result         <= to_hfloat(get_mpya_result(mpya_out), hfloat_zero);
-                real_mpya_result    <= to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
-                float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
+                mpya_result         <= to_float(get_mpya_result(mpya_out));
+                real_mpya_result    <= to_real(to_float(get_mpya_result(mpya_out)));
+                -- float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
             end if;
 
         end if; -- rising_edge
     end process stimulus;	
 ------------------------------------------------------------------------
-    dut : entity work.multiply_add(hfloat)
-    generic map(hfloat_zero)
+    dut : entity work.multiply_add(agilex)
     port map(
         simulator_clock
         ,mpya_in

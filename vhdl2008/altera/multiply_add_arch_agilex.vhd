@@ -52,4 +52,4 @@ begin
         end if; -- rising edge
     end process;
     -----------------------------------------------------
-end hfloat;
+end agilex;
