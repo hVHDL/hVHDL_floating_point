@@ -6,11 +6,11 @@ LIBRARY ieee  ;
 library vunit_lib;
     context vunit_lib.vunit_context;
 
-entity mult_add_entity_tb is
+entity mult_add_entity_agilex_tb is
   generic (runner_cfg : string);
 end;
 
-architecture vunit_simulation of mult_add_entity_tb is
+architecture vunit_simulation of mult_add_entity_agilex_tb is
 
     signal simulation_running  : boolean;
     signal simulator_clock     : std_logic := '0';
@@ -38,10 +38,9 @@ architecture vunit_simulation of mult_add_entity_tb is
     constant float3 : float32 := to_float32(84.5/2.0);
 
     use work.multiply_add_pkg.all;
-    constant mpya_ref : mpya_subtype_record := create_mpya_typeref;
-
-    signal mpya_in  : mpya_ref.mpya_in'subtype  := mpya_ref.mpya_in;
-    signal mpya_out : mpya_ref.mpya_out'subtype := mpya_ref.mpya_out;
+    constant agilex_mpya_ref : mpya_subtype_record := create_mpya_typeref;
+    signal agilex_mpya_in  : agilex_mpya_ref.mpya_in'subtype  := agilex_mpya_ref.mpya_in;
+    signal agilex_mpya_out : agilex_mpya_ref.mpya_out'subtype := agilex_mpya_ref.mpya_out;
 
     signal mpya_result : float32 := (others => '0');
     signal real_mpya_result : real := 0.0;
@@ -69,12 +68,12 @@ begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
-            init_multiply_add(mpya_in);
+            init_multiply_add(agilex_mpya_in);
 
             --
             CASE simulation_counter is
-                WHEN 0 =>
-                    multiply_add(mpya_in 
+                WHEN 1 =>
+                    multiply_add(agilex_mpya_in 
                     ,to_slv(float1)
                     ,to_slv(float2)
                     ,to_slv(float3));
@@ -82,11 +81,11 @@ begin
                 WHEN others => -- do nothing
             end CASE;
             --
-            if mpya_is_ready(mpya_out)
+            if mpya_is_ready(agilex_mpya_out)
             then
-                mpya_result         <= to_float(get_mpya_result(mpya_out));
-                real_mpya_result    <= to_real(to_float(get_mpya_result(mpya_out)));
-                -- float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
+                float32_conv_result <= to_float(get_mpya_result(agilex_mpya_out));
+                real_mpya_result    <= to_real(to_float(get_mpya_result(agilex_mpya_out)));
+                -- float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(agilex_mpya_out), hfloat_zero));
             end if;
 
         end if; -- rising_edge
@@ -95,7 +94,7 @@ begin
     dut : entity work.multiply_add(agilex)
     port map(
         simulator_clock
-        ,mpya_in
-        ,mpya_out);
+        ,agilex_mpya_in
+        ,agilex_mpya_out);
 ------------------------------------------------------------------------
 end vunit_simulation;

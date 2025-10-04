@@ -21,15 +21,19 @@ architecture sim of native_fp32 is
     use ieee.float_pkg.all;
 
     signal mpy_result   : float32 := (others => '0');
+    signal mpy_result_buf   : float32 := (others => '0');
     signal add_pipeline : float32 := (others => '0');
 
 begin
 
     pipelined_multiply_add : process(clk)
     begin
-        mpy_result   <= to_float(fp32_mult_a) * to_float(fp32_mult_b);
-        add_pipeline <= to_float(fp32_adder_a);
-        fp32_result  <= to_slv(mpy_result + add_pipeline);
+        if rising_edge(clk) then
+            mpy_result     <= to_float(fp32_mult_a) * to_float(fp32_mult_b);
+            add_pipeline   <= to_float(fp32_adder_a);
+            mpy_result_buf <= mpy_result + add_pipeline;
+            fp32_result    <= to_slv(mpy_result_buf);
+        end if;
     end process;
 
 end sim;
