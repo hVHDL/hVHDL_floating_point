@@ -78,16 +78,12 @@ begin
 ------------------------------------------------------------------------
 
     stimulus : process(simulator_clock)
-
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
 
             init_multiply_add(mpya_in);
 
-            -- create_normalizer(normalizer);
-            -- create_adder(adder);
-            -- create_float_multiplier(multiplier);
             --
             CASE simulation_counter is
                 WHEN 0 =>
@@ -96,34 +92,8 @@ begin
                     ,to_std_logic(float2)
                     ,to_std_logic(float3));
 
-                -- WHEN 1 =>
-                --     multiply_add(mpya_in 
-                --     ,to_std_logic(float1)
-                --     ,to_std_logic(float1)
-                --     ,to_std_logic(float3));
-                -- WHEN 2 =>
-                --     multiply_add(mpya_in 
-                --     ,to_std_logic(float2)
-                --     ,to_std_logic(float2)
-                --     ,to_std_logic(float2));
-
                 WHEN others => -- do nothing
             end CASE;
-            --
-            -- if float_multiplier_is_ready(multiplier) then
-            --     request_add(adder,get_multiplier_result(multiplier), float3);
-            -- end if;
-            --
-            -- if adder_is_ready(adder) 
-            -- then
-            --     request_normalizer(normalizer, get_result(adder));
-            -- end if;
-            --
-            -- if normalizer_is_ready(normalizer) then
-            --     request_denormalizer(denormalizer, get_normalizer_result(normalizer), 20);
-            --     conv_result         <= get_normalizer_result(normalizer);
-            --     float32_conv_result <= to_ieee_float32(get_normalizer_result(normalizer));
-            -- end if;
             --
             if mpya_is_ready(mpya_out)
             then
