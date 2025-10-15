@@ -25,6 +25,7 @@ architecture fast_hfloat of multiply_add is
     constant init_float_array : float_array(2 downto 0) := (2 downto 0 => hfloat_zero);
     signal add_array : init_float_array'subtype := init_float_array;
 
+    -- add guardbits for multiply-add result!
     signal a , b       : hfloat_zero.mantissa'subtype                       := (others => '0');
     signal mpy_result  : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
     signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
@@ -40,15 +41,22 @@ architecture fast_hfloat of multiply_add is
     impure function get_shift return unsigned is
         constant shiftwidth : integer := 
                              to_integer(
-                             to_hfloat(mpya_in.mpy_a).exponent 
-                             + to_hfloat(mpya_in.mpy_b).exponent 
-                             - to_hfloat(mpya_in.add_a).exponent);
+                             (to_hfloat(mpya_in.mpy_a).exponent 
+                             + to_hfloat(mpya_in.mpy_b).exponent)
+                             - to_hfloat(mpya_in.add_a).exponent
+                         );
+
+        /*
+            2, -2, 1 => -1 = 2 + (-2) - 1
+            5, 11, 3 => 
+
+        */
 
         constant retval : a'subtype := (0 => '1', others => '0');
 
     begin
 
-        return shift_left(retval, shiftwidth + hfloat_zero.mantissa'high-2);
+        return shift_left(retval, shiftwidth + hfloat_zero.mantissa'high + 2);
 
     end get_shift;
     ----------------------
@@ -59,15 +67,18 @@ architecture fast_hfloat of multiply_add is
     signal exponent_pipeline : exp_array(1 downto 0) := (others => (others => '0'));
     ----------------------
     signal mpy_a, mpy_b : hfloat_zero.mantissa'subtype :=(others => '0');
+    signal res : hfloat_zero'subtype := hfloat_zero;
 
 begin
 
+    res <= (
+                 sign      => '0'
+                 ,exponent => exponent_pipeline(exponent_pipeline'left)
+                 ,mantissa => (mpy_result(hfloat_zero.mantissa'length*2-1 downto hfloat_zero.mantissa'length))
+             );
+
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
-    mpya_out.result   <= to_std_logic((
-                         sign      => '0'
-                         ,exponent => exponent_pipeline(exponent_pipeline'left)
-                         ,mantissa => (mpy_result(hfloat_zero.mantissa'length*2-1 downto hfloat_zero.mantissa'length))
-                     ));
+    mpya_out.result   <= to_std_logic(normalize(res));
     
 
     process(clock) is
