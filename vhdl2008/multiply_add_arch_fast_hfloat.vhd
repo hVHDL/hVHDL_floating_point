@@ -25,19 +25,50 @@ architecture fast_hfloat of multiply_add is
     constant init_float_array : float_array(2 downto 0) := (2 downto 0 => hfloat_zero);
     signal add_array : init_float_array'subtype := init_float_array;
 
-    signal a , b : hfloat_zero.mantissa'subtype := (others => '0');
-    signal mpy_result : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
+    signal a , b       : hfloat_zero.mantissa'subtype                       := (others => '0');
+    signal mpy_result  : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
+    signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
 
+    ----------------------
+    ----------------------
     function to_hfloat( s : std_logic_vector) return hfloat_record is
     begin
         return to_hfloat(s, hfloat_zero);
     end to_hfloat;
+    ----------------------
+    ----------------------
+    impure function get_shift return unsigned is
+        constant shiftwidth : integer := 
+                             to_integer(
+                             to_hfloat(mpya_in.mpy_a).exponent 
+                             + to_hfloat(mpya_in.mpy_b).exponent 
+                             - to_hfloat(mpya_in.add_a).exponent);
+
+        constant retval : a'subtype := (0 => '1', others => '0');
+
+    begin
+
+        return shift_left(retval, shiftwidth + hfloat_zero.mantissa'high-2);
+
+    end get_shift;
+    ----------------------
+    ----------------------
+    signal ready_pipeline : std_logic_vector(1 downto 0) := (others => '0');
+    ----------------------
+    type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
+    signal exponent_pipeline : exp_array(1 downto 0) := (others => (others => '0'));
+    ----------------------
+    signal mpy_a, mpy_b : hfloat_zero.mantissa'subtype :=(others => '0');
 
 begin
 
-
-    mpya_out.is_ready <= '1' when normalizer_is_ready(normalizer) else '0';
-    mpya_out.result   <= to_std_logic(get_normalizer_result(normalizer));
+    mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
+    mpya_out.result   <= to_std_logic((
+                         sign      => '0'
+                         ,exponent => exponent_pipeline(exponent_pipeline'left)
+                         ,mantissa => (mpy_result(hfloat_zero.mantissa'length*2-1 downto hfloat_zero.mantissa'length))
+                     ));
+    
 
     process(clock) is
     begin
@@ -47,32 +78,19 @@ begin
             create_adder(adder);
             create_float_multiplier(multiplier);
 
-            add_array <= add_array(add_array'high-1 downto 0) & hfloat_zero;
+            ready_pipeline    <= ready_pipeline(ready_pipeline'left-1 downto 0) & mpya_in.is_requested;
+            exponent_pipeline <= exponent_pipeline(exponent_pipeline'left-1 downto 0) & hfloat_zero.exponent;
 
-            mpy_result <= a * b;
+            mpy_result2    <= to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa;
+            mpy_result     <= a * b + mpy_result2;
 
             if mpya_in.is_requested = '1' then
-                -- if (mpya_in.mpy_a.exponent + mpya_in.mpy_b.exponent) < a'length
-                -- then
-                --     a <= 2**(mpya_in.mpy_a.exponent + mpya_in.mpy_b.exponent - add_a);
-                -- end if;
-                -- a <= mpya_in.mpy_a.exponent -  mpya_in.mpy_b.exponent;
+                a <= get_shift;
+                b <= to_hfloat(mpya_in.add_a).mantissa;
+                exponent_pipeline(0) <= 
+                             to_hfloat(mpya_in.mpy_a).exponent 
+                             + to_hfloat(mpya_in.mpy_b).exponent;
 
-                request_float_multiplier(multiplier
-                ,to_hfloat(mpya_in.mpy_a, hfloat_zero)
-                ,to_hfloat(mpya_in.mpy_b, hfloat_zero));
-                add_array(0) <= to_hfloat(mpya_in.add_a, hfloat_zero);
-            end if;
-
-            if float_multiplier_is_ready(multiplier) then
-                request_add(adder
-                ,get_multiplier_result(multiplier)
-                ,add_array(add_array'high));
-            end if;
-
-            if adder_is_ready(adder) 
-            then
-                request_normalizer(normalizer, get_result(adder));
             end if;
 
         end if; -- rising edge

@@ -78,6 +78,14 @@ begin
 ------------------------------------------------------------------------
 
     stimulus : process(simulator_clock)
+        procedure multiply_add(signal self_in : out mpya_ref.mpya_in'subtype; a,b,c : real) is
+        begin
+            multiply_add(self_in 
+            ,to_std_logic(to_hfloat(a))
+            ,to_std_logic(to_hfloat(b))
+            ,to_std_logic(to_hfloat(c)));
+
+        end multiply_add;
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
@@ -88,9 +96,17 @@ begin
             CASE simulation_counter is
                 WHEN 0 =>
                     multiply_add(mpya_in 
-                    ,to_std_logic(float1)
-                    ,to_std_logic(float2)
-                    ,to_std_logic(float3));
+                    ,0.1
+                    ,20.8
+                    ,0.0
+                );
+                -- WHEN 5 =>
+                --     multiply_add(mpya_in 
+                --     ,1.0
+                --     ,1.0
+                --     ,2.0
+                -- );
+
 
                 WHEN others => -- do nothing
             end CASE;
@@ -105,7 +121,7 @@ begin
         end if; -- rising_edge
     end process stimulus;	
 ------------------------------------------------------------------------
-    dut : entity work.multiply_add(hfloat)
+    dut : entity work.multiply_add(fast_hfloat)
     generic map(hfloat_zero)
     port map(
         simulator_clock
