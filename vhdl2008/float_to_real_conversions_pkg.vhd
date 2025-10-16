@@ -179,11 +179,26 @@ package body float_to_real_conversions_pkg is
     return hfloat_record
     is
 
+        constant hfloat_ref : hfloat_record := (
+            sign => '0'
+            ,exponent => (exponent_length-1 downto 0 => '0')
+            ,mantissa => (mantissa_length-1 downto 0 => '0')
+        );
+
+        variable retval : hfloat_ref'subtype := hfloat_ref;
+
     begin
 
-        return normalize((sign   => get_sign(real_number),
+        retval := normalize((sign   => get_sign(real_number),
                         exponent => get_exponent(real_number),
                         mantissa => get_mantissa(real_number , mantissa_length)));
+
+        if retval.mantissa = hfloat_ref.mantissa
+        then
+            retval := hfloat_ref;
+        end if;
+
+        return retval;
         
     end to_hfloat;
 
