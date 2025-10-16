@@ -43,38 +43,31 @@ architecture fast_hfloat of multiply_add is
     end to_hfloat;
     ----------------------
     ----------------------
-    impure function get_shift return unsigned is
-        constant shiftwidth : integer := 
-                             to_integer(
-                             (to_hfloat(mpya_in.mpy_a).exponent 
-                             + to_hfloat(mpya_in.mpy_b).exponent)
-                             - to_hfloat(mpya_in.add_a).exponent
-                         );
-
-        constant retval : unsigned(hfloat_zero.mantissa'length * 3-1 downto 0) := (0 => '1', others => '0');
-
-    begin
-
-        return shift_left(retval, shiftwidth + hfloat_zero.mantissa'high);
-
-    end get_shift;
-
-    ----
     function get_shift_width(a, b, c : signed) return integer is
-        -- constant shiftwidth : integer := 
-        --                      to_integer(
-        --                      (to_hfloat(mpya_in.mpy_a).exponent 
-        --                      + to_hfloat(mpya_in.mpy_b).exponent)
-        --                      - to_hfloat(mpya_in.add_a).exponent
-        --                  );
 
         constant retval : unsigned(hfloat_zero.mantissa'length * 3-1 downto 0) := (0 => '1', others => '0');
 
     begin
 
-        return to_integer(a + b - c + hfloat_zero.mantissa'high);
+        return to_integer(c - a - b + hfloat_zero.mantissa'high+2);
 
     end get_shift_width;
+    ----
+    impure function get_shift return unsigned is
+
+        constant retval : unsigned(hfloat_zero.mantissa'length * 3-1 downto 0) := (0 => '1', others => '0');
+
+    begin
+
+        return shift_left(retval
+                   ,get_shift_width(
+                       to_hfloat(mpya_in.mpy_a).exponent 
+                       , to_hfloat(mpya_in.mpy_b).exponent
+                       , to_hfloat(mpya_in.add_a).exponent
+                      )
+                 );
+
+    end get_shift;
     ----------------------
     ----------------------
     signal ready_pipeline : std_logic_vector(1 downto 0) := (others => '0');
@@ -112,10 +105,10 @@ begin
             exponent_pipeline <= exponent_pipeline(exponent_pipeline'left-1 downto 0) & hfloat_zero.exponent;
 
             ---
-            shift_res  <= to_integer(
+            shift_res  <= get_shift_width(
                           to_hfloat(mpya_in.mpy_a).exponent
-                          +to_hfloat(mpya_in.mpy_b).exponent
-                          -to_hfloat(mpya_in.add_a).exponent
+                          ,to_hfloat(mpya_in.mpy_b).exponent
+                          ,to_hfloat(mpya_in.add_a).exponent
                       );
 
             mpy_result <= resize(get_shift * to_hfloat(mpya_in.add_a).mantissa , mpy_result'length);

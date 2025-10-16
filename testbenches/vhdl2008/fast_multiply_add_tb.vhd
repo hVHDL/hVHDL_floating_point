@@ -96,9 +96,9 @@ begin
             CASE simulation_counter is
                 WHEN 0 =>
                     multiply_add(mpya_in 
-                    ,2.0**(1)
-                    ,2.0**(0)
-                    ,2.0**(7)
+                    ,2.0**(3)
+                    ,2.0**(3)
+                    ,2.0**(9)
                 );
                 -- WHEN 5 =>
                 --     multiply_add(mpya_in 
