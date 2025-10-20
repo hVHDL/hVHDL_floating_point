@@ -49,7 +49,7 @@ architecture fast_hfloat of multiply_add is
 
     begin
 
-        return to_integer(c - a - b + hfloat_zero.mantissa'high+2);
+        return to_integer(c - a - b + hfloat_zero.mantissa'high+1);
 
     end get_shift_width;
     ----
@@ -73,13 +73,14 @@ architecture fast_hfloat of multiply_add is
     signal ready_pipeline : std_logic_vector(1 downto 0) := (others => '0');
     ----------------------
     type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
-    signal exponent_pipeline : exp_array(2 downto 0) := (others => (others => '0'));
+    signal exponent_pipeline : exp_array(1 downto 0) := (others => (others => '0'));
     ----------------------
     signal mpy_a, mpy_b : hfloat_zero.mantissa'subtype := (others => '0');
     signal res          : hfloat_zero'subtype          := hfloat_zero;
     ----------------------
     signal shift_res : integer := 0;
     signal shift_vec : hfloat_zero.mantissa'subtype := (others => '0');
+    ----------------------
 
 begin
 
@@ -87,7 +88,7 @@ begin
                  sign      => '0'
                  ,exponent => exponent_pipeline(exponent_pipeline'left)
                  -- mantissa is wrong
-                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2+1 downto hfloat_zero.mantissa'length+2))
+                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2-1 downto hfloat_zero.mantissa'length))
              );
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
@@ -106,24 +107,22 @@ begin
 
             ---
             shift_res  <= get_shift_width(
-                          to_hfloat(mpya_in.mpy_a).exponent
+                           to_hfloat(mpya_in.mpy_a).exponent
                           ,to_hfloat(mpya_in.mpy_b).exponent
                           ,to_hfloat(mpya_in.add_a).exponent
                       );
 
-            mpy_result <= resize(get_shift * to_hfloat(mpya_in.add_a).mantissa , mpy_result'length);
-            mpy_a      <= to_hfloat(mpya_in.mpy_a).mantissa;
-            mpy_b      <= to_hfloat(mpya_in.mpy_b).mantissa;
+            mpy_a      <= resize(get_shift, mpy_a);
+            mpy_b      <= to_hfloat(mpya_in.add_a).mantissa;
+            mpy_result <= resize(to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa , mpy_result'length);
             ---
             mpy_result2 <= resize(mpy_a * mpy_b , mpy_result2'length) + mpy_result;
-
-            -- mpy_result  <= resize(a * b, mpy_result'length) + resize(mpy_result2, mpy_result'length);
-
+            ---
             if mpya_in.is_requested = '1' then
-                if (to_hfloat(mpya_in.mpy_a).exponent + to_hfloat(mpya_in.mpy_b).exponent) < to_hfloat(mpya_in.add_a).exponent
+                if (to_hfloat(mpya_in.mpy_a).exponent + to_hfloat(mpya_in.mpy_b).exponent) > to_hfloat(mpya_in.add_a).exponent
                 then
                     exponent_pipeline(0) <= 
-                                 to_hfloat(mpya_in.mpy_a).exponent 
+                                   to_hfloat(mpya_in.mpy_a).exponent 
                                  + to_hfloat(mpya_in.mpy_b).exponent;
                 else
                     exponent_pipeline(0) <= to_hfloat(mpya_in.add_a).exponent;

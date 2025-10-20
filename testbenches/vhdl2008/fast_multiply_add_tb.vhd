@@ -98,7 +98,7 @@ begin
                     multiply_add(mpya_in 
                     ,2.0**(3)
                     ,2.0**(3)
-                    ,2.0**(9)
+                    ,2.35
                 );
                 -- WHEN 5 =>
                 --     multiply_add(mpya_in 
