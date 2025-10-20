@@ -49,7 +49,7 @@ architecture fast_hfloat of multiply_add is
 
     begin
 
-        return to_integer(c - a - b + hfloat_zero.mantissa'high+1);
+        return to_integer(c - a - b + hfloat_zero.mantissa'high+2);
 
     end get_shift_width;
     ----
