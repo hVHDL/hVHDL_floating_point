@@ -57,6 +57,12 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     signal mpya_result : hfloat_zero'subtype := hfloat_zero;
     signal real_mpya_result : real := 0.0;
 
+    signal ref_a : real := 0.0;
+    signal ref_b : real := 0.0;
+    signal ref_add : real := 0.0;
+
+    signal ref_pipeline : real_vector(2 downto 0) := (others => 0.0);
+
     use work.float_typedefs_generic_pkg.to_ieee_float32;
 
 begin
@@ -85,6 +91,10 @@ begin
             ,to_std_logic(to_hfloat(b))
             ,to_std_logic(to_hfloat(c)));
 
+            ref_a <= a;
+            ref_b <= b;
+            ref_add <= c;
+
         end multiply_add;
     begin
         if rising_edge(simulator_clock) then
@@ -92,13 +102,15 @@ begin
 
             init_multiply_add(mpya_in);
 
+            ref_pipeline <= ref_pipeline(ref_pipeline'left-1 downto 0) & (ref_a*ref_b + ref_add);
+
             --
             CASE simulation_counter is
                 WHEN 0 =>
                     multiply_add(mpya_in 
-                    ,2.0**(3)
-                    ,2.0**(3)
-                    ,2.35
+                    ,0.7
+                    ,1.7
+                    ,2.0**(-16)
                 );
                 -- WHEN 5 =>
                 --     multiply_add(mpya_in 

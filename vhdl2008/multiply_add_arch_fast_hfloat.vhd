@@ -87,8 +87,7 @@ begin
     res <= (
                  sign      => '0'
                  ,exponent => exponent_pipeline(exponent_pipeline'left)
-                 -- mantissa is wrong
-                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2-1 downto hfloat_zero.mantissa'length))
+                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2 downto hfloat_zero.mantissa'length+1))
              );
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
