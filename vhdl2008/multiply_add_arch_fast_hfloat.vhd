@@ -91,6 +91,7 @@ begin
              );
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
+    -- normalize from 3m length |3m|2m|1m|0mxxxx|
     mpya_out.result   <= to_std_logic(normalize(res));
 
     process(clock) is

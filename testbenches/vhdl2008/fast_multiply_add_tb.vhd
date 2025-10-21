@@ -110,7 +110,7 @@ begin
                     multiply_add(mpya_in 
                     ,0.7
                     ,1.7
-                    ,2.0**(-8)
+                    ,2.0**(-5)
                 );
                 -- WHEN 5 =>
                 --     multiply_add(mpya_in 

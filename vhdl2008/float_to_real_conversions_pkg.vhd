@@ -255,6 +255,18 @@ package body float_to_real_conversions_pkg is
         variable mantissa : real := 0.0;
         variable sign     : real := 0.0;
         variable exponent : real := 0.0;
+        function "*"(left : real; right : std_logic) return real is
+            variable retval : real := 0.0;
+        begin
+            if right = '0'
+            then
+                retval := 0.0;
+            else
+                retval := left;
+            end if;
+            return retval;
+        end function;
+
     begin
 
         if float_number.sign = '1' then
@@ -262,10 +274,15 @@ package body float_to_real_conversions_pkg is
         else
             sign := 1.0;
         end if;
-        mantissa := real(to_integer(float_number.mantissa))/2.0**(float_number.mantissa'length);
+
+        for i in float_number.mantissa'range loop
+            mantissa := mantissa + 2.0**(i)*float_number.mantissa(i)/ 2.0**(float_number.mantissa'length);
+        end loop;
+
+        -- mantissa := real(to_integer(float_number.mantissa))/2.0**(float_number.mantissa'length);
         exponent := (2.0**real(to_integer(float_number.exponent)));
 
-        return sign * exponent * mantissa;
+        return sign * exponent * mantissa ;
         
     end to_real;
 ------------------------------------------------------------------------
