@@ -35,7 +35,7 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
 
     function to_hfloat(a : real) return hfloat_record is
     begin
-        return to_hfloat(a,8,30);
+        return to_hfloat(a,8,54);
     end to_hfloat;
 
     constant hfloat_zero : hfloat_record := to_hfloat(0.0);
@@ -57,8 +57,8 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     signal mpya_result : hfloat_zero'subtype := hfloat_zero;
     signal real_mpya_result : real := 0.0;
 
-    signal ref_a : real := 0.0;
-    signal ref_b : real := 0.0;
+    signal ref_a   : real := 0.0;
+    signal ref_b   : real := 0.0;
     signal ref_add : real := 0.0;
 
     signal ref_pipeline : real_vector(2 downto 0) := (others => 0.0);
@@ -108,9 +108,9 @@ begin
             CASE simulation_counter is
                 WHEN 0 =>
                     multiply_add(mpya_in 
-                    ,0.7
-                    ,1.7
-                    ,2.0**(-5)
+                    ,0.49498465168
+                    ,1.498465468
+                    ,2.0**(6)
                 );
                 -- WHEN 5 =>
                 --     multiply_add(mpya_in 

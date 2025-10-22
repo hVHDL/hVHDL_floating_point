@@ -35,6 +35,8 @@ architecture fast_hfloat of multiply_add is
     signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*3 downto 0) := (others => '0');
     signal mpy_result3 : unsigned(hfloat_zero.mantissa'length*3 downto 0) := (others => '0');
 
+    constant slice_offset : natural := 1;
+
     ----------------------
     ----------------------
     function to_hfloat( s : std_logic_vector) return hfloat_record is
@@ -49,7 +51,7 @@ architecture fast_hfloat of multiply_add is
 
     begin
 
-        return to_integer(c - a - b + hfloat_zero.mantissa'high+2);
+        return to_integer(c - a - b + hfloat_zero.mantissa'high+(slice_offset));
 
     end get_shift_width;
     ----
@@ -71,12 +73,15 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     ----------------------
     signal ready_pipeline : std_logic_vector(1 downto 0) := (others => '0');
+    signal add_shift_pipeline : std_logic_vector(1 downto 0) := (others => '0');
     ----------------------
     type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
     signal exponent_pipeline : exp_array(1 downto 0) := (others => (others => '0'));
+    signal shift_pipeline : exp_array(1 downto 0) := (others => (others => '0'));
     ----------------------
-    signal mpy_a, mpy_b : hfloat_zero.mantissa'subtype := (others => '0');
-    signal res          : hfloat_zero'subtype          := hfloat_zero;
+    signal mpy_a : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
+    signal mpy_b : hfloat_zero.mantissa'subtype := (others => '0');
+    signal res   : hfloat_zero'subtype          := hfloat_zero;
     ----------------------
     signal shift_res : integer := 0;
     signal shift_vec : hfloat_zero.mantissa'subtype := (others => '0');
@@ -86,9 +91,16 @@ begin
 
     res <= (
                  sign      => '0'
-                 ,exponent => exponent_pipeline(exponent_pipeline'left)
-                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2 downto hfloat_zero.mantissa'length+1))
-             );
+                 ,exponent => exponent_pipeline(exponent_pipeline'left)+slice_offset
+                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2-1 + slice_offset downto hfloat_zero.mantissa'length+slice_offset))
+           )
+            when add_shift_pipeline(add_shift_pipeline'left) = '0'
+            else
+           (
+                 sign      => '1'
+                 ,exponent => exponent_pipeline(exponent_pipeline'left)+0
+                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2+(6) downto hfloat_zero.mantissa'length+1+(6)))
+           );
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
     -- normalize from 3m length |3m|2m|1m|0mxxxx|
@@ -102,8 +114,10 @@ begin
             create_adder(adder);
             create_float_multiplier(multiplier);
 
-            ready_pipeline    <= ready_pipeline(ready_pipeline'left-1 downto 0) & mpya_in.is_requested;
-            exponent_pipeline <= exponent_pipeline(exponent_pipeline'left-1 downto 0) & hfloat_zero.exponent;
+            ready_pipeline     <= ready_pipeline(ready_pipeline'left-1 downto 0) & mpya_in.is_requested;
+            exponent_pipeline  <= exponent_pipeline(exponent_pipeline'left-1 downto 0) & hfloat_zero.exponent;
+            shift_pipeline     <= shift_pipeline(shift_pipeline'left-1 downto 0) & hfloat_zero.exponent;
+            add_shift_pipeline <= add_shift_pipeline(add_shift_pipeline'left-1 downto 0) & '0';
 
             ---
             shift_res  <= get_shift_width(
@@ -125,7 +139,12 @@ begin
                                    to_hfloat(mpya_in.mpy_a).exponent 
                                  + to_hfloat(mpya_in.mpy_b).exponent;
                 else
-                    exponent_pipeline(0) <= to_hfloat(mpya_in.add_a).exponent;
+                    exponent_pipeline(0)  <= to_hfloat(mpya_in.add_a).exponent;
+                    shift_pipeline(0) <= 
+                                   to_hfloat(mpya_in.add_a).exponent
+                                 - (to_hfloat(mpya_in.mpy_a).exponent 
+                                 + to_hfloat(mpya_in.mpy_b).exponent);
+                    add_shift_pipeline(0) <= '1';
                 end if;
             end if;
 
