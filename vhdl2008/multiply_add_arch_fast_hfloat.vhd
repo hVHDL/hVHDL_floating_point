@@ -16,14 +16,10 @@ architecture fast_hfloat of multiply_add is
     constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => hfloat_zero);
     signal normalizer : init_normalizer'subtype := init_normalizer;
 
-    constant init_adder : float_adder_record := adder_typeref(2, hfloat_zero);
-    signal adder : init_adder'subtype := init_adder;
-
     constant init_multiplier : float_multiplier_record := multiplier_typeref(hfloat_zero);
     signal multiplier : init_multiplier'subtype := init_multiplier;
 
     constant init_float_array : float_array(2 downto 0) := (2 downto 0 => hfloat_zero);
-    signal add_array : init_float_array'subtype := init_float_array;
 
     function "*"(left : integer; right : real) return integer is
     begin
@@ -86,6 +82,7 @@ architecture fast_hfloat of multiply_add is
     signal shift_res : integer := 0;
     signal shift_vec : hfloat_zero.mantissa'subtype := (others => '0');
     ----------------------
+    constant extra_shift : natural := 6;
 
 begin
 
@@ -99,7 +96,7 @@ begin
            (
                  sign      => '1'
                  ,exponent => exponent_pipeline(exponent_pipeline'left)+0
-                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2+(6) downto hfloat_zero.mantissa'length+1+(6)))
+                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2+(extra_shift) downto hfloat_zero.mantissa'length+1+(extra_shift)))
            );
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
@@ -111,7 +108,6 @@ begin
         if rising_edge(clock) 
         then
             create_normalizer(normalizer);
-            create_adder(adder);
             create_float_multiplier(multiplier);
 
             ready_pipeline     <= ready_pipeline(ready_pipeline'left-1 downto 0) & mpya_in.is_requested;
@@ -133,7 +129,7 @@ begin
             mpy_result2 <= resize(mpy_a * mpy_b , mpy_result2'length) + mpy_result;
             ---
             if mpya_in.is_requested = '1' then
-                if (to_hfloat(mpya_in.mpy_a).exponent + to_hfloat(mpya_in.mpy_b).exponent) > to_hfloat(mpya_in.add_a).exponent
+                if (to_hfloat(mpya_in.mpy_a).exponent + to_hfloat(mpya_in.mpy_b).exponent) >= to_hfloat(mpya_in.add_a).exponent
                 then
                     exponent_pipeline(0) <= 
                                    to_hfloat(mpya_in.mpy_a).exponent 

@@ -91,8 +91,8 @@ begin
             ,to_std_logic(to_hfloat(b))
             ,to_std_logic(to_hfloat(c)));
 
-            ref_a <= a;
-            ref_b <= b;
+            ref_a   <= a;
+            ref_b   <= b;
             ref_add <= c;
 
         end multiply_add;
@@ -110,7 +110,19 @@ begin
                     multiply_add(mpya_in 
                     ,0.49498465168
                     ,1.498465468
-                    ,2.0**(6)
+                    ,2.0**(-5)
+                );
+                WHEN 5 =>
+                    multiply_add(mpya_in 
+                    ,0.49498465168
+                    ,1.498465468
+                    ,2.0**(-2)
+                );
+                WHEN 10 =>
+                    multiply_add(mpya_in 
+                    ,0.49498465168
+                    ,1.498465468
+                    ,2.0**(-1)
                 );
                 -- WHEN 5 =>
                 --     multiply_add(mpya_in 
