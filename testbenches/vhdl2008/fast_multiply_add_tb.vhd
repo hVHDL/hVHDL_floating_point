@@ -35,7 +35,7 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
 
     function to_hfloat(a : real) return hfloat_record is
     begin
-        return to_hfloat(a,8,54);
+        return to_hfloat(a,8,24);
     end to_hfloat;
 
     constant hfloat_zero : hfloat_record := to_hfloat(0.0);
@@ -122,14 +122,20 @@ begin
                     multiply_add(mpya_in 
                     ,0.49498465168
                     ,1.498465468
+                    ,2.0**(6)
+                );
+                WHEN 15 =>
+                    multiply_add(mpya_in 
+                    ,0.49498465168
+                    ,1.498465468
+                    ,2.0**(4)
+                );
+                WHEN 20 =>
+                    multiply_add(mpya_in 
+                    ,0.49498465168
+                    ,1.498465468
                     ,2.0**(-1)
                 );
-                -- WHEN 5 =>
-                --     multiply_add(mpya_in 
-                --     ,1.0
-                --     ,1.0
-                --     ,2.0
-                -- );
 
 
                 WHEN others => -- do nothing

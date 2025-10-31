@@ -26,12 +26,11 @@ architecture fast_hfloat of multiply_add is
         return integer(real(left)*right);
     end function;
 
-    signal a , b       : hfloat_zero.mantissa'subtype                     := (others => '0');
     signal mpy_result  : unsigned(hfloat_zero.mantissa'length*3 downto 0) := (others => '0');
     signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*3 downto 0) := (others => '0');
     signal mpy_result3 : unsigned(hfloat_zero.mantissa'length*3 downto 0) := (others => '0');
 
-    constant slice_offset : natural := 1;
+    constant const_slice_offset : natural := 1;
 
     ----------------------
     ----------------------
@@ -47,7 +46,7 @@ architecture fast_hfloat of multiply_add is
 
     begin
 
-        return to_integer(c - a - b + hfloat_zero.mantissa'high+(slice_offset));
+        return to_integer(c - a - b + hfloat_zero.mantissa'high+(const_slice_offset));
 
     end get_shift_width;
     ----
@@ -82,14 +81,14 @@ architecture fast_hfloat of multiply_add is
     signal shift_res : integer := 0;
     signal shift_vec : hfloat_zero.mantissa'subtype := (others => '0');
     ----------------------
-    constant extra_shift : natural := 6;
+    constant extra_shift : integer := 4;
 
 begin
 
     res <= (
                  sign      => '0'
-                 ,exponent => exponent_pipeline(exponent_pipeline'left)+slice_offset
-                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2-1 + slice_offset downto hfloat_zero.mantissa'length+slice_offset))
+                 ,exponent => exponent_pipeline(exponent_pipeline'left)+const_slice_offset
+                 ,mantissa => (mpy_result2(hfloat_zero.mantissa'length*2-1 + const_slice_offset downto hfloat_zero.mantissa'length+const_slice_offset))
            )
             when add_shift_pipeline(add_shift_pipeline'left) = '0'
             else
@@ -129,7 +128,8 @@ begin
             mpy_result2 <= resize(mpy_a * mpy_b , mpy_result2'length) + mpy_result;
             ---
             if mpya_in.is_requested = '1' then
-                if (to_hfloat(mpya_in.mpy_a).exponent + to_hfloat(mpya_in.mpy_b).exponent) >= to_hfloat(mpya_in.add_a).exponent
+                if (to_hfloat(mpya_in.mpy_a).exponent + to_hfloat(mpya_in.mpy_b).exponent) 
+                    >= to_hfloat(mpya_in.add_a).exponent
                 then
                     exponent_pipeline(0) <= 
                                    to_hfloat(mpya_in.mpy_a).exponent 
