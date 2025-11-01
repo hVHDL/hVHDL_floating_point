@@ -113,9 +113,9 @@ package body multiply_add_pkg is
     procedure init_multiply_add(signal self_in : out multiply_add_in_record) 
     is
     begin
-        self_in.mpy_a <= (self_in.mpy_a'range => '0');
-        self_in.mpy_b <= (self_in.mpy_b'range => '0');
-        self_in.add_a <= (self_in.add_a'range => '0');
+        self_in.mpy_a <= self_in.mpy_a;
+        self_in.mpy_b <= self_in.mpy_b;
+        self_in.add_a <= self_in.add_a;
         self_in.is_requested <= '0';
     end procedure;
 
