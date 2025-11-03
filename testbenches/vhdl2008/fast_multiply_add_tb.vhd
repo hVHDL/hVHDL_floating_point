@@ -65,6 +65,8 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
 
     use work.float_typedefs_generic_pkg.to_ieee_float32;
 
+    signal testnum : integer := -1;
+
 begin
 
 ------------------------------------------------------------------------
@@ -94,6 +96,7 @@ begin
             ref_a   <= a;
             ref_b   <= b;
             ref_add <= c;
+            testnum <= testnum + 1;
 
         end multiply_add;
     begin
@@ -106,35 +109,48 @@ begin
 
             --
             CASE simulation_counter is
-                WHEN 0 =>
+                WHEN 0  *5 =>
                     multiply_add(mpya_in 
                     ,0.49498465168
                     ,1.498465468
                     ,2.0**(-5)
                 );
-                WHEN 5 =>
+                WHEN 1  *5 =>
                     multiply_add(mpya_in 
                     ,0.49498465168
                     ,1.498465468
                     ,2.0**(-2)
                 );
-                WHEN 10 =>
+                WHEN 2  *5 =>
                     multiply_add(mpya_in 
                     ,3.49498465168
                     ,1.498465468
-                    ,2.0**(7)
+                    ,2.0**(1)
                 );
-                WHEN 15 =>
+                WHEN 3  *5 =>
                     multiply_add(mpya_in 
                     ,0.48498465168
                     ,1.498465468
                     ,0.0
                 );
-                WHEN 20 =>
+                WHEN 4  *5 =>
                     multiply_add(mpya_in 
                     ,0.46498465168
                     ,1.498465468
                     ,0.500001
+                );
+                WHEN 5  *5 =>
+                    multiply_add(mpya_in 
+                    ,0.0001
+                    ,0.001
+                    ,3.999999
+                );
+
+                WHEN 6  *5 =>
+                    multiply_add(mpya_in 
+                    ,1000.0
+                    ,1000.0
+                    ,6.5e9
                 );
 
 
