@@ -19,25 +19,32 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     constant simtime_in_clocks : integer   := 150;
 
     signal simulation_counter : natural := 0;
-    -----------------------------------
-    -- simulation specific signals ----
-    use ieee.float_pkg.all;
+    -------------------------------------------------------
 
+    -----------------------
+    -----------------------
+    use ieee.float_pkg.all;
+    -----------------------
+    -----------------------
     function to_float32 (a : real) return float32 is
     begin
         return to_float(a, float32'high);
     end to_float32;
-
-    constant check_value : real := -84.5;
-
+    -----------------------
+    -----------------------
     use work.float_typedefs_generic_pkg.all;
     use work.float_to_real_conversions_pkg.all;
-
+    -----------------------
+    -----------------------
     function to_hfloat(a : real) return hfloat_record is
     begin
         return to_hfloat(a,8,24);
     end to_hfloat;
+    -----------------------
+    -----------------------
+    -- simulation specific signals ----
 
+    constant check_value : real := -84.5;
     constant hfloat_zero : hfloat_record := to_hfloat(0.0);
 
     signal float32_conv_result : float32 := to_float32(0.0);
@@ -86,7 +93,8 @@ begin
 ------------------------------------------------------------------------
 
     stimulus : process(simulator_clock)
-        procedure multiply_add(signal self_in : out mpya_ref.mpya_in'subtype; a,b,c : real) is
+        -----------------
+        procedure multiply_add(signal self_in : out mpya_ref.mpya_in'subtype; a , b , c : real) is
         begin
             multiply_add(self_in 
             ,to_std_logic(to_hfloat(a))
@@ -96,9 +104,10 @@ begin
             ref_a   <= a;
             ref_b   <= b;
             ref_add <= c;
-            testnum <= testnum + 1;
+
 
         end multiply_add;
+        -----------------
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
@@ -159,6 +168,7 @@ begin
             --
             if mpya_is_ready(mpya_out)
             then
+                testnum <= testnum + 1;
                 mpya_result         <= to_hfloat(get_mpya_result(mpya_out), hfloat_zero);
                 real_mpya_result    <= to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
                 float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
