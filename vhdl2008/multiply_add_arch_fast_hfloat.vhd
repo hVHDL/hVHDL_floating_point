@@ -16,9 +16,6 @@ architecture fast_hfloat of multiply_add is
     constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => hfloat_zero);
     signal normalizer : init_normalizer'subtype := init_normalizer;
 
-    -- constant init_multiplier : float_multiplier_record := multiplier_typeref(hfloat_zero);
-    -- signal multiplier : init_multiplier'subtype := init_multiplier;
-
     function "*"(left : integer; right : real) return integer is
     begin
         return integer(real(left)*right);
@@ -36,8 +33,6 @@ architecture fast_hfloat of multiply_add is
     end to_hfloat;
     ----------------------
     ----------------------
-    ----------------------
-    ----------------------
     signal ready_pipeline : std_logic_vector(1 downto 0) := (others => '0');
     signal add_shift_pipeline : std_logic_vector(1 downto 0) := (others => '0');
     ----------------------
@@ -51,7 +46,7 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     signal shift_res : integer := 0;
     ----------------------
-    constant const_shift : integer := 1;
+    constant const_shift : integer := 0;
     ----------------------
     signal refa   :  hfloat_zero'subtype := hfloat_zero;
     signal refb   :  hfloat_zero'subtype := hfloat_zero;
@@ -65,13 +60,8 @@ architecture fast_hfloat of multiply_add is
         variable shiftwidth : integer;
 
     begin
-        shiftwidth := to_integer(c - a - b + hfloat_zero.mantissa'length);
-        if shiftwidth >= hfloat_zero.mantissa'length
-        then
-            shiftwidth := shiftwidth-1;
-        end if;
-
-        return shiftwidth;
+        shiftwidth := to_integer(c - a - b);
+        return shiftwidth + hfloat_zero.mantissa'length;
 
     end get_shift_width;
     ----------------------
@@ -97,6 +87,19 @@ architecture fast_hfloat of multiply_add is
     end function;
     ----------------------
 
+    function max (a, b : integer) return integer is
+        variable retval : integer := 0;
+    begin
+        if a > b
+        then
+            retval := a;
+        else
+            retval := b;
+        end if;
+
+        return retval;
+    end max;
+
 begin
 
     res <= (
@@ -108,8 +111,8 @@ begin
             else
            (
                  sign      => '0'
-                 ,exponent => exponent_pipeline(exponent_pipeline'left)
-                 ,mantissa => get_result_slice(mpy_result2, to_integer(shift_pipeline(1)))
+                 ,exponent => exponent_pipeline(exponent_pipeline'left)+ const_shift
+                 ,mantissa => get_result_slice(mpy_result2, to_integer(shift_pipeline(1) + const_shift))
            );
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
@@ -137,8 +140,11 @@ begin
                           ,to_hfloat(mpya_in.add_a).exponent
                       );
             ---
-            if (to_hfloat(mpya_in.mpy_a).exponent + to_hfloat(mpya_in.mpy_b).exponent)
-                >= to_hfloat(mpya_in.add_a).exponent
+            if get_shift_width(
+                to_hfloat(mpya_in.mpy_a).exponent 
+                ,to_hfloat(mpya_in.mpy_b).exponent
+                ,to_hfloat(mpya_in.add_a).exponent)
+                <=  hfloat_zero.mantissa'length
             then
                 exponent_pipeline(0) <= 
                                to_hfloat(mpya_in.mpy_a).exponent 
@@ -147,13 +153,13 @@ begin
                 exponent_pipeline(0) <= to_hfloat(mpya_in.add_a).exponent;
                 shift_pipeline(0)    <=
                                to_hfloat(mpya_in.add_a).exponent
-                             - (to_hfloat(mpya_in.mpy_a).exponent 
-                             + to_hfloat(mpya_in.mpy_b).exponent);
+                             - to_hfloat(mpya_in.mpy_a).exponent 
+                             - to_hfloat(mpya_in.mpy_b).exponent;
                 add_shift_pipeline(0) <= '1';
             end if;
             ---
             -- p1
-            mpy_a      <= shift_right(resize(get_shift, mpy_a'length), 0);
+            mpy_a      <= shift_right(resize(get_shift, mpy_a'length),0);
             mpy_b      <= to_hfloat(mpya_in.add_a).mantissa;
             mpy_result <= resize(to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa , mpy_result2'length);
             ---
