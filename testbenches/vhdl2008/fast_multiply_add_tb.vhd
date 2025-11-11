@@ -16,7 +16,7 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     signal simulator_clock     : std_logic := '0';
     constant clock_per         : time      := 1 ns;
     constant clock_half_per    : time      := 0.5 ns;
-    constant simtime_in_clocks : integer   := 50;
+    constant simtime_in_clocks : integer   := 1500;
 
     signal simulation_counter : natural := 0;
     -------------------------------------------------------
@@ -80,6 +80,13 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     signal rel_error : real := 0.0;
     signal max_rel_error : real := 0.0;
 
+    signal rel_error_count : real := 0.0;
+    signal total_count : real := 0.0;
+
+    signal error_density : real := 0.0;
+
+    signal div_error : real := 0.0;
+
 begin
 
 ------------------------------------------------------------------------
@@ -139,10 +146,29 @@ begin
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
             multiply_add(mpya_in 
-                ,0.1
-                ,0.1
-                ,0.489
+                ,rand1 * 1.0e0
+                ,rand2 * 1.0e0
+                ,rand3 * 1.0e4
             );
+
+            --------------------------
+            -- shift one off
+            -- multiply_add(mpya_in 
+            --     ,4.22786
+            --     ,0.67742
+            --     ,0.24717
+            -- );
+            -- multiply_add(mpya_in 
+            --     ,4.0
+            --     ,0.5
+            --     ,0.25
+            -- );
+            -- multiply_add(mpya_in 
+            --     ,4.0
+            --     ,0.5
+            --     ,1.0e3
+            -- );
+            -------------------------
 
             --
             -- CASE simulation_counter is
@@ -204,6 +230,16 @@ begin
                 real_mpya_result    <= to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
                 float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
                 rel_error           <= abs(to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero)) - ref_pipeline(1))/ref_pipeline(1);
+                total_count <= total_count + 1.0;
+                if rel_error > 1.0e-3 then
+                    rel_error_count <= rel_error_count + 1.0;
+                end if;
+                error_density <= (rel_error_count+1.0) / (total_count+1.0);
+
+                -- div_error <=
+                --     ref_pipeline(1)
+                --     /to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
+
             end if;
 
             if rel_error > 1.0e-5 

@@ -1,3 +1,78 @@
+--------------------------------------
+--------------------------------------
+--------------------------------------
+LIBRARY ieee  ; 
+    USE ieee.NUMERIC_STD.all  ; 
+    USE ieee.std_logic_1164.all  ; 
+
+    use work.float_typedefs_generic_pkg.hfloat_record;
+    use work.float_typedefs_generic_pkg.to_hfloat;
+
+package fast_hfloat_pkg is
+
+    function get_result_slice (a : unsigned; offset : integer ; hfloatref : hfloat_record) return unsigned;
+    function get_shift_width(a, b, c : signed ; mantissa : unsigned) return integer;
+    function get_shift(a : std_logic_vector; b : std_logic_vector ; c : std_logic_vector ; floatref : hfloat_record) return unsigned;
+
+end package;
+
+package body fast_hfloat_pkg is 
+
+    function get_shift_width(a, b, c : signed ; mantissa : unsigned) return integer is
+
+        variable shiftwidth : integer;
+
+    begin
+        shiftwidth := to_integer(c - a - b);
+        -- if shiftwidth < 0 then
+        --     shiftwidth := shiftwidth + 1;
+        -- end if;
+        return shiftwidth + mantissa'length;
+
+    end get_shift_width;
+
+    ----------------------------
+    function get_result_slice (a : unsigned; offset : integer ; hfloatref : hfloat_record) return unsigned is
+        variable safe_offset : integer := 0;
+    begin
+        safe_offset := offset;
+        if safe_offset > hfloatref.mantissa'length
+        then
+            safe_offset := hfloatref.mantissa'length;
+        end if;
+
+        if safe_offset < -hfloatref.mantissa'length
+        then
+            safe_offset := -hfloatref.mantissa'length;
+        end if;
+
+        return (a(hfloatref.mantissa'length*2-1+(safe_offset) downto hfloatref.mantissa'length+(safe_offset)));
+    end get_result_slice;
+
+    function get_shift(a : std_logic_vector; b : std_logic_vector ; c : std_logic_vector ; floatref : hfloat_record) return unsigned is
+
+        constant retval : unsigned(floatref.mantissa'length * 3-1 downto 0) := (0 => '1', others => '0');
+
+    begin
+
+        return shift_left(retval
+                   ,get_shift_width(
+                       to_hfloat(a,floatref).exponent 
+                       , to_hfloat(b,floatref).exponent
+                       , to_hfloat(c,floatref).exponent
+                       , floatref.mantissa
+                      )
+                 );
+
+    end get_shift;
+    ---------------------
+    ----------------------------
+    ----------------------------
+end package body;
+
+--------------------------------------
+--------------------------------------
+--------------------------------------
 architecture fast_hfloat of multiply_add is
 
     use work.normalizer_generic_pkg.all;
@@ -46,7 +121,7 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     signal shift_res : integer := 0;
     ----------------------
-    constant const_shift : integer := 0;
+    constant const_shift : integer := 2;
     ----------------------
     signal refa   :  hfloat_zero'subtype := hfloat_zero;
     signal refb   :  hfloat_zero'subtype := hfloat_zero;
@@ -54,39 +129,14 @@ architecture fast_hfloat of multiply_add is
 
     ----------------------
     ----------------------
-    function get_shift_width(a, b, c : signed) return integer is
-
-        constant retval : unsigned(hfloat_zero.mantissa'length * 3-1 downto 0) := (0 => '1', others => '0');
-        variable shiftwidth : integer;
-
-    begin
-        shiftwidth := to_integer(c - a - b);
-        return shiftwidth + hfloat_zero.mantissa'length;
-
-    end get_shift_width;
     ----------------------
-    impure function get_shift return unsigned is
-
-        constant retval : unsigned(hfloat_zero.mantissa'length * 3-1 downto 0) := (0 => '1', others => '0');
-
-    begin
-
-        return shift_left(retval
-                   ,get_shift_width(
-                       to_hfloat(mpya_in.mpy_a).exponent 
-                       , to_hfloat(mpya_in.mpy_b).exponent
-                       , to_hfloat(mpya_in.add_a).exponent
-                      )
-                 );
-
-    end get_shift;
     ----------------------
-    function get_result_slice (a : unsigned; offset : integer) return unsigned is
-    begin
-        return (a(hfloat_zero.mantissa'length*2-1+(offset) downto hfloat_zero.mantissa'length+(offset)));
-    end function;
+    use work.fast_hfloat_pkg.get_result_slice;
     ----------------------
-
+    use work.fast_hfloat_pkg.get_shift_width;
+    ----------------------
+    use work.fast_hfloat_pkg.get_shift;
+    ----------------------
     function max (a, b : integer) return integer is
         variable retval : integer := 0;
     begin
@@ -105,14 +155,14 @@ begin
     res <= (
                  sign      => '0'
                  ,exponent => exponent_pipeline(exponent_pipeline'left)+const_shift
-                 ,mantissa => get_result_slice(mpy_result2, const_shift)
+                 ,mantissa => get_result_slice(mpy_result2, const_shift, hfloat_zero)
            )
             when add_shift_pipeline(add_shift_pipeline'left) = '0'
             else
            (
                  sign      => '0'
-                 ,exponent => exponent_pipeline(exponent_pipeline'left)+ const_shift
-                 ,mantissa => get_result_slice(mpy_result2, to_integer(shift_pipeline(1) + const_shift))
+                 ,exponent => exponent_pipeline(exponent_pipeline'left) + const_shift
+                 ,mantissa => get_result_slice(mpy_result2, to_integer(shift_pipeline(1) + const_shift), hfloat_zero)
            );
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
@@ -138,28 +188,31 @@ begin
                            to_hfloat(mpya_in.mpy_a).exponent
                           ,to_hfloat(mpya_in.mpy_b).exponent
                           ,to_hfloat(mpya_in.add_a).exponent
-                      );
+                          ,to_hfloat(mpya_in.add_a).mantissa
+                      ) - hfloat_zero.mantissa'length;
             ---
             if get_shift_width(
                 to_hfloat(mpya_in.mpy_a).exponent 
                 ,to_hfloat(mpya_in.mpy_b).exponent
-                ,to_hfloat(mpya_in.add_a).exponent)
-                <=  hfloat_zero.mantissa'length
+                ,to_hfloat(mpya_in.add_a).exponent
+                ,to_hfloat(mpya_in.add_a).mantissa)
+                <  hfloat_zero.mantissa'length
             then
                 exponent_pipeline(0) <= 
                                to_hfloat(mpya_in.mpy_a).exponent 
-                             + to_hfloat(mpya_in.mpy_b).exponent;
+                             + to_hfloat(mpya_in.mpy_b).exponent+(0);
             else
                 exponent_pipeline(0) <= to_hfloat(mpya_in.add_a).exponent;
                 shift_pipeline(0)    <=
                                to_hfloat(mpya_in.add_a).exponent
                              - to_hfloat(mpya_in.mpy_a).exponent 
-                             - to_hfloat(mpya_in.mpy_b).exponent;
+                             - to_hfloat(mpya_in.mpy_b).exponent+(1);
+
                 add_shift_pipeline(0) <= '1';
             end if;
             ---
             -- p1
-            mpy_a      <= shift_right(resize(get_shift, mpy_a'length),0);
+            mpy_a      <= shift_left(resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_a'length),1);
             mpy_b      <= to_hfloat(mpya_in.add_a).mantissa;
             mpy_result <= resize(to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa , mpy_result2'length);
             ---
