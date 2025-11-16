@@ -172,17 +172,16 @@ begin
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
             --------------------------
-            -- shift one off
-            -- multiply_add(mpya_in 
-            --     ,4.22786
-            --     ,0.67742
-            --     ,0.24717
-            -- );
             multiply_add(mpya_in 
-                ,0.01
-                ,100.5
-                ,15.5
+                ,4.22786
+                ,0.67742
+                ,0.47716
             );
+            -- multiply_add(mpya_in 
+            --     ,0.01
+            --     ,100.5
+            --     ,15.5
+            -- );
 
             -- multiply_add(mpya_in 
             --     ,4.0
@@ -195,7 +194,7 @@ begin
                 in2 <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
                 in3 <= to_hfloat(mpya_in.add_a, hfloat_zero);
                 test1 <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
-                         ,24+to_integer(in3.exponent - in1.exponent - in2.exponent));
+                         ,hfloat_zero.mantissa'length+to_integer(in3.exponent - in1.exponent - in2.exponent));
                 result_shift <= to_integer(in3.exponent - in1.exponent - in2.exponent);
 
             end if;
@@ -203,7 +202,8 @@ begin
             mult_add <= mult + test1;
             v_hfloat_result := ((sign => '0'
                              ,exponent => max(in1.exponent + in2.exponent+result_shift, in3.exponent)+3
-                             ,mantissa => mult_add(24*2-1+(result_shift)+3 downto 24+(result_shift)+3)
+                             ,mantissa => mult_add(hfloat_zero.mantissa'length*2-1+(result_shift)+3 
+                                 downto hfloat_zero.mantissa'length+(result_shift)+3)
                              ));
             hfloat_result <= normalize(v_hfloat_result);
             real_mpya_result <= to_real(normalize(v_hfloat_result));
