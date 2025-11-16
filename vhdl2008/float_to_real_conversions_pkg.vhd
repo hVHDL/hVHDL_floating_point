@@ -81,12 +81,13 @@ package body float_to_real_conversions_pkg is
     )
     return real
     is
-        variable retval : real;
+        variable retval : real := 1.0;
+        variable temp : real := abs(number);
     begin
         if number = 0.0 then
             retval := 0.0;
         else
-            retval := floor(log2(abs(number)))+1.0;
+            retval := round(log2(abs(number)));
         end if;
         if retval >= 2.0**(exponent_length-1)-1.0 then
             retval := 2.0**(exponent_length-1)-1.0;

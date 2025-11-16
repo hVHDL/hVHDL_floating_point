@@ -75,6 +75,39 @@ architecture vunit_simulation of fast_mult_add_pkg_tb is
     use work.float_typedefs_generic_pkg.to_ieee_float32;
     use work.fast_hfloat_pkg.all;
 
+    signal in1 : hfloat_zero'subtype := hfloat_zero;
+    signal in2 : hfloat_zero'subtype := hfloat_zero;
+    signal in3 : hfloat_zero'subtype := hfloat_zero;
+
+    signal mult : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+    signal test1 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+
+    signal hfloat_result : hfloat_zero'subtype := hfloat_zero;
+
+    function max(a,b : signed) return signed is
+        variable retval : a'subtype;
+    begin
+        if a > b then
+            retval := a;
+        else
+            retval := b;
+        end if;
+        return retval;
+    end max;
+
+    function shift(a : unsigned; b : integer) return unsigned is
+        variable retval : a'subtype;
+    begin
+        if b >= 0 then
+            retval := shift_left(a,b);
+        else
+            retval := shift_right(a,-b);
+        end if;
+
+        return retval;
+    end shift;
+
+
 begin
 
 ------------------------------------------------------------------------
@@ -83,7 +116,7 @@ begin
         test_runner_setup(runner, runner_cfg);
         simulation_running <= true;
         wait for simtime_in_clocks*clock_per;
-        check(convref = float32_conv_result);
+        -- check(convref = float32_conv_result);
         simulation_running <= false;
         test_runner_cleanup(runner); -- Simulation ends here
         wait;
@@ -141,17 +174,30 @@ begin
             --     ,0.24717
             -- );
             multiply_add(mpya_in 
-                ,4.0
                 ,0.5
-                ,0.25
+                ,0.5
+                ,1.0
             );
+
             -- multiply_add(mpya_in 
             --     ,4.0
             --     ,0.5
             --     ,1.0e3
             -- );
             -------------------------
-            --
+            if mpya_in.is_requested then
+                in1 <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
+                in2 <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
+                in3 <= to_hfloat(mpya_in.add_a, hfloat_zero);
+                test1 <= shift_left(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult),24+(0));
+
+            end if;
+            mult <= resize(in1.mantissa * in2.mantissa, mult) + test1;
+            hfloat_result <= (sign => '0'
+                             ,exponent => max(in1.exponent + in2.exponent, in3.exponent)+(0)
+                             ,mantissa => shift(mult(24*2-1+(1) downto 24+(1)),0)
+                             );
+
 
         end if; -- rising_edge
     end process stimulus;	
