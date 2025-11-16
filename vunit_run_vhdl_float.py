@@ -97,6 +97,8 @@ generic_lib.add_source_files(ROOT / "vhdl2008/multiply_add_entity.vhd")
 generic_lib.add_source_files(ROOT / "vhdl2008/multiply_add_arch_hfloat.vhd")
 generic_lib.add_source_files(ROOT / "vhdl2008/multiply_add_arch_fast_hfloat.vhd")
 
+generic_lib.add_source_files(ROOT / "vhdl2008/fast_hfloat_pkg.vhd")
+
 generic_lib.add_source_files(ROOT / "vhdl2008/altera/multiply_add_arch_agilex.vhd")
 generic_lib.add_source_files(ROOT / "vhdl2008/altera/sim_native_fp32.vhd")
 
