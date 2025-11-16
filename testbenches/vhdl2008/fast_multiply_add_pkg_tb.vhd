@@ -181,7 +181,7 @@ begin
             multiply_add(mpya_in 
                 ,2.5
                 ,2.5
-                ,1.5
+                ,2.5
             );
 
             -- multiply_add(mpya_in 
@@ -196,16 +196,16 @@ begin
                 in3 <= to_hfloat(mpya_in.add_a, hfloat_zero);
                 test1 <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
                          ,24+to_integer(in3.exponent - in1.exponent - in2.exponent));
-                result_shift <= to_integer(in3.exponent - in1.exponent - in2.exponent)+1;
+                result_shift <= to_integer(in3.exponent - in1.exponent - in2.exponent);
 
             end if;
             mult <= resize(in1.mantissa * in2.mantissa, mult);
             mult_add <= mult + test1;
             v_hfloat_result := ((sign => '0'
-                             ,exponent => max(in1.exponent + in2.exponent, in3.exponent)
-                             ,mantissa => mult_add(24*2-1+(result_shift) downto 24+(result_shift))
+                             ,exponent => max(in1.exponent + in2.exponent, in3.exponent)+result_shift+3
+                             ,mantissa => mult_add(24*2-1+(result_shift)+3 downto 24+(result_shift)+3)
                              ));
-            hfloat_result <= (v_hfloat_result);
+            hfloat_result <= normalize(v_hfloat_result);
 
 
         end if; -- rising_edge
