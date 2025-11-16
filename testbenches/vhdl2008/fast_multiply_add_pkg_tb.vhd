@@ -174,9 +174,9 @@ begin
             --     ,0.24717
             -- );
             multiply_add(mpya_in 
-                ,0.5
-                ,0.5
+                ,1.5
                 ,1.0
+                ,4.0
             );
 
             -- multiply_add(mpya_in 
@@ -189,13 +189,13 @@ begin
                 in1 <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
                 in2 <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
                 in3 <= to_hfloat(mpya_in.add_a, hfloat_zero);
-                test1 <= shift_left(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult),24+(0));
+                test1 <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult),23+(3));
 
             end if;
             mult <= resize(in1.mantissa * in2.mantissa, mult) + test1;
             hfloat_result <= (sign => '0'
                              ,exponent => max(in1.exponent + in2.exponent, in3.exponent)+(0)
-                             ,mantissa => shift(mult(24*2-1+(1) downto 24+(1)),0)
+                             ,mantissa => shift(mult(24*2-1+(2) downto 24+(2)),0)
                              );
 
 
