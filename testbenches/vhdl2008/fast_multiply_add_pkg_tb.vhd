@@ -179,9 +179,9 @@ begin
             --     ,0.24717
             -- );
             multiply_add(mpya_in 
-                ,2.5
-                ,2.5
-                ,2.5
+                ,0.01
+                ,100.5
+                ,15.5
             );
 
             -- multiply_add(mpya_in 
@@ -202,10 +202,11 @@ begin
             mult <= resize(in1.mantissa * in2.mantissa, mult);
             mult_add <= mult + test1;
             v_hfloat_result := ((sign => '0'
-                             ,exponent => max(in1.exponent + in2.exponent, in3.exponent)+result_shift+3
+                             ,exponent => max(in1.exponent + in2.exponent+result_shift, in3.exponent)+3
                              ,mantissa => mult_add(24*2-1+(result_shift)+3 downto 24+(result_shift)+3)
                              ));
             hfloat_result <= normalize(v_hfloat_result);
+            real_mpya_result <= to_real(normalize(v_hfloat_result));
 
 
         end if; -- rising_edge
