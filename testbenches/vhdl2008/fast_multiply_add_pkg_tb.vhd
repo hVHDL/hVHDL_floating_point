@@ -111,6 +111,7 @@ architecture vunit_simulation of fast_mult_add_pkg_tb is
     use work.normalizer_generic_pkg.normalize;
 
     signal result_shift : integer := 0;
+    constant guard_bits : natural := 1;
 
 begin
 
@@ -180,7 +181,7 @@ begin
             multiply_add(mpya_in 
                 ,4.227860e0
                 ,0.677420e0
-                ,0.677160e0
+                ,0.177160e0
             );
             -- multiply_add(mpya_in 
             --     ,0.01
@@ -206,11 +207,11 @@ begin
             mult <= resize(in1.mantissa * in2.mantissa, mult);
             mult_add <= mult + test1;
             v_hfloat_result := ((sign => '0'
-                             ,exponent => max(in1.exponent + in2.exponent+result_shift, in3.exponent)+3
-                             ,mantissa => mult_add(hfloat_zero.mantissa'length*2-1+(result_shift)+3 
-                                 downto hfloat_zero.mantissa'length+(result_shift)+3)
+                             ,exponent => max(in1.exponent + in2.exponent+result_shift, in3.exponent) +guard_bits
+                             ,mantissa => mult_add(hfloat_zero.mantissa'length*2-1+(result_shift)     +guard_bits
+                             downto hfloat_zero.mantissa'length+(result_shift)                        +guard_bits )
                              ));
-            hfloat_result <= normalize(v_hfloat_result);
+            hfloat_result <= (v_hfloat_result);
             real_mpya_result <= to_real(normalize(v_hfloat_result));
 
 
