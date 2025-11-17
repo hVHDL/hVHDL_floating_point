@@ -67,7 +67,7 @@ architecture vunit_simulation of fast_mult_add_pkg_tb is
     signal ref_b   : real := 0.0;
     signal ref_add : real := 0.0;
 
-    signal ref_pipeline : real_vector(2 downto 0) := (others => 0.0);
+    signal ref_pipeline : real_vector(3 downto 0) := (others => 0.0);
     signal ref_a_pipeline : real_vector(4 downto 0) := (others => 0.0);
     signal ref_b_pipeline : real_vector(4 downto 0) := (others => 0.0);
     signal ref_add_pipeline : real_vector(4 downto 0) := (others => 0.0);
@@ -172,10 +172,15 @@ begin
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
             --------------------------
+            -- multiply_add(mpya_in 
+            --     ,rand1*1.0e0
+            --     ,rand2*1.0e0
+            --     ,rand3*1.0e0
+            -- );
             multiply_add(mpya_in 
-                ,4.22786
-                ,0.67742
-                ,0.47716
+                ,4.227860e0
+                ,0.677420e0
+                ,0.677160e0
             );
             -- multiply_add(mpya_in 
             --     ,0.01
@@ -195,7 +200,7 @@ begin
                 in3 <= to_hfloat(mpya_in.add_a, hfloat_zero);
                 test1 <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
                          ,hfloat_zero.mantissa'length+to_integer(in3.exponent - in1.exponent - in2.exponent));
-                result_shift <= to_integer(in3.exponent - in1.exponent - in2.exponent);
+                result_shift <= max(to_integer(in3.exponent - in1.exponent - in2.exponent),0);
 
             end if;
             mult <= resize(in1.mantissa * in2.mantissa, mult);
