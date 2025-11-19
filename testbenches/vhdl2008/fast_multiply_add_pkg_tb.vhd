@@ -67,7 +67,7 @@ architecture vunit_simulation of fast_mult_add_pkg_tb is
     signal ref_b   : real := 0.0;
     signal ref_add : real := 0.0;
 
-    signal ref_pipeline : real_vector(3 downto 0) := (others => 0.0);
+    signal ref_pipeline : real_vector(2 downto 0) := (others => 0.0);
     signal ref_a_pipeline : real_vector(4 downto 0) := (others => 0.0);
     signal ref_b_pipeline : real_vector(4 downto 0) := (others => 0.0);
     signal ref_add_pipeline : real_vector(4 downto 0) := (others => 0.0);
@@ -79,7 +79,12 @@ architecture vunit_simulation of fast_mult_add_pkg_tb is
     signal in2 : hfloat_zero'subtype := hfloat_zero;
     signal in3 : hfloat_zero'subtype := hfloat_zero;
 
+    signal in1_0: hfloat_zero'subtype := hfloat_zero;
+    signal in2_0: hfloat_zero'subtype := hfloat_zero;
+    signal in3_0: hfloat_zero'subtype := hfloat_zero;
+
     signal mult : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+    signal add : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal mult_add : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal test1 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
 
@@ -111,7 +116,10 @@ architecture vunit_simulation of fast_mult_add_pkg_tb is
     use work.normalizer_generic_pkg.normalize;
 
     signal result_shift : integer := 0;
+    signal result_shift1 : integer := 0;
     constant guard_bits : natural := 1;
+
+    signal result_error : real := 0.0;
 
 begin
 
@@ -132,6 +140,7 @@ begin
 ------------------------------------------------------------------------
 
     stimulus : process(simulator_clock)
+
         -----------------
         variable seed1 : positive :=1;
         variable seed2 : positive :=2;
@@ -156,6 +165,8 @@ begin
         end multiply_add;
         -----------------
         variable v_hfloat_result : hfloat_zero'subtype;
+        -----------------
+
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
@@ -173,16 +184,29 @@ begin
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
             --------------------------
-            -- multiply_add(mpya_in 
-            --     ,rand1*1.0e0
-            --     ,rand2*1.0e0
-            --     ,rand3*1.0e0
-            -- );
-            multiply_add(mpya_in 
-                ,4.227860e0
-                ,0.677420e0
-                ,0.177160e0
-            );
+            if simulation_counter mod 5 = 0 then
+                multiply_add(mpya_in 
+                    ,rand1**2
+                    ,rand2**2
+                    ,rand3**2
+                );
+            end if;
+
+            -- CASE simulation_counter is
+            --     WHEN 4 => 
+            --         multiply_add(mpya_in 
+            --             ,0.2782
+            --             ,0.0866
+            --             ,0.1332
+            --         );
+            --     WHEN 9 => 
+            --         multiply_add(mpya_in 
+            --             ,0.9998
+            --             ,0.0235
+            --             ,0.6680
+            --         );
+            --     WHEN others => --do nothing
+            -- end CASE;
             -- multiply_add(mpya_in 
             --     ,0.01
             --     ,100.5
@@ -196,23 +220,35 @@ begin
             -- );
             -------------------------
             if mpya_in.is_requested then
-                in1 <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
-                in2 <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
-                in3 <= to_hfloat(mpya_in.add_a, hfloat_zero);
-                test1 <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
-                         ,hfloat_zero.mantissa'length+to_integer(in3.exponent - in1.exponent - in2.exponent));
-                result_shift <= max(to_integer(in3.exponent - in1.exponent - in2.exponent),0);
+                in1_0         <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
+                in2_0         <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
+                in3_0         <= to_hfloat(mpya_in.add_a, hfloat_zero);
+
+                result_shift1 <= max(to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent),0);
+                mult          <= resize(to_hfloat(mpya_in.mpy_a, hfloat_zero).mantissa * to_hfloat(mpya_in.mpy_b, hfloat_zero).mantissa, mult);
+                test1         <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
+                                 ,hfloat_zero.mantissa'length
+                                 + to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
+                                 - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
+                                 - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent));
 
             end if;
-            mult <= resize(in1.mantissa * in2.mantissa, mult);
+            -- mult <= resize(in1.mantissa * in2.mantissa, mult);
+            in1 <= in1_0;
+            in2 <= in2_0;
+            in3 <= in3_0;
+            result_shift <= result_shift1;
+
             mult_add <= mult + test1;
             v_hfloat_result := ((sign => '0'
                              ,exponent => max(in1.exponent + in2.exponent+result_shift, in3.exponent) +guard_bits
                              ,mantissa => mult_add(hfloat_zero.mantissa'length*2-1+(result_shift)     +guard_bits
                              downto hfloat_zero.mantissa'length+(result_shift)                        +guard_bits )
                              ));
-            hfloat_result <= (v_hfloat_result);
+
+            hfloat_result    <= (v_hfloat_result);
             real_mpya_result <= to_real(normalize(v_hfloat_result));
+            result_error     <= abs(to_real(normalize(v_hfloat_result)) - ref_pipeline(2));
 
 
         end if; -- rising_edge
