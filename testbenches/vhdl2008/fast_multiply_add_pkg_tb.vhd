@@ -121,6 +121,18 @@ architecture vunit_simulation of fast_mult_add_pkg_tb is
 
     signal result_error : real := 0.0;
 
+    signal testi2 : hfloat_zero'subtype := 
+    (sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"));
+
+    function to_hfloat(sign : std_logic := '0' ; exponent : integer ; mantissa : std_logic_vector(23 downto 0))
+    return hfloat_record is
+        variable retval : hfloat_zero'subtype;
+    begin
+        retval := (sign => '0', exponent => (7 downto 0 => to_signed(exponent,8)), mantissa => unsigned(mantissa));
+        return retval;
+
+    end to_hfloat;
+
 begin
 
 ------------------------------------------------------------------------
@@ -164,8 +176,25 @@ begin
             ref_add_pipeline(0) <= c;
         end multiply_add;
         -----------------
+        procedure multiply_add(signal self_in : out mpya_ref.mpya_in'subtype; a , b , c : hfloat_record) is
+        begin
+            multiply_add(self_in 
+            ,to_std_logic(a)
+            ,to_std_logic(b)
+            ,to_std_logic(c));
+
+            ref_a   <= to_real(a);
+            ref_b   <= to_real(b);
+            ref_add <= to_real(c);
+
+            ref_a_pipeline(0)   <= to_real(a);
+            ref_b_pipeline(0)   <= to_real(b);
+            ref_add_pipeline(0) <= to_real(c);
+        end multiply_add;
+        -----------------
         variable v_hfloat_result : hfloat_zero'subtype;
         -----------------
+
 
     begin
         if rising_edge(simulator_clock) then
@@ -184,29 +213,42 @@ begin
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
             --------------------------
-            if simulation_counter mod 5 = 0 then
-                multiply_add(mpya_in 
-                    ,rand1**2
-                    ,rand2**2
-                    ,rand3**2
-                );
-            end if;
+            -- if simulation_counter mod 5 = 0 then
+            --     multiply_add(mpya_in 
+            --         ,rand1**2
+            --         ,rand2**2
+            --         ,rand3**2
+            --     );
+            -- end if;
 
-            -- CASE simulation_counter is
-            --     WHEN 4 => 
-            --         multiply_add(mpya_in 
-            --             ,0.2782
-            --             ,0.0866
-            --             ,0.1332
-            --         );
-            --     WHEN 9 => 
-            --         multiply_add(mpya_in 
-            --             ,0.9998
-            --             ,0.0235
-            --             ,0.6680
-            --         );
-            --     WHEN others => --do nothing
-            -- end CASE;
+            CASE simulation_counter is
+                WHEN 5 => 
+                    multiply_add(mpya_in 
+                        ,0.2782
+                        ,0.0866
+                        ,0.1332
+                    );
+                WHEN 10 => 
+                    multiply_add(mpya_in 
+                        ,0.9998
+                        ,0.0235
+                        ,0.6680
+                    );
+                WHEN 15 => 
+                    multiply_add(mpya_in 
+                        ,0.02725
+                        ,0.71655
+                        ,0.03674
+                    );
+
+                WHEN 20 => 
+                    multiply_add(mpya_in 
+                        ,hfloat_record'(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"))
+                        ,hfloat_record'(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"))
+                        ,to_hfloat(exponent => 0, mantissa => x"800001")
+                    );
+                WHEN others => --do nothing
+            end CASE;
             -- multiply_add(mpya_in 
             --     ,0.01
             --     ,100.5
@@ -224,16 +266,25 @@ begin
                 in2_0         <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
                 in3_0         <= to_hfloat(mpya_in.add_a, hfloat_zero);
 
-                result_shift1 <= max(to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent),0);
-                mult          <= resize(to_hfloat(mpya_in.mpy_a, hfloat_zero).mantissa * to_hfloat(mpya_in.mpy_b, hfloat_zero).mantissa, mult);
-                test1         <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
-                                 ,hfloat_zero.mantissa'length
-                                 + to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
+                result_shift1 <= max(
+                                 to_integer(
+                                   to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
                                  - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
-                                 - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent));
+                                 - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent)
+                                 ,0);
 
+                mult  <= resize(
+                           to_hfloat(mpya_in.mpy_a, hfloat_zero).mantissa 
+                         * to_hfloat(mpya_in.mpy_b, hfloat_zero).mantissa
+                         , mult);
+
+                test1  <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
+                          ,hfloat_zero.mantissa'length
+                         + to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
+                         - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
+                         - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent));
             end if;
-            -- mult <= resize(in1.mantissa * in2.mantissa, mult);
+
             in1 <= in1_0;
             in2 <= in2_0;
             in3 <= in3_0;
