@@ -228,24 +228,24 @@ begin
                         ,0.0866
                         ,0.1332
                     );
-                WHEN 10 => 
+                WHEN 15 => 
                     multiply_add(mpya_in 
                         ,0.9998
                         ,0.0235
                         ,0.6680
                     );
-                WHEN 15 => 
+                WHEN 25 => 
                     multiply_add(mpya_in 
                         ,0.02725
                         ,0.71655
                         ,0.03674
                     );
 
-                WHEN 20 => 
+                WHEN 35 => 
                     multiply_add(mpya_in 
-                        ,hfloat_record'(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"))
-                        ,hfloat_record'(sign => '0', exponent => (7 downto 0 => x"00"), mantissa => (23 downto 0 => x"000000"))
-                        ,to_hfloat(exponent => 0, mantissa => x"800001")
+                        ,to_hfloat(exponent => 1 , mantissa => x"fff2e4")
+                        ,to_hfloat(exponent => -5, mantissa => x"c08312")
+                        ,to_hfloat(exponent => 0 , mantissa => x"ab020c")
                     );
                 WHEN others => --do nothing
             end CASE;
