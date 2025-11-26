@@ -90,28 +90,6 @@ architecture vunit_simulation of fast_mult_add_pkg_tb is
 
     signal hfloat_result : hfloat_zero'subtype := hfloat_zero;
 
-    function max(a,b : signed) return signed is
-        variable retval : a'subtype;
-    begin
-        if a > b then
-            retval := a;
-        else
-            retval := b;
-        end if;
-        return retval;
-    end max;
-
-    function shift(a : unsigned; b : integer) return unsigned is
-        variable retval : a'subtype;
-    begin
-        if b >= 0 then
-            retval := shift_left(a,b);
-        else
-            retval := shift_right(a,-b);
-        end if;
-
-        return retval;
-    end shift;
 
     use work.normalizer_generic_pkg.normalize;
 
@@ -298,7 +276,6 @@ begin
                      + to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
                      - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
                      - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent));
-            -- end if;
 
             --- p2
             in1 <= in1_0;

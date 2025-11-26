@@ -12,6 +12,8 @@ package fast_hfloat_pkg is
     function get_shift_width(a, b, c : signed ; mantissa : unsigned) return integer;
     function get_shift(a : std_logic_vector; b : std_logic_vector ; c : std_logic_vector ; floatref : hfloat_record) return unsigned;
     function max (a, b : integer) return integer;
+    function max(a,b : signed) return signed;
+    function shift(a : unsigned; b : integer) return unsigned;
 
 end package;
 
@@ -77,6 +79,29 @@ package body fast_hfloat_pkg is
 
         return retval;
     end max;
+
+    function max(a,b : signed) return signed is
+        variable retval : a'subtype;
+    begin
+        if a > b then
+            retval := a;
+        else
+            retval := b;
+        end if;
+        return retval;
+    end max;
+
+    function shift(a : unsigned; b : integer) return unsigned is
+        variable retval : a'subtype;
+    begin
+        if b >= 0 then
+            retval := shift_left(a,b);
+        else
+            retval := shift_right(a,-b);
+        end if;
+
+        return retval;
+    end shift;
     ----------------------------
     ----------------------------
 end package body;
