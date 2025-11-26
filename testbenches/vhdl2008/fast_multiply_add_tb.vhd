@@ -116,9 +116,9 @@ begin
         procedure multiply_add(signal self_in : out mpya_ref.mpya_in'subtype; a , b , c : real) is
         begin
             multiply_add(self_in 
-            ,to_std_logic(to_hfloat(a))
-            ,to_std_logic(to_hfloat(b))
-            ,to_std_logic(to_hfloat(c)));
+            ,to_std_logic(to_hfloat(to_float32(a),hfloat_zero))
+            ,to_std_logic(to_hfloat(to_float32(b),hfloat_zero))
+            ,to_std_logic(to_hfloat(to_float32(c),hfloat_zero)));
 
             ref_a   <= a;
             ref_b   <= b;
@@ -128,6 +128,7 @@ begin
             ref_b_pipeline(0)   <= b;
             ref_add_pipeline(0) <= c;
         end multiply_add;
+        -----------------
         -----------------
     begin
         if rising_edge(simulator_clock) then
@@ -148,7 +149,7 @@ begin
             multiply_add(mpya_in 
                 ,rand1 * 1.0e0
                 ,rand2 * 1.0e0
-                ,rand3 * 1.0e4
+                ,rand3 * 1.0e0
             );
 
             --------------------------

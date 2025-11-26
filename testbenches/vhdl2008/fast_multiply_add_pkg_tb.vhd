@@ -163,9 +163,9 @@ begin
         procedure multiply_add(signal self_in : out mpya_ref.mpya_in'subtype; a , b , c : real) is
         begin
             multiply_add(self_in 
-            ,to_std_logic(to_hfloat(a))
-            ,to_std_logic(to_hfloat(b))
-            ,to_std_logic(to_hfloat(c)));
+            ,to_std_logic(to_hfloat(to_float32(a),hfloat_zero))
+            ,to_std_logic(to_hfloat(to_float32(b),hfloat_zero))
+            ,to_std_logic(to_hfloat(to_float32(c),hfloat_zero)));
 
             ref_a   <= a;
             ref_b   <= b;
@@ -192,8 +192,6 @@ begin
             ref_add_pipeline(0) <= to_real(c);
         end multiply_add;
         -----------------
-        variable v_hfloat_result : hfloat_zero'subtype;
-        -----------------
 
 
     begin
@@ -208,19 +206,11 @@ begin
 
             ref_pipeline <= ref_pipeline(ref_pipeline'left-1 downto 0) & (ref_a*ref_b + ref_add);
 
-            ref_a_pipeline   <= ref_a_pipeline(ref_a_pipeline'left-1 downto 0) & ref_a_pipeline(0);
-            ref_b_pipeline   <= ref_b_pipeline(ref_b_pipeline'left-1 downto 0) & ref_b_pipeline(0);
-            ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
+            ref_a_pipeline   <= ref_a_pipeline(ref_a_pipeline'left-1 downto 0) & ref_a;
+            ref_b_pipeline   <= ref_b_pipeline(ref_b_pipeline'left-1 downto 0) & ref_b;
+            ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add;
 
             --------------------------
-            -- if simulation_counter mod 5 = 0 then
-            --     multiply_add(mpya_in 
-            --         ,rand1**2
-            --         ,rand2**2
-            --         ,rand3**2
-            --     );
-            -- end if;
-
             CASE simulation_counter is
                 WHEN 5 => 
                     multiply_add(mpya_in 
@@ -240,6 +230,11 @@ begin
                         ,0.71655
                         ,0.03674
                     );
+                    -- multiply_add(mpya_in 
+                    --     ,to_hfloat(exponent => -5 , mantissa => x"df3b64")
+                    --     ,to_hfloat(exponent => 1, mantissa   => x"b76fd2")
+                    --     ,to_hfloat(exponent => -4 , mantissa => x"967cae")
+                    -- );
 
                 WHEN 35 => 
                     multiply_add(mpya_in 
@@ -260,37 +255,59 @@ begin
             --     ,0.5
             --     ,1.0e3
             -- );
-            -------------------------
-            if mpya_in.is_requested then
-                in1_0         <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
-                in2_0         <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
-                in3_0         <= to_hfloat(mpya_in.add_a, hfloat_zero);
-
-                result_shift1 <= max(
-                                 to_integer(
-                                   to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
-                                 - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
-                                 - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent)
-                                 ,0);
-
-                mult  <= resize(
-                           to_hfloat(mpya_in.mpy_a, hfloat_zero).mantissa 
-                         * to_hfloat(mpya_in.mpy_b, hfloat_zero).mantissa
-                         , mult);
-
-                test1  <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
-                          ,hfloat_zero.mantissa'length
-                         + to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
-                         - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
-                         - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent));
+            if simulation_counter mod 5 = 0 then
+                multiply_add(mpya_in 
+                    ,(rand1*2.0)**2
+                    ,(rand2*2.0)**2
+                    ,(rand3*2.0)**2
+                );
             end if;
 
+
+
+        end if; -- rising_edge
+    end process stimulus;	
+------------------------------------------------------------------------
+    process(simulator_clock) is
+        -----------------
+        variable v_hfloat_result : hfloat_zero'subtype;
+        -----------------
+    begin
+        if rising_edge(simulator_clock)
+        then
+            -------------------------
+            --- p1
+            in1_0         <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
+            in2_0         <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
+            in3_0         <= to_hfloat(mpya_in.add_a, hfloat_zero);
+
+            result_shift1 <= max(
+                             to_integer(
+                               to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
+                             - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
+                             - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent)
+                             ,0);
+
+            mult  <= resize(
+                       to_hfloat(mpya_in.mpy_a, hfloat_zero).mantissa 
+                     * to_hfloat(mpya_in.mpy_b, hfloat_zero).mantissa
+                     , mult);
+
+            test1  <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
+                      ,hfloat_zero.mantissa'length
+                     + to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
+                     - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
+                     - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent));
+            -- end if;
+
+            --- p2
             in1 <= in1_0;
             in2 <= in2_0;
             in3 <= in3_0;
             result_shift <= result_shift1;
 
             mult_add <= mult + test1;
+            --- p3
             v_hfloat_result := ((sign => '0'
                              ,exponent => max(in1.exponent + in2.exponent+result_shift, in3.exponent) +guard_bits
                              ,mantissa => mult_add(hfloat_zero.mantissa'length*2-1+(result_shift)     +guard_bits
@@ -300,9 +317,8 @@ begin
             hfloat_result    <= (v_hfloat_result);
             real_mpya_result <= to_real(normalize(v_hfloat_result));
             result_error     <= abs(to_real(normalize(v_hfloat_result)) - ref_pipeline(2));
-
-
-        end if; -- rising_edge
-    end process stimulus;	
+            ---
+        end if;
+    end process;
 ------------------------------------------------------------------------
 end vunit_simulation;
