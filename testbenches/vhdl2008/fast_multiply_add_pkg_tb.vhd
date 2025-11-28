@@ -111,6 +111,8 @@ architecture vunit_simulation of fast_mult_add_pkg_tb is
 
     end to_hfloat;
 
+    signal max_error : real := 0.0;
+
 begin
 
 ------------------------------------------------------------------------
@@ -235,9 +237,9 @@ begin
             -- );
             if simulation_counter mod 5 = 0 then
                 multiply_add(mpya_in 
-                    ,(rand1*2.0)**2
-                    ,(rand2*2.0)**2
-                    ,(rand3*2.0)**2
+                    ,(rand1*10.0)**2
+                    ,(rand2*10.0)**2
+                    ,(rand3*10.0)**2
                 );
             end if;
 
@@ -293,7 +295,13 @@ begin
 
             hfloat_result    <= (v_hfloat_result);
             real_mpya_result <= to_real(normalize(v_hfloat_result));
-            result_error     <= abs(to_real(normalize(v_hfloat_result)) - ref_pipeline(2));
+            if ref_pipeline(2) /= 0.0
+            then
+                result_error     <= abs(real_mpya_result - ref_pipeline(2))/ref_pipeline(2);
+            end if;
+            if result_error > max_error then
+                max_error <= result_error;
+            end if;
             ---
         end if;
     end process;
