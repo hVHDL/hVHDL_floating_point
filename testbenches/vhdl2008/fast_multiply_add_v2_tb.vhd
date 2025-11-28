@@ -1,3 +1,18 @@
+
+architecture fast_hfloat_v2 of multiply_add is
+
+    use work.normalizer_generic_pkg.all;
+    use work.denormalizer_generic_pkg.all;
+    use work.float_adder_pkg.all;
+    use work.float_multiplier_pkg.all;
+begin
+
+
+end fast_hfloat_v2;
+
+------------------------------------------------------------------------
+------------------------------------------------------------------------
+
 LIBRARY ieee  ; 
     USE ieee.NUMERIC_STD.all  ; 
     USE ieee.std_logic_1164.all  ; 
@@ -6,11 +21,11 @@ LIBRARY ieee  ;
 library vunit_lib;
     context vunit_lib.vunit_context;
 
-entity fast_mult_add_pkg_tb is
+entity fast_mult_add_v2_tb is
   generic (runner_cfg : string);
 end;
 
-architecture vunit_simulation of fast_mult_add_pkg_tb is
+architecture vunit_simulation of fast_mult_add_v2_tb is
 
     signal simulation_running  : boolean;
     signal simulator_clock     : std_logic := '0';
