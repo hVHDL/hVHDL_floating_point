@@ -33,12 +33,12 @@ architecture fast_hfloat of multiply_add is
     end to_hfloat;
     ----------------------
     ----------------------
-    signal ready_pipeline : std_logic_vector(1 downto 0) := (others => '0');
+    signal ready_pipeline     : std_logic_vector(1 downto 0) := (others => '0');
     signal add_shift_pipeline : std_logic_vector(1 downto 0) := (others => '0');
     ----------------------
     type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
     signal exponent_pipeline : exp_array(1 downto 0) := (others => (others => '0'));
-    signal shift_pipeline : exp_array(1 downto 0) := (others => (others => '0'));
+    signal shift_pipeline    : exp_array(1 downto 0) := (others => (others => '0'));
     ----------------------
     signal mpy_a : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
     signal mpy_b : hfloat_zero.mantissa'subtype := (others => '0');
@@ -118,13 +118,13 @@ begin
                 shift_pipeline(0)    <=
                                to_hfloat(mpya_in.add_a).exponent
                              - to_hfloat(mpya_in.mpy_a).exponent 
-                             - to_hfloat(mpya_in.mpy_b).exponent+(1);
+                             - to_hfloat(mpya_in.mpy_b).exponent+(0);
 
                 add_shift_pipeline(0) <= '1';
             end if;
             ---
             -- p1
-            mpy_a      <= shift_left(resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_a'length),1);
+            mpy_a      <= shift_left(resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_a'length),0);
             mpy_b      <= to_hfloat(mpya_in.add_a).mantissa;
             mpy_result <= resize(to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa , mpy_result2'length);
             ---

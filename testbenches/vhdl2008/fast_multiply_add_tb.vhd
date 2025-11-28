@@ -243,7 +243,7 @@ begin
 
             end if;
 
-            if rel_error > 1.0e-5 
+            if rel_error > max_rel_error 
             then
                 max_rel_error <= rel_error;
             end if;

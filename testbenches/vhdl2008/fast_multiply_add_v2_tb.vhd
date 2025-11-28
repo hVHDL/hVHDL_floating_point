@@ -67,11 +67,15 @@ begin
                      * to_hfloat(mpya_in.mpy_b, hfloat_zero).mantissa
                      , mult);
 
-            test1  <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
-                      ,hfloat_zero.mantissa'length
-                     + to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
-                     - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
-                     - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent));
+            test1  <= shift(
+                          resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
+                          ,
+                          -- shift length:
+                          hfloat_zero.mantissa'length + to_integer (
+                             to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
+                             - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
+                             - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent)
+                     );
 
             --- p2
             in1 <= in1_0;
