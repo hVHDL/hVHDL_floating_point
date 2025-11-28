@@ -5,7 +5,92 @@ architecture fast_hfloat_v2 of multiply_add is
     use work.denormalizer_generic_pkg.all;
     use work.float_adder_pkg.all;
     use work.float_multiplier_pkg.all;
+    
+    use work.float_typedefs_generic_pkg.all;
+    use work.float_to_real_conversions_pkg.all;
+
+    use ieee.float_pkg.all;
+    use work.float_typedefs_generic_pkg.to_ieee_float32;
+    use work.fast_hfloat_pkg.all;
+
+    constant g_exponent_length : natural := g_floatref.exponent'length;
+    constant g_mantissa_length : natural := g_floatref.mantissa'length;
+
+
+    constant hfloat_zero : hfloat_record := (
+            sign       => '0'
+            , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))
+            , mantissa => (g_mantissa_length-1 downto 0 => (g_mantissa_length-1 downto 0 => '0')));
+
+    signal in1 : hfloat_zero'subtype := hfloat_zero;
+    signal in2 : hfloat_zero'subtype := hfloat_zero;
+    signal in3 : hfloat_zero'subtype := hfloat_zero;
+
+    signal in1_0: hfloat_zero'subtype := hfloat_zero;
+    signal in2_0: hfloat_zero'subtype := hfloat_zero;
+    signal in3_0: hfloat_zero'subtype := hfloat_zero;
+
+    signal result_shift  : integer := 0;
+    signal result_shift1 : integer := 0;
+    constant guard_bits  : natural := 1;
+
+    signal mult     : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+    signal mult_add : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+    signal test1    : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+
+    signal hfloat_result : hfloat_zero'subtype := hfloat_zero;
+
 begin
+
+    process(clock) is
+        -----------------
+        variable v_hfloat_result : hfloat_zero'subtype;
+        -----------------
+    begin
+        if rising_edge(clock)
+        then
+            -------------------------
+            --- p1
+            in1_0         <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
+            in2_0         <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
+            in3_0         <= to_hfloat(mpya_in.add_a, hfloat_zero);
+
+            result_shift1 <= max(
+                             to_integer(
+                               to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
+                             - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
+                             - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent)
+                             ,0);
+
+            mult  <= resize(
+                       to_hfloat(mpya_in.mpy_a, hfloat_zero).mantissa 
+                     * to_hfloat(mpya_in.mpy_b, hfloat_zero).mantissa
+                     , mult);
+
+            test1  <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
+                      ,hfloat_zero.mantissa'length
+                     + to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
+                     - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
+                     - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent));
+
+            --- p2
+            in1 <= in1_0;
+            in2 <= in2_0;
+            in3 <= in3_0;
+            result_shift <= result_shift1;
+
+            mult_add <= mult + test1;
+            --- p3
+            v_hfloat_result := ((sign => '0'
+                             ,exponent => max(in1.exponent + in2.exponent+result_shift, in3.exponent) +guard_bits
+                             ,mantissa => mult_add(hfloat_zero.mantissa'length*2-1+(result_shift)     +guard_bits
+                             downto hfloat_zero.mantissa'length+(result_shift)                        +guard_bits )
+                             ));
+
+            hfloat_result    <= (v_hfloat_result);
+            ---
+        end if;
+    end process;
 
 
 end fast_hfloat_v2;
@@ -245,6 +330,14 @@ begin
                 );
             end if;
 
+            -- real_mpya_result <= to_real(normalize(v_hfloat_result));
+            if ref_pipeline(2) /= 0.0
+            then
+                result_error <= abs(real_mpya_result - ref_pipeline(2))/ref_pipeline(2);
+            end if;
+            if result_error > max_error then
+                max_error <= result_error;
+            end if;
 
 
         end if; -- rising_edge
@@ -252,63 +345,12 @@ begin
 
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
-
-    process(simulator_clock) is
-        -----------------
-        variable v_hfloat_result : hfloat_zero'subtype;
-        -----------------
-    begin
-        if rising_edge(simulator_clock)
-        then
-            -------------------------
-            --- p1
-            in1_0         <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
-            in2_0         <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
-            in3_0         <= to_hfloat(mpya_in.add_a, hfloat_zero);
-
-            result_shift1 <= max(
-                             to_integer(
-                               to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
-                             - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
-                             - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent)
-                             ,0);
-
-            mult  <= resize(
-                       to_hfloat(mpya_in.mpy_a, hfloat_zero).mantissa 
-                     * to_hfloat(mpya_in.mpy_b, hfloat_zero).mantissa
-                     , mult);
-
-            test1  <= shift(resize(to_hfloat(mpya_in.add_a, hfloat_zero).mantissa, mult)
-                      ,hfloat_zero.mantissa'length
-                     + to_integer(to_hfloat(mpya_in.add_a, hfloat_zero).exponent 
-                     - to_hfloat(mpya_in.mpy_a, hfloat_zero).exponent 
-                     - to_hfloat(mpya_in.mpy_b, hfloat_zero).exponent));
-
-            --- p2
-            in1 <= in1_0;
-            in2 <= in2_0;
-            in3 <= in3_0;
-            result_shift <= result_shift1;
-
-            mult_add <= mult + test1;
-            --- p3
-            v_hfloat_result := ((sign => '0'
-                             ,exponent => max(in1.exponent + in2.exponent+result_shift, in3.exponent) +guard_bits
-                             ,mantissa => mult_add(hfloat_zero.mantissa'length*2-1+(result_shift)     +guard_bits
-                             downto hfloat_zero.mantissa'length+(result_shift)                        +guard_bits )
-                             ));
-
-            hfloat_result    <= (v_hfloat_result);
-            real_mpya_result <= to_real(normalize(v_hfloat_result));
-            if ref_pipeline(2) /= 0.0
-            then
-                result_error     <= abs(real_mpya_result - ref_pipeline(2))/ref_pipeline(2);
-            end if;
-            if result_error > max_error then
-                max_error <= result_error;
-            end if;
-            ---
-        end if;
-    end process;
+    dut : entity work.multiply_add(fast_hfloat_v2)
+    generic map(hfloat_zero)
+    port map(
+        simulator_clock
+        ,mpya_in
+        ,mpya_out);
+------------------------------------------------------------------------
 ------------------------------------------------------------------------
 end vunit_simulation;
