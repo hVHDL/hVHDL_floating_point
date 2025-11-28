@@ -16,7 +16,7 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     signal simulator_clock     : std_logic := '0';
     constant clock_per         : time      := 1 ns;
     constant clock_half_per    : time      := 0.5 ns;
-    constant simtime_in_clocks : integer   := 1500;
+    constant simtime_in_clocks : integer   := 5000;
 
     signal simulation_counter : natural := 0;
     -------------------------------------------------------
@@ -147,9 +147,9 @@ begin
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
             multiply_add(mpya_in 
-                ,rand1 * 1.0e0
-                ,rand2 * 1.0e0
-                ,rand3 * 1.0e0
+                ,rand1 * 1.0e3
+                ,rand2 * 1.0e3
+                ,rand3 * 1.0e3
             );
 
             --------------------------
