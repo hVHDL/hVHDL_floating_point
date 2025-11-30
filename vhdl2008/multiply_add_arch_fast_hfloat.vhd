@@ -46,12 +46,10 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     signal shift_res : integer := 0;
     ----------------------
-    constant const_shift : integer := 2;
+    constant const_shift : integer := 2; -- TODO, check this
     ----------------------
-    signal refa   :  hfloat_zero'subtype := hfloat_zero;
-    signal refb   :  hfloat_zero'subtype := hfloat_zero;
-    signal refadd :  hfloat_zero'subtype := hfloat_zero;
-
+    signal mpy_sign_pipeline : std_logic_vector(2 downto 0) := (others => '0');
+    signal add_sign_pipeline : std_logic_vector(2 downto 0) := (others => '0');
     ----------------------
     use work.fast_hfloat_pkg.get_result_slice;
     ----------------------
@@ -61,6 +59,12 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     use work.fast_hfloat_pkg.max;
     ----------------------
+
+    --debug signals, remove when no longer needed
+    signal refa   :  hfloat_zero'subtype := hfloat_zero;
+    signal refb   :  hfloat_zero'subtype := hfloat_zero;
+    signal refadd :  hfloat_zero'subtype := hfloat_zero;
+
 
 begin
 
@@ -91,6 +95,19 @@ begin
             exponent_pipeline  <= exponent_pipeline  ( exponent_pipeline'left-1  downto 0) & hfloat_zero.exponent;
             shift_pipeline     <= shift_pipeline     ( shift_pipeline'left-1     downto 0) & hfloat_zero.exponent;
             add_shift_pipeline <= add_shift_pipeline ( add_shift_pipeline'left-1 downto 0) & '0';
+            mpy_sign_pipeline <= 
+                mpy_sign_pipeline ( mpy_sign_pipeline'left-1 downto 0) 
+                &
+                to_hfloat(mpya_in.mpy_a).sign
+                xor
+                to_hfloat(mpya_in.mpy_b).sign
+            ;
+            add_sign_pipeline <= 
+                add_sign_pipeline ( add_sign_pipeline'left-1 downto 0) 
+                &
+                to_hfloat(mpya_in.add_a).sign
+            ;
+
 
             refa   <= to_hfloat(mpya_in.mpy_a);
             refb   <= to_hfloat(mpya_in.mpy_b);
@@ -129,7 +146,12 @@ begin
             mpy_result <= resize(to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa , mpy_result2'length);
             ---
             -- p2
-            mpy_result2 <= resize(mpy_a * mpy_b , mpy_result2'length) + mpy_result;
+            if add_sign_pipeline(0) = '0'
+            then
+                mpy_result2 <= resize(mpy_a * mpy_b , mpy_result2'length) + mpy_result;
+            else
+                mpy_result2 <= resize(mpy_a * mpy_b , mpy_result2'length) - mpy_result;
+            end if;
             ---
         end if; -- rising edge
     end process;

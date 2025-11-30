@@ -147,11 +147,11 @@ begin
             ref_b_pipeline   <= ref_b_pipeline(ref_b_pipeline'left-1 downto 0) & ref_b_pipeline(0);
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
-            multiply_add(mpya_in 
-                ,rand1**1.5
-                ,rand2**1.5
-                ,rand3**1.5
-            );
+            -- multiply_add(mpya_in 
+            --     ,rand1**1.5
+            --     ,rand2**1.5
+            --     ,rand3**1.5
+            -- );
 
             --------------------------
             -- shift one off
@@ -165,11 +165,11 @@ begin
             --     ,0.5
             --     ,0.25
             -- );
-            -- multiply_add(mpya_in 
-            --     ,4.0
-            --     ,0.5
-            --     ,1.0e3
-            -- );
+            multiply_add(mpya_in 
+                ,4.0
+                ,0.5
+                ,1.0e3
+            );
             -------------------------
 
             --
