@@ -108,7 +108,7 @@ begin
     stimulus : process(simulator_clock)
         -----------------
         variable seed1 : positive :=1;
-        variable seed2 : positive :=2;
+        variable seed2 : positive :=1;
         variable rand1 : real := 0.0;
         variable rand2 : real := 0.0;
         variable rand3 : real := 0.0;
@@ -130,6 +130,7 @@ begin
         end multiply_add;
         -----------------
         -----------------
+        variable v_rel_error : real := 0.0;
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
@@ -147,9 +148,9 @@ begin
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
             multiply_add(mpya_in 
-                ,rand1 * 1.0e3
-                ,rand2 * 1.0e3
-                ,rand3 * 1.0e3
+                ,rand1**1.5
+                ,rand2**1.5
+                ,rand3**1.5
             );
 
             --------------------------
@@ -230,16 +231,13 @@ begin
                 mpya_result         <= to_hfloat(get_mpya_result(mpya_out), hfloat_zero);
                 real_mpya_result    <= to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
                 float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
-                rel_error           <= abs(to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero)) - ref_pipeline(1))/ref_pipeline(1);
+                v_rel_error :=abs(to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero)) - ref_pipeline(1))/ref_pipeline(1);
+                rel_error           <= v_rel_error;
                 total_count <= total_count + 1.0;
-                if rel_error > 1.0e-3 then
+                if v_rel_error > 1.0e-3 then
                     rel_error_count <= rel_error_count + 1.0;
+                    error_density <= ((rel_error_count+1.0) / (total_count+1.0));
                 end if;
-                error_density <= (rel_error_count+1.0) / (total_count+1.0);
-
-                -- div_error <=
-                --     ref_pipeline(1)
-                --     /to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
 
             end if;
 
