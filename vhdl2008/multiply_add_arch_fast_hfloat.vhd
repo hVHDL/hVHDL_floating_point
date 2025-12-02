@@ -40,13 +40,13 @@ architecture fast_hfloat of multiply_add is
     signal exponent_pipeline : exp_array(1 downto 0) := (others => (others => '0'));
     signal shift_pipeline    : exp_array(1 downto 0) := (others => (others => '0'));
     ----------------------
-    signal mpy_a : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
-    signal mpy_b : hfloat_zero.mantissa'subtype := (others => '0');
+    signal mpy_shifter : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
+    signal add_a_buf : hfloat_zero.mantissa'subtype := (others => '0');
     signal res   : hfloat_zero'subtype          := hfloat_zero;
     ----------------------
     signal shift_res : integer := 0;
     ----------------------
-    constant const_shift : integer := 2; -- TODO, check this
+    constant const_shift : integer := 1; -- TODO, check this
     ----------------------
     signal mpy_sign_pipeline : std_logic_vector(2 downto 0) := (others => '0');
     signal add_sign_pipeline : std_logic_vector(2 downto 0) := (others => '0');
@@ -65,9 +65,23 @@ architecture fast_hfloat of multiply_add is
     signal refb   :  hfloat_zero'subtype := hfloat_zero;
     signal refadd :  hfloat_zero'subtype := hfloat_zero;
 
+    function get_sign (a,b,c : std_logic) return std_logic is
+        variable retval : std_logic;
+    begin
+        if a = (b xor c)
+        then
+            retval := '0';
+        else
+            retval := '1';
+        end if;
+
+        return retval;
+
+    end get_sign;
 
 begin
 
+    -- use res with mantissa + 3 length
     res <= (
                  sign      => '0'
                  ,exponent => exponent_pipeline(exponent_pipeline'left)+const_shift
@@ -85,6 +99,7 @@ begin
     -- normalize from 3m length |3m|2m|1m|0mxxxx|
     mpya_out.result   <= to_std_logic(normalize(res));
 
+    -------------------------------------------
     process(clock) is
     begin
         if rising_edge(clock) 
@@ -105,7 +120,10 @@ begin
             add_sign_pipeline <= 
                 add_sign_pipeline ( add_sign_pipeline'left-1 downto 0) 
                 &
-                to_hfloat(mpya_in.add_a).sign
+                get_sign(
+                    to_hfloat(mpya_in.add_a).sign
+                    ,to_hfloat(mpya_in.mpy_a).sign
+                    ,to_hfloat(mpya_in.mpy_b).sign)
             ;
 
 
@@ -141,19 +159,20 @@ begin
             end if;
             ---
             -- p1
-            mpy_a      <= shift_left(resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_a'length),0);
-            mpy_b      <= to_hfloat(mpya_in.add_a).mantissa;
-            mpy_result <= resize(to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa , mpy_result2'length);
+            mpy_shifter <= shift_left(resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length),0);
+            add_a_buf       <= to_hfloat(mpya_in.add_a).mantissa;
+            mpy_result  <= resize(to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa , mpy_result2'length);
             ---
             -- p2
             if add_sign_pipeline(0) = '0'
             then
-                mpy_result2 <= resize(mpy_a * mpy_b , mpy_result2'length) + mpy_result;
+                mpy_result2 <= resize(mpy_shifter * add_a_buf , mpy_result2'length) + mpy_result;
             else
-                mpy_result2 <= resize(mpy_a * mpy_b , mpy_result2'length) - mpy_result;
+                mpy_result2 <= resize(mpy_shifter * add_a_buf , mpy_result2'length) - mpy_result;
             end if;
             ---
         end if; -- rising edge
     end process;
+    -------------------------------------------
 
 end fast_hfloat;

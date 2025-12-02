@@ -148,9 +148,9 @@ begin
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
             -- multiply_add(mpya_in 
-            --     ,rand1**1.5
-            --     ,rand2**1.5
-            --     ,rand3**1.5
+            --     ,(rand1-0.5)*100.0
+            --     ,(rand2-0.5)*100.0
+            --     ,(rand3-0.5)*100.0
             -- );
 
             --------------------------
@@ -165,22 +165,27 @@ begin
             --     ,0.5
             --     ,0.25
             -- );
-            multiply_add(mpya_in 
-                ,4.0
-                ,0.5
-                ,1.0e3
-            );
+            -- multiply_add(mpya_in 
+            --     ,4.0
+            --     ,0.5
+            --     ,1.0e3
+            -- );
             -------------------------
 
             --
-            -- CASE simulation_counter is
-            --     WHEN 0  *5 =>
-            --         multiply_add(mpya_in 
-            --         ,rand1
-            --         ,rand2
-            --         ,rand3*0.5
-            --     );
-            --     WHEN 1  *5 =>
+            CASE simulation_counter is
+                WHEN 0  *5 =>
+                    multiply_add(mpya_in 
+                    ,1.0
+                    ,1.0
+                    ,1.1
+                );
+                WHEN 1  *5 =>
+                    multiply_add(mpya_in 
+                    ,1.0
+                    ,1.0
+                    ,-20.1
+                );
             --         multiply_add(mpya_in 
             --         ,0.49498465168
             --         ,1.498465468
@@ -219,8 +224,8 @@ begin
             --     );
             --
             --
-            --     WHEN others => -- do nothing
-            -- end CASE;
+                WHEN others => -- do nothing
+            end CASE;
 
 
             --
