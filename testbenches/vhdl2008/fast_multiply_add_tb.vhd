@@ -174,18 +174,15 @@ begin
 
             --
             CASE simulation_counter is
-                WHEN 0  *5 =>
-                    multiply_add(mpya_in 
-                    ,1.0
-                    ,1.0
-                    ,1.1
-                );
-                WHEN 1  *5 =>
-                    multiply_add(mpya_in 
-                    ,1.0
-                    ,1.0
-                    ,-20.1
-                );
+                WHEN 0  *10 => multiply_add(mpya_in , +1.0 , +1.0 , +2.1);
+                WHEN 1  *10 => multiply_add(mpya_in , -1.0 , -1.0 , +2.1);
+                WHEN 2  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -2.1);
+                WHEN 3  *10 => multiply_add(mpya_in , +1.0 , -1.0 , -2.1);
+
+                WHEN 4  *10 => multiply_add(mpya_in , -1.0 , -1.0 , +2.1);
+                WHEN 5  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -2.1);
+                WHEN 6  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +2.1);
+                WHEN 7  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -2.1);
             --         multiply_add(mpya_in 
             --         ,0.49498465168
             --         ,1.498465468
