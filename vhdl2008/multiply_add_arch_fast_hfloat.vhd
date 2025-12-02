@@ -65,19 +65,42 @@ architecture fast_hfloat of multiply_add is
     signal refb   :  hfloat_zero'subtype := hfloat_zero;
     signal refadd :  hfloat_zero'subtype := hfloat_zero;
 
-    function get_sign (a,b,c : std_logic) return std_logic is
-        variable retval : std_logic;
+    function get_operation (add_a,mpy_a,mpy_b : hfloat_zero'subtype) return std_logic is
+        variable add_when_0_neg_when_1 : std_logic;
+        variable sign_vector : std_logic_vector(2 downto 0);
+        /*
+        sign propagation to operation
+        ++|+ => +
+        --|+ => +
+        -+|- => +
+        +-|- => +
+
+        --|- => -
+        -+|+ => -
+        +-|+ => -
+        ++|- => -
+        */
     begin
-        if a = (b xor c)
-        then
-            retval := '0';
-        else
-            retval := '1';
-        end if;
+        -- inverted since sign = '1' means negative number
+        sign_vector := not(mpy_a.sign & mpy_b.sign & add_a.sign);
+        CASE sign_vector is
+            -- add
+            WHEN "111" => add_when_0_neg_when_1 := '0';
+            WHEN "001" => add_when_0_neg_when_1 := '0';
+            WHEN "010" => add_when_0_neg_when_1 := '0';
+            WHEN "100" => add_when_0_neg_when_1 := '0';
 
-        return retval;
+            -- sub
+            WHEN "000" => add_when_0_neg_when_1 := '1';
+            WHEN "011" => add_when_0_neg_when_1 := '1';
+            WHEN "101" => add_when_0_neg_when_1 := '1';
+            WHEN "110" => add_when_0_neg_when_1 := '1';
+            WHEN others => --do nothing
+        end CASE;
 
-    end get_sign;
+        return add_when_0_neg_when_1;
+
+    end get_operation;
 
 begin
 
@@ -120,10 +143,10 @@ begin
             add_sign_pipeline <= 
                 add_sign_pipeline ( add_sign_pipeline'left-1 downto 0) 
                 &
-                get_sign(
-                    to_hfloat(mpya_in.add_a).sign
-                    ,to_hfloat(mpya_in.mpy_a).sign
-                    ,to_hfloat(mpya_in.mpy_b).sign)
+                get_operation(
+                    to_hfloat(mpya_in.add_a)
+                    ,to_hfloat(mpya_in.mpy_a)
+                    ,to_hfloat(mpya_in.mpy_b))
             ;
 
 
@@ -160,7 +183,7 @@ begin
             ---
             -- p1
             mpy_shifter <= shift_left(resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length),0);
-            add_a_buf       <= to_hfloat(mpya_in.add_a).mantissa;
+            add_a_buf   <= to_hfloat(mpya_in.add_a).mantissa;
             mpy_result  <= resize(to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa , mpy_result2'length);
             ---
             -- p2
