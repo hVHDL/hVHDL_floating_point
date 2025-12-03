@@ -7,3 +7,5 @@ vunit_out/
 *.o
 *.fst
 *.fst.*
+*.json
+*.toml

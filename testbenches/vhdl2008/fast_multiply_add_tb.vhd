@@ -15,7 +15,6 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     signal simulation_running  : boolean;
     signal simulator_clock     : std_logic := '0';
     constant clock_per         : time      := 1 ns;
-    constant clock_half_per    : time      := 0.5 ns;
     constant simtime_in_clocks : integer   := 5000;
 
     signal simulation_counter : natural := 0;
@@ -44,16 +43,9 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     -----------------------
     -- simulation specific signals ----
 
-    constant check_value : real := -84.5;
     constant hfloat_zero : hfloat_record := to_hfloat(0.0);
 
     signal float32_conv_result : float32 := to_float32(0.0);
-    signal convref             : float32 := to_float32(check_value);
-    signal conv_result         : hfloat_zero'subtype := hfloat_zero;
-
-    constant float1 : hfloat_zero'subtype := to_hfloat(-84.5);
-    constant float2 : hfloat_zero'subtype := to_hfloat(1.5);
-    constant float3 : hfloat_zero'subtype := to_hfloat(84.5/2.0);
 
     use work.multiply_add_pkg.all;
     constant mpya_ref : mpya_subtype_record := create_mpya_typeref(hfloat_zero);
@@ -85,8 +77,6 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
 
     signal error_density : real := 0.0;
 
-    signal div_error : real := 0.0;
-
 begin
 
 ------------------------------------------------------------------------
@@ -95,7 +85,7 @@ begin
         test_runner_setup(runner, runner_cfg);
         simulation_running <= true;
         wait for simtime_in_clocks*clock_per;
-        check(convref = float32_conv_result);
+        check(max_rel_error < 1.0e-6, "max error > 1.0e-6");
         simulation_running <= false;
         test_runner_cleanup(runner); -- Simulation ends here
         wait;

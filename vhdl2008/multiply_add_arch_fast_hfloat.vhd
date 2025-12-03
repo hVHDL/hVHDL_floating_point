@@ -16,14 +16,8 @@ architecture fast_hfloat of multiply_add is
     constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => hfloat_zero);
     signal normalizer : init_normalizer'subtype := init_normalizer;
 
-    function "*"(left : integer; right : real) return integer is
-    begin
-        return integer(real(left)*right);
-    end function;
-
     signal mpy_result  : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
-    signal mpy_result3 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
 
     ----------------------
     ----------------------
@@ -170,13 +164,13 @@ begin
             then
                 exponent_pipeline(0) <= 
                                to_hfloat(mpya_in.mpy_a).exponent 
-                             + to_hfloat(mpya_in.mpy_b).exponent+(0);
+                             + to_hfloat(mpya_in.mpy_b).exponent;
             else
                 exponent_pipeline(0) <= to_hfloat(mpya_in.add_a).exponent;
                 shift_pipeline(0)    <=
                                to_hfloat(mpya_in.add_a).exponent
                              - to_hfloat(mpya_in.mpy_a).exponent 
-                             - to_hfloat(mpya_in.mpy_b).exponent+(0);
+                             - to_hfloat(mpya_in.mpy_b).exponent;
 
                 add_shift_pipeline(0) <= '1';
             end if;
