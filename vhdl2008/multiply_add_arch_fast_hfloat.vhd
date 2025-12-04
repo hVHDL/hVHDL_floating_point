@@ -107,18 +107,32 @@ architecture fast_hfloat of multiply_add is
 
         -- variable sign_vector : std_logic_vector(2 downto 0);
         variable retval : std_logic;
+        function "xor"(left : std_logic ; right : boolean) return std_logic 
+        is
+            variable retval : std_logic;
+        begin
+            if right then
+                retval := '1';
+            else
+                retval := '0';
+            end if;
+
+            return retval;
+        end function;
+        constant exp_a : hfloat_zero.exponent'subtype := exp_a_pipe(2);
+        constant exp_b : hfloat_zero.exponent'subtype := exp_b_pipe(2);
+        constant exp_c : hfloat_zero.exponent'subtype := exp_c_pipe(2);
     begin
         CASE sign_pipe(2) is
-
-            WHEN "111" => retval := '1';
-            WHEN "001" => retval := '1';
-            WHEN "010" => retval := '1';
-            WHEN "100" => retval := '1';
+            WHEN "111" => retval := '1' xor (exp_a + exp_b) < exp_c;
+            WHEN "001" => retval := '1' xor (exp_a + exp_b) < exp_c;
+            WHEN "010" => retval := '1' xor (exp_a + exp_b) > exp_c;
+            WHEN "100" => retval := '1' xor (exp_a + exp_b) > exp_c;
 
             WHEN "000" => retval := '0';
-            WHEN "011" => retval := '1';
-            WHEN "101" => retval := '1';
-            WHEN "110" => retval := '1';
+            WHEN "011" => retval := '1' xor (exp_a + exp_b) < exp_c;
+            WHEN "101" => retval := '1' xor (exp_a + exp_b) > exp_c;
+            WHEN "110" => retval := '1' xor (exp_a + exp_b) > exp_c;
             WHEN others => --do nothing
         end CASE;
 
