@@ -42,7 +42,6 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     constant const_shift : integer := 1; -- TODO, check this
     ----------------------
-    signal mpy_sign_pipeline : std_logic_vector(2 downto 0) := (others => '0');
     signal op_pipe_sub_when_1 : std_logic_vector(2 downto 0) := (others => '0');
     ----------------------
     use work.fast_hfloat_pkg.get_result_slice;
@@ -53,6 +52,11 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     use work.fast_hfloat_pkg.max;
     ----------------------
+
+    --debug signals, remove when no longer needed
+    signal refa   :  hfloat_zero'subtype := hfloat_zero;
+    signal refb   :  hfloat_zero'subtype := hfloat_zero;
+    signal refadd :  hfloat_zero'subtype := hfloat_zero;
 
     function get_operation (mpy_a,mpy_b, add_a : hfloat_zero'subtype) return std_logic is
         variable add_when_0_neg_when_1 : std_logic;
@@ -114,6 +118,12 @@ architecture fast_hfloat of multiply_add is
         return retval;
     end function;
 
+    function "xor" (left : std_logic ; right : unsigned) return unsigned is
+        constant expanded_left : unsigned(right'range) := (others => left);
+    begin
+        return expanded_left xor right;
+    end function;
+
 
 begin
 
@@ -121,14 +131,14 @@ begin
     res <= (
                  sign      => get_result_sign
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
-                 ,mantissa => get_result_slice(mpy_result2, const_shift, hfloat_zero)
+                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift, hfloat_zero)
            )
             when add_shift_pipeline(add_shift_pipeline'left) = '0'
             else
            (
                  sign      => get_result_sign
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left) + const_shift
-                 ,mantissa => get_result_slice(mpy_result2, to_integer(shift_pipeline(1) + const_shift), hfloat_zero)
+                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift), hfloat_zero)
            );
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
@@ -154,17 +164,10 @@ begin
         then
             create_normalizer(normalizer);
 
-            ready_pipeline     <= ready_pipeline     ( ready_pipeline'left-1     downto 0) & mpya_in.is_requested;
-            result_exponent_pipe  <= result_exponent_pipe  ( result_exponent_pipe'left-1  downto 0) & hfloat_zero.exponent;
-            shift_pipeline     <= shift_pipeline     ( shift_pipeline'left-1     downto 0) & hfloat_zero.exponent;
-            add_shift_pipeline <= add_shift_pipeline ( add_shift_pipeline'left-1 downto 0) & '0';
-            mpy_sign_pipeline <= 
-                mpy_sign_pipeline ( mpy_sign_pipeline'left-1 downto 0) 
-                &
-                to_hfloat(mpya_in.mpy_a).sign
-                xor
-                to_hfloat(mpya_in.mpy_b).sign
-            ;
+            ready_pipeline       <= ready_pipeline       ( ready_pipeline'left-1       downto 0) & mpya_in.is_requested;
+            result_exponent_pipe <= result_exponent_pipe ( result_exponent_pipe'left-1 downto 0) & hfloat_zero.exponent;
+            shift_pipeline       <= shift_pipeline       ( shift_pipeline'left-1       downto 0) & hfloat_zero.exponent;
+            add_shift_pipeline   <= add_shift_pipeline   ( add_shift_pipeline'left-1   downto 0) & '0';
             op_pipe_sub_when_1 <= 
                 op_pipe_sub_when_1 ( op_pipe_sub_when_1'left-1 downto 0) 
                 &
@@ -175,6 +178,9 @@ begin
             ;
 
 
+            refa   <= to_hfloat(mpya_in.mpy_a);
+            refb   <= to_hfloat(mpya_in.mpy_b);
+            refadd <= to_hfloat(mpya_in.add_a);
             ---
             shift_res  <= get_shift_width(
                            to_hfloat(mpya_in.mpy_a).exponent
@@ -213,7 +219,7 @@ begin
             then
                 mpy_result2 <= resize(mpy_shifter * add_a_buf , mpy_result2'length) + mpy_result;
             else
-                mpy_result2 <= resize(mpy_shifter * add_a_buf , mpy_result2'length) - mpy_result;
+                mpy_result2 <= (resize(mpy_shifter * add_a_buf , mpy_result2'length) - mpy_result);
             end if;
             ---
         end if; -- rising edge

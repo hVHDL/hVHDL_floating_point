@@ -173,6 +173,16 @@ begin
                 WHEN 5  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -2.1);
                 WHEN 6  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +2.1);
                 WHEN 7  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -2.1);
+
+                WHEN 8  *10  => multiply_add(mpya_in , +1.0 , +1.0 , +0.1);
+                WHEN 9  *10  => multiply_add(mpya_in , -1.0 , -1.0 , +0.1);
+                WHEN 10  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -0.1);
+                WHEN 11  *10 => multiply_add(mpya_in , +1.0 , -1.0 , -0.1);
+
+                WHEN 12  *10 => multiply_add(mpya_in , -1.0 , -1.0 , +0.1);
+                WHEN 13  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -0.1);
+                WHEN 14  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +0.1);
+                WHEN 15  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -0.1);
             --         multiply_add(mpya_in 
             --         ,0.49498465168
             --         ,1.498465468
