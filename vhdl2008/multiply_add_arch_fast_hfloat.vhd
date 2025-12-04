@@ -53,11 +53,7 @@ architecture fast_hfloat of multiply_add is
     use work.fast_hfloat_pkg.max;
     ----------------------
 
-    --debug signals, remove when no longer needed
-    signal refa   :  hfloat_zero'subtype := hfloat_zero;
-    signal refb   :  hfloat_zero'subtype := hfloat_zero;
-    signal refadd :  hfloat_zero'subtype := hfloat_zero;
-
+    ------------------
     function get_operation (mpy_a,mpy_b, add_a : hfloat_zero'subtype) return std_logic is
         variable add_when_0_neg_when_1 : std_logic;
         variable sign_vector : std_logic_vector(2 downto 0);
@@ -94,16 +90,17 @@ architecture fast_hfloat of multiply_add is
 
     end get_operation;
 
+    ------------------
     type sign_array is array (natural range <>) of std_logic_vector(2 downto 0);
-    signal sign_pipe : sign_array(2 downto 0) := (others => (others => '0'));
 
-    impure function get_result_sign return std_logic is
+    ------------------
+    function get_result_sign(sign_pipe : sign_array) return std_logic is
         -- variable sign_vector : std_logic_vector(2 downto 0);
         variable retval : std_logic;
     begin
         CASE sign_pipe(1) is
 
-            WHEN "111" => retval := '0';
+            WHEN "111" => retval := '1';
             WHEN "001" => retval := '1';
             WHEN "010" => retval := '1';
             WHEN "100" => retval := '1';
@@ -118,25 +115,32 @@ architecture fast_hfloat of multiply_add is
         return retval;
     end function;
 
+    ------------------
     function "xor" (left : std_logic ; right : unsigned) return unsigned is
         constant expanded_left : unsigned(right'range) := (others => left);
     begin
         return expanded_left xor right;
     end function;
 
+    ------------------
+    signal sign_pipe : sign_array(2 downto 0) := (others => (others => '0'));
+    --debug signals, remove when no longer needed
+    signal refa   :  hfloat_zero'subtype := hfloat_zero;
+    signal refb   :  hfloat_zero'subtype := hfloat_zero;
+    signal refadd :  hfloat_zero'subtype := hfloat_zero;
 
 begin
 
     -- use res with mantissa + 3 length
     res <= (
-                 sign      => get_result_sign
+                 sign      => get_result_sign(sign_pipe)
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
                  ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift, hfloat_zero)
            )
             when add_shift_pipeline(add_shift_pipeline'left) = '0'
             else
            (
-                 sign      => get_result_sign
+                 sign      => get_result_sign(sign_pipe)
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left) + const_shift
                  ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift), hfloat_zero)
            );
