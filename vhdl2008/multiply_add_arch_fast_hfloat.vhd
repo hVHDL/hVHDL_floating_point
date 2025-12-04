@@ -33,6 +33,10 @@ architecture fast_hfloat of multiply_add is
     type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
     signal result_exponent_pipe : exp_array(1 downto 0) := (others => (others => '0'));
     signal shift_pipeline       : exp_array(1 downto 0) := (others => (others => '0'));
+
+    signal exp_a_pipe           : exp_array(2 downto 0) := (others => (others => '0'));
+    signal exp_b_pipe           : exp_array(2 downto 0) := (others => (others => '0'));
+    signal exp_c_pipe           : exp_array(2 downto 0) := (others => (others => '0'));
     ----------------------
     signal mpy_shifter : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
     signal add_a_buf   : hfloat_zero.mantissa'subtype                       := (others => '0');
@@ -94,7 +98,7 @@ architecture fast_hfloat of multiply_add is
     type sign_array is array (natural range <>) of std_logic_vector(2 downto 0);
 
     ------------------
-    function get_result_sign(sign_pipe : sign_array) return std_logic is
+    impure function get_result_sign(sign_pipe : sign_array) return std_logic is
         /* result sign determination
             exp(a) + exp(b) > exp(c) => a xor b
             exp(a) + exp(b) < exp(c) => sign(c)
@@ -155,7 +159,7 @@ begin
     mpya_out.result   <= to_std_logic(normalize(res));
 
     -------------------------------------------
-    process(clock) is
+    pipelines : process(clock) is
     begin
         if rising_edge(clock) 
         then
@@ -164,6 +168,14 @@ begin
                         to_hfloat(mpya_in.mpy_a).sign
                         & to_hfloat(mpya_in.mpy_b).sign
                         & to_hfloat(mpya_in.add_a).sign) ;
+
+            exp_a_pipe <= exp_a_pipe(exp_a_pipe'left-1 downto 0) 
+                          & to_hfloat(mpya_in.mpy_a).exponent;
+            exp_b_pipe <= exp_b_pipe(exp_b_pipe'left-1 downto 0) 
+                          & to_hfloat(mpya_in.mpy_a).exponent;
+            exp_c_pipe <= exp_c_pipe(exp_b_pipe'left-1 downto 0) 
+                          & to_hfloat(mpya_in.mpy_a).exponent;
+
         end if;
     end process;
 
