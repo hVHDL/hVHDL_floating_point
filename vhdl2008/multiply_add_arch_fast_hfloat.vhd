@@ -32,7 +32,7 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
     signal result_exponent_pipe : exp_array(1 downto 0) := (others => (others => '0'));
-    signal shift_pipeline    : exp_array(1 downto 0) := (others => (others => '0'));
+    signal shift_pipeline       : exp_array(1 downto 0) := (others => (others => '0'));
     ----------------------
     signal mpy_shifter : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
     signal add_a_buf   : hfloat_zero.mantissa'subtype                       := (others => '0');
@@ -95,17 +95,23 @@ architecture fast_hfloat of multiply_add is
 
     ------------------
     function get_result_sign(sign_pipe : sign_array) return std_logic is
+        /* result sign determination
+            exp(a) + exp(b) > exp(c) => a xor b
+            exp(a) + exp(b) < exp(c) => sign(c)
+            exp(a) + exp(b) = exp(c) => a xor b xnor result(high)
+        */
+
         -- variable sign_vector : std_logic_vector(2 downto 0);
         variable retval : std_logic;
     begin
-        CASE sign_pipe(1) is
+        CASE sign_pipe(2) is
 
             WHEN "111" => retval := '1';
             WHEN "001" => retval := '1';
             WHEN "010" => retval := '1';
             WHEN "100" => retval := '1';
 
-            WHEN "000" => retval := '1';
+            WHEN "000" => retval := '0';
             WHEN "011" => retval := '1';
             WHEN "101" => retval := '1';
             WHEN "110" => retval := '1';
