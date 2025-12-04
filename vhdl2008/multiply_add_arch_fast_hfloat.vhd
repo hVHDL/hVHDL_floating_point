@@ -117,22 +117,24 @@ architecture fast_hfloat of multiply_add is
                 retval := '0';
             end if;
 
-            return retval;
+            return retval xor left;
         end function;
+
         constant exp_a : hfloat_zero.exponent'subtype := exp_a_pipe(2);
         constant exp_b : hfloat_zero.exponent'subtype := exp_b_pipe(2);
         constant exp_c : hfloat_zero.exponent'subtype := exp_c_pipe(2);
+
     begin
         CASE sign_pipe(2) is
-            WHEN "111" => retval := '1' xor (exp_a + exp_b) < exp_c;
-            WHEN "001" => retval := '1' xor (exp_a + exp_b) < exp_c;
-            WHEN "010" => retval := '1' xor (exp_a + exp_b) > exp_c;
-            WHEN "100" => retval := '1' xor (exp_a + exp_b) > exp_c;
+            WHEN "111" => retval := '1' xor (exp_a + exp_b) > exp_c;
+            WHEN "001" => retval := '1' xor (exp_a + exp_b) > exp_c;
+            WHEN "010" => retval := '1' xor (exp_a + exp_b) < exp_c;
+            WHEN "100" => retval := '1' xor (exp_a + exp_b) < exp_c;
 
             WHEN "000" => retval := '0';
-            WHEN "011" => retval := '1' xor (exp_a + exp_b) < exp_c;
-            WHEN "101" => retval := '1' xor (exp_a + exp_b) > exp_c;
-            WHEN "110" => retval := '1' xor (exp_a + exp_b) > exp_c;
+            WHEN "011" => retval := '0' xor (exp_a + exp_b) < exp_c;
+            WHEN "101" => retval := '0' xor (exp_a + exp_b) > exp_c;
+            WHEN "110" => retval := '0' xor (exp_a + exp_b) > exp_c;
             WHEN others => --do nothing
         end CASE;
 
