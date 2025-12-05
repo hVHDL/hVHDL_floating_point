@@ -137,11 +137,14 @@ begin
             ref_b_pipeline   <= ref_b_pipeline(ref_b_pipeline'left-1 downto 0) & ref_b_pipeline(0);
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
-            -- multiply_add(mpya_in 
-            --     ,(rand1-0.5)*100.0
-            --     ,(rand2-0.5)*100.0
-            --     ,(rand3-0.5)*100.0
-            -- );
+            if simulation_counter >= 300
+            then
+                multiply_add(mpya_in 
+                    ,(rand1-0.5)*100.0
+                    ,(rand2-0.5)*100.0
+                    ,(rand3-0.5)*100.0
+                );
+            end if;
 
             --------------------------
             -- shift one off
@@ -183,6 +186,16 @@ begin
                 WHEN 13  *10 => multiply_add(mpya_in , -1.0 , -1.0 , -0.1); --111
                 WHEN 14  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +0.1); --010
                 WHEN 15  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -0.1); --001
+
+                WHEN 16  *10 => multiply_add(mpya_in , +1.0 , +1.0 , +1.1); --000
+                WHEN 17  *10 => multiply_add(mpya_in , -1.0 , -1.0 , +1.1); --110
+                WHEN 18  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -1.1); --101
+                WHEN 19  *10 => multiply_add(mpya_in , +1.0 , -1.0 , -1.1); --011
+
+                WHEN 20  *10 => multiply_add(mpya_in , -1.0 , +1.0 , +1.1); --100
+                WHEN 21  *10 => multiply_add(mpya_in , -1.0 , -1.0 , -1.1); --111
+                WHEN 22  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +1.1); --010
+                WHEN 23  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -1.1); --001
             --         multiply_add(mpya_in 
             --         ,0.49498465168
             --         ,1.498465468
@@ -244,7 +257,7 @@ begin
 
             end if;
 
-            if abs(rel_error) > max_rel_error
+            if abs(rel_error) > 1.0e-3
             then
                 max_rel_error <= abs(rel_error);
             end if;

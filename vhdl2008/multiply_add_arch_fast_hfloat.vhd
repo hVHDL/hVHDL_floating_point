@@ -125,7 +125,7 @@ architecture fast_hfloat of multiply_add is
         end function;
 
         ---------
-        constant pipe : natural := 0;
+        constant pipe : natural := 1;
         ---------
         constant exp_a : hfloat_zero.exponent'subtype := exp_a_pipe(pipe);
         constant exp_b : hfloat_zero.exponent'subtype := exp_b_pipe(pipe);
@@ -134,10 +134,10 @@ architecture fast_hfloat of multiply_add is
 
     begin
         CASE sign_pipe(pipe) is
-            WHEN "111" => retval := '1' xor (exp_a + exp_b) < exp_c;
-            WHEN "001" => retval := '1' xor (exp_a + exp_b) < exp_c;
-            WHEN "010" => retval := '1' xor (exp_a + exp_b) > exp_c;
-            WHEN "100" => retval := '1' xor (exp_a + exp_b) > exp_c;
+            WHEN "111" => retval := '1' xor (exp_a + exp_b) <= exp_c;
+            WHEN "001" => retval := '1' xor (exp_a + exp_b) <= exp_c;
+            WHEN "010" => retval := '1' xor (exp_a + exp_b) >= exp_c;
+            WHEN "100" => retval := '1' xor (exp_a + exp_b) >= exp_c;
             --
             WHEN "000" => retval := '0';
             WHEN "011" => retval := '1';
