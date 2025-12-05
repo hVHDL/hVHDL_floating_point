@@ -61,9 +61,9 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     signal ref_add : real := 0.0;
 
     signal ref_pipeline     : real_vector(2 downto 0) := (others => 0.0);
-    signal ref_a_pipeline   : real_vector(4 downto 0) := (others => 0.0);
-    signal ref_b_pipeline   : real_vector(4 downto 0) := (others => 0.0);
-    signal ref_add_pipeline : real_vector(4 downto 0) := (others => 0.0);
+    signal ref_a_pipeline   : real_vector(3 downto 0) := (others => 0.0);
+    signal ref_b_pipeline   : real_vector(3 downto 0) := (others => 0.0);
+    signal ref_add_pipeline : real_vector(3 downto 0) := (others => 0.0);
 
     use work.float_typedefs_generic_pkg.to_ieee_float32;
 
@@ -196,6 +196,8 @@ begin
                 WHEN 21  *10 => multiply_add(mpya_in , -1.0 , -1.0 , -1.1); --111
                 WHEN 22  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +1.1); --010
                 WHEN 23  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -1.1); --001
+
+                WHEN 24  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 4.0); --001
             --         multiply_add(mpya_in 
             --         ,0.49498465168
             --         ,1.498465468

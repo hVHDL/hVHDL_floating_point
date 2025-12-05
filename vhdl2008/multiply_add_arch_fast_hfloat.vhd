@@ -134,8 +134,8 @@ architecture fast_hfloat of multiply_add is
 
     begin
         CASE sign_pipe(pipe) is
-            WHEN "111" => retval := '1' xor (exp_a + exp_b) <= exp_c;
-            WHEN "001" => retval := '1' xor (exp_a + exp_b) <= exp_c;
+            WHEN "111" => retval := '0' xor (exp_a + exp_b) >= exp_c;
+            WHEN "001" => retval := '0' xor (exp_a + exp_b) >= exp_c;
             WHEN "010" => retval := '1' xor (exp_a + exp_b) >= exp_c;
             WHEN "100" => retval := '1' xor (exp_a + exp_b) >= exp_c;
             --
@@ -195,10 +195,12 @@ begin
 
             exp_a_pipe <= exp_a_pipe(exp_a_pipe'left-1 downto 0) 
                           & to_hfloat(mpya_in.mpy_a).exponent;
+
             exp_b_pipe <= exp_b_pipe(exp_b_pipe'left-1 downto 0) 
-                          & to_hfloat(mpya_in.mpy_a).exponent;
-            exp_c_pipe <= exp_c_pipe(exp_b_pipe'left-1 downto 0) 
-                          & to_hfloat(mpya_in.mpy_a).exponent;
+                          & to_hfloat(mpya_in.mpy_b).exponent;
+
+            exp_c_pipe <= exp_c_pipe(exp_c_pipe'left-1 downto 0) 
+                          & to_hfloat(mpya_in.add_a).exponent;
 
         end if;
     end process;
