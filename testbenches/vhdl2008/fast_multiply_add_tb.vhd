@@ -60,9 +60,9 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     signal ref_b   : real := 0.0;
     signal ref_add : real := 0.0;
 
-    signal ref_pipeline : real_vector(2 downto 0) := (others => 0.0);
-    signal ref_a_pipeline : real_vector(4 downto 0) := (others => 0.0);
-    signal ref_b_pipeline : real_vector(4 downto 0) := (others => 0.0);
+    signal ref_pipeline     : real_vector(2 downto 0) := (others => 0.0);
+    signal ref_a_pipeline   : real_vector(4 downto 0) := (others => 0.0);
+    signal ref_b_pipeline   : real_vector(4 downto 0) := (others => 0.0);
     signal ref_add_pipeline : real_vector(4 downto 0) := (others => 0.0);
 
     use work.float_typedefs_generic_pkg.to_ieee_float32;
@@ -164,25 +164,25 @@ begin
 
             --
             CASE simulation_counter is
-                WHEN 0  *10 => multiply_add(mpya_in , +1.0 , +1.0 , +2.1);
-                WHEN 1  *10 => multiply_add(mpya_in , -1.0 , -1.0 , +2.1);
-                WHEN 2  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -2.1);
-                WHEN 3  *10 => multiply_add(mpya_in , +1.0 , -1.0 , -2.1);
+                WHEN 0  *10 => multiply_add(mpya_in , +1.0 , +1.0 , +2.1); --000
+                WHEN 1  *10 => multiply_add(mpya_in , -1.0 , -1.0 , +2.1); --110
+                WHEN 2  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -2.1); --101
+                WHEN 3  *10 => multiply_add(mpya_in , +1.0 , -1.0 , -2.1); --011
 
-                WHEN 4  *10 => multiply_add(mpya_in , -1.0 , -1.0 , +2.1);
-                WHEN 5  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -2.1);
-                WHEN 6  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +2.1);
-                WHEN 7  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -2.1);
+                WHEN 4  *10 => multiply_add(mpya_in , -1.0 , +1.0 , +2.1); --100
+                WHEN 5  *10 => multiply_add(mpya_in , -1.0 , -1.0 , -2.1); --111
+                WHEN 6  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +2.1); --010
+                WHEN 7  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -2.1); --001
 
-                WHEN 8  *10  => multiply_add(mpya_in , +1.0 , +1.0 , +0.1);
-                WHEN 9  *10  => multiply_add(mpya_in , -1.0 , -1.0 , +0.1);
-                WHEN 10  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -0.1);
-                WHEN 11  *10 => multiply_add(mpya_in , +1.0 , -1.0 , -0.1);
+                WHEN 8  *10  => multiply_add(mpya_in , +1.0 , +1.0 , +0.1); --000
+                WHEN 9  *10  => multiply_add(mpya_in , -1.0 , -1.0 , +0.1); --110
+                WHEN 10  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -0.1); --101
+                WHEN 11  *10 => multiply_add(mpya_in , +1.0 , -1.0 , -0.1); --011
 
-                WHEN 12  *10 => multiply_add(mpya_in , -1.0 , -1.0 , +0.1);
-                WHEN 13  *10 => multiply_add(mpya_in , -1.0 , +1.0 , -0.1);
-                WHEN 14  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +0.1);
-                WHEN 15  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -0.1);
+                WHEN 12  *10 => multiply_add(mpya_in , -1.0 , +1.0 , +0.1); --100
+                WHEN 13  *10 => multiply_add(mpya_in , -1.0 , -1.0 , -0.1); --111
+                WHEN 14  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +0.1); --010
+                WHEN 15  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -0.1); --001
             --         multiply_add(mpya_in 
             --         ,0.49498465168
             --         ,1.498465468

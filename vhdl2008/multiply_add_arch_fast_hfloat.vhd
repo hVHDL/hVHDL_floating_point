@@ -34,9 +34,9 @@ architecture fast_hfloat of multiply_add is
     signal result_exponent_pipe : exp_array(1 downto 0) := (others => (others => '0'));
     signal shift_pipeline       : exp_array(1 downto 0) := (others => (others => '0'));
 
-    signal exp_a_pipe           : exp_array(2 downto 0) := (others => (others => '0'));
-    signal exp_b_pipe           : exp_array(2 downto 0) := (others => (others => '0'));
-    signal exp_c_pipe           : exp_array(2 downto 0) := (others => (others => '0'));
+    signal exp_a_pipe : exp_array(2 downto 0) := (others => (others => '0'));
+    signal exp_b_pipe : exp_array(2 downto 0) := (others => (others => '0'));
+    signal exp_c_pipe : exp_array(2 downto 0) := (others => (others => '0'));
     ----------------------
     signal mpy_shifter : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
     signal add_a_buf   : hfloat_zero.mantissa'subtype                       := (others => '0');
@@ -106,7 +106,11 @@ architecture fast_hfloat of multiply_add is
         */
 
         -- variable sign_vector : std_logic_vector(2 downto 0);
+
+        ---------
         variable retval : std_logic;
+
+        ---------
         function "xor"(left : std_logic ; right : boolean) return std_logic 
         is
             variable retval : std_logic;
@@ -120,21 +124,25 @@ architecture fast_hfloat of multiply_add is
             return retval xor left;
         end function;
 
-        constant exp_a : hfloat_zero.exponent'subtype := exp_a_pipe(2);
-        constant exp_b : hfloat_zero.exponent'subtype := exp_b_pipe(2);
-        constant exp_c : hfloat_zero.exponent'subtype := exp_c_pipe(2);
+        ---------
+        constant pipe : natural := 0;
+        ---------
+        constant exp_a : hfloat_zero.exponent'subtype := exp_a_pipe(pipe);
+        constant exp_b : hfloat_zero.exponent'subtype := exp_b_pipe(pipe);
+        constant exp_c : hfloat_zero.exponent'subtype := exp_c_pipe(pipe);
+        ---------
 
     begin
-        CASE sign_pipe(2) is
-            WHEN "111" => retval := '1' xor (exp_a + exp_b) > exp_c;
-            WHEN "001" => retval := '1' xor (exp_a + exp_b) > exp_c;
-            WHEN "010" => retval := '1' xor (exp_a + exp_b) < exp_c;
-            WHEN "100" => retval := '1' xor (exp_a + exp_b) < exp_c;
-
+        CASE sign_pipe(pipe) is
+            WHEN "111" => retval := '1' xor (exp_a + exp_b) < exp_c;
+            WHEN "001" => retval := '1' xor (exp_a + exp_b) < exp_c;
+            WHEN "010" => retval := '1' xor (exp_a + exp_b) > exp_c;
+            WHEN "100" => retval := '1' xor (exp_a + exp_b) > exp_c;
+            --
             WHEN "000" => retval := '0';
-            WHEN "011" => retval := '0' xor (exp_a + exp_b) < exp_c;
-            WHEN "101" => retval := '0' xor (exp_a + exp_b) > exp_c;
-            WHEN "110" => retval := '0' xor (exp_a + exp_b) > exp_c;
+            WHEN "011" => retval := '1';
+            WHEN "101" => retval := '1';
+            WHEN "110" => retval := '0';
             WHEN others => --do nothing
         end CASE;
 
@@ -159,14 +167,14 @@ begin
 
     -- use res with mantissa + 3 length
     res <= (
-                 sign      => get_result_sign(sign_pipe)
+                 sign      => mpy_result2(mpy_result2'left) xor get_result_sign(sign_pipe)
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
                  ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift, hfloat_zero)
            )
             when add_shift_pipeline(add_shift_pipeline'left) = '0'
             else
            (
-                 sign      => get_result_sign(sign_pipe)
+                 sign      => mpy_result2(mpy_result2'left) xor get_result_sign(sign_pipe)
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left) + const_shift
                  ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift), hfloat_zero)
            );
