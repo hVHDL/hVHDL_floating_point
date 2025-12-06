@@ -85,7 +85,7 @@ begin
         test_runner_setup(runner, runner_cfg);
         simulation_running <= true;
         wait for simtime_in_clocks*clock_per;
-        check(max_rel_error < 1.0e-6, "max error > 1.0e-6");
+        check(rel_error_count = 0.0, "error count " & real'image(rel_error_count));
         simulation_running <= false;
         test_runner_cleanup(runner); -- Simulation ends here
         wait;
@@ -197,9 +197,13 @@ begin
                 WHEN 22  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +1.1); --010
                 WHEN 23  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -1.1); --001
 
-                WHEN 24  *10 => multiply_add(mpya_in , -1.0/8.0 , 8.0 , 4.0); --001
-                WHEN 25  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 4.0); --001
-                WHEN 26  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 0.0); --001
+                WHEN 24  *10 => multiply_add(mpya_in , -1.0/128.0 , 8.0 , 4.0); --100
+                WHEN 25  *10 => multiply_add(mpya_in , 1.0/8.0 , -1.0 , 4.0); --010
+                WHEN 26  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 0.0); --010
+
+                WHEN 27  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 0.0); --010
+                --TODO, check with negative zero
+
             --         multiply_add(mpya_in 
             --         ,0.49498465168
             --         ,1.498465468
