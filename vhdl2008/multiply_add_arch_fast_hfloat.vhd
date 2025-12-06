@@ -98,7 +98,7 @@ architecture fast_hfloat of multiply_add is
     type sign_array is array (natural range <>) of std_logic_vector(2 downto 0);
 
     ------------------
-    impure function get_result_sign(sign_pipe : sign_array) return std_logic is
+    impure function get_result_sign(sign_pipe : sign_array ; high_bit : STD_LOGIC) return std_logic is
         /* result sign determination
             exp(a) + exp(b) > exp(c) => a xor b
             exp(a) + exp(b) < exp(c) => sign(c)
@@ -135,9 +135,21 @@ architecture fast_hfloat of multiply_add is
     begin
         CASE sign_pipe(pipe) is
             WHEN "111" => retval := '0' xor (exp_a + exp_b) >= exp_c;
+            if op_pipe_sub_when_1(pipe) = '1' then
+                retval := '1';
+            end if;
             WHEN "001" => retval := '0' xor (exp_a + exp_b) >= exp_c;
+            if op_pipe_sub_when_1(pipe) = '1' then
+                retval := '1';
+            end if;
             WHEN "010" => retval := '1' xor (exp_a + exp_b) >= exp_c;
+            if op_pipe_sub_when_1(pipe) = '1' then
+                retval := '0';
+            end if;
             WHEN "100" => retval := '1' xor (exp_a + exp_b) >= exp_c;
+            if op_pipe_sub_when_1(pipe) = '1' then
+                retval := '0';
+            end if;
             --
             WHEN "000" => retval := '0';
             WHEN "011" => retval := '1';
@@ -146,7 +158,7 @@ architecture fast_hfloat of multiply_add is
             WHEN others => --do nothing
         end CASE;
 
-        return retval;
+        return retval xor high_bit;
     end function;
 
     ------------------
@@ -167,14 +179,14 @@ begin
 
     -- use res with mantissa + 3 length
     res <= (
-                 sign      => mpy_result2(mpy_result2'left) xor get_result_sign(sign_pipe)
+                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
                  ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift, hfloat_zero)
            )
             when add_shift_pipeline(add_shift_pipeline'left) = '0'
             else
            (
-                 sign      => mpy_result2(mpy_result2'left) xor get_result_sign(sign_pipe)
+                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left) + const_shift
                  ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift), hfloat_zero)
            );
