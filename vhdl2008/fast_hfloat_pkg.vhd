@@ -25,6 +25,14 @@ package body fast_hfloat_pkg is
 
     begin
         shiftwidth := to_integer(c - a - b);
+        if shiftwidth > (mantissa'length)*2
+        then
+            shiftwidth := (mantissa'length)*2;
+        end if;
+        if shiftwidth < -(mantissa'length)
+        then
+            shiftwidth := -(mantissa'length);
+        end if;
         -- if shiftwidth < 0 then
         --     shiftwidth := shiftwidth + 1;
         -- end if;

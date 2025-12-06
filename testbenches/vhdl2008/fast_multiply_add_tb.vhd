@@ -197,7 +197,9 @@ begin
                 WHEN 22  *10 => multiply_add(mpya_in , +1.0 , -1.0 , +1.1); --010
                 WHEN 23  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -1.1); --001
 
-                WHEN 24  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 4.0); --001
+                WHEN 24  *10 => multiply_add(mpya_in , -1.0/8.0 , 8.0 , 4.0); --001
+                WHEN 25  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 4.0); --001
+                WHEN 26  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 0.0); --001
             --         multiply_add(mpya_in 
             --         ,0.49498465168
             --         ,1.498465468
