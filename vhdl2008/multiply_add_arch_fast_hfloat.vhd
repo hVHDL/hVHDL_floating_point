@@ -13,11 +13,18 @@ architecture fast_hfloat of multiply_add is
             , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))
             , mantissa => (g_mantissa_length-1 downto 0 => (g_mantissa_length-1 downto 0 => '0')));
 
+    constant res_subtype : hfloat_record := (
+            sign       => '0'
+            , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))
+            , mantissa => (g_mantissa_length+1 downto 0 => (g_mantissa_length+1 downto 0 => '0')));
+
     constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => hfloat_zero);
     signal normalizer : init_normalizer'subtype := init_normalizer;
 
     signal mpy_result  : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+    signal mpy_result_buf  : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+    signal test_mpy : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
 
     ----------------------
     ----------------------
@@ -273,8 +280,11 @@ begin
             mpy_shifter <= shift_left(resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length),0);
             add_a_buf   <= to_hfloat(mpya_in.add_a).mantissa;
             mpy_result  <= resize(to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa , mpy_result2'length);
+
             ---
             -- p2
+            test_mpy       <= resize(mpy_shifter * add_a_buf , mpy_result2'length);
+            mpy_result_buf <= mpy_result;
             if op_pipe_sub_when_1(0) = '0'
             then
                 mpy_result2 <= resize(mpy_shifter * add_a_buf , mpy_result2'length) + mpy_result;

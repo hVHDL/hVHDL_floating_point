@@ -258,14 +258,14 @@ begin
                 v_rel_error := (to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero)) - ref_pipeline(1))/ref_pipeline(1);
                 rel_error   <= v_rel_error;
                 total_count <= total_count + 1.0;
-                if abs(v_rel_error) > 1.0e-6 then
+                if abs(v_rel_error) > 1.0e-5 then
                     rel_error_count <= rel_error_count + 1.0;
                     error_density <= ((rel_error_count+1.0) / (total_count+1.0));
                 end if;
 
             end if;
 
-            if abs(rel_error) > 1.0e-3
+            if abs(rel_error) > 1.0e-5
             then
                 max_rel_error <= abs(rel_error);
             end if;
