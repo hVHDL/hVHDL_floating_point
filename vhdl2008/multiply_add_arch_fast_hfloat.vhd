@@ -233,9 +233,7 @@ begin
         end if;
     end process;
 
-    test_mpy1 <= 
-                resize(mpy_shifter , mpy_result2'length/2) 
-                 * resize(add_a_buf , mpy_result2'length/2);
+    test_mpy1 <= resize(mpy_shifter * add_a_buf , mpy_result2'length);
                  -- + 
                  -- resize(mpy_a_buf   , mpy_result2'length/2)
                  -- * resize(mpy_b_buf , mpy_result2'length/2);
@@ -244,8 +242,7 @@ begin
                 -- resize(mpy_shifter , mpy_result2'length/2) 
                 --  * resize(add_a_buf , mpy_result2'length/2) ;
                  -- - 
-                 resize(mpy_a_buf   , mpy_result2'length/2)
-                 * resize(mpy_b_buf , mpy_result2'length/2);
+                 resize(mpy_a_buf   * mpy_b_buf, mpy_result2'length);
 
     -------------------------------------------
     process(clock) is
