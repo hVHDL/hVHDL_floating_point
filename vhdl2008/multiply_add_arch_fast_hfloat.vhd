@@ -184,6 +184,8 @@ architecture fast_hfloat of multiply_add is
     signal refb   :  hfloat_zero'subtype := hfloat_zero;
     signal refadd :  hfloat_zero'subtype := hfloat_zero;
 
+    signal result : STD_LOGIC_VECTOR(26 downto 0);
+
 begin
 
     -- use res with mantissa + 3 length
@@ -216,7 +218,7 @@ begin
 
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
-    mpya_out.result   <= to_std_logic(normalize(res_extended))(32+3 downto 0+3);
+    mpya_out.result   <= (to_std_logic(normalize(res_extended))(mpya_out.result'high+3 downto 0+3));
 
     -------------------------------------------
     pipelines : process(clock) is
