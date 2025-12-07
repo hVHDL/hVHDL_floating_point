@@ -1,9 +1,6 @@
 architecture fast_hfloat of multiply_add is
 
     use work.normalizer_generic_pkg.all;
-    use work.denormalizer_generic_pkg.all;
-    use work.float_adder_pkg.all;
-    use work.float_multiplier_pkg.all;
 
     constant extra_shift_bits : natural := 3;
 
@@ -18,7 +15,7 @@ architecture fast_hfloat of multiply_add is
     constant res_subtype : hfloat_record := (
             sign       => '0'
             , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))
-            , mantissa => (g_mantissa_length+2 downto 0 => (g_mantissa_length+2 downto 0 => '0')));
+            , mantissa => (g_mantissa_length-1+extra_shift_bits downto 0 => (g_mantissa_length-1+extra_shift_bits downto 0 => '0')));
 
     signal extended_result : res_subtype'subtype := res_subtype;
 
