@@ -16,7 +16,7 @@ architecture fast_hfloat of multiply_add is
     constant res_subtype : hfloat_record := (
             sign       => '0'
             , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))
-            , mantissa => (g_mantissa_length+1 downto 0 => (g_mantissa_length+1 downto 0 => '0')));
+            , mantissa => (g_mantissa_length+2 downto 0 => (g_mantissa_length+2 downto 0 => '0')));
 
     constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => hfloat_zero);
     signal normalizer : init_normalizer'subtype := init_normalizer;
@@ -45,9 +45,10 @@ architecture fast_hfloat of multiply_add is
     signal exp_b_pipe : exp_array(2 downto 0) := (others => (others => '0'));
     signal exp_c_pipe : exp_array(2 downto 0) := (others => (others => '0'));
     ----------------------
-    signal mpy_shifter : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
-    signal add_a_buf   : hfloat_zero.mantissa'subtype                       := (others => '0');
-    signal res         : hfloat_zero'subtype                                := hfloat_zero;
+    signal mpy_shifter  : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
+    signal add_a_buf    : hfloat_zero.mantissa'subtype                       := (others => '0');
+    signal res          : hfloat_zero'subtype                                := hfloat_zero;
+    signal res_extended : res_subtype'subtype                                := res_subtype;
     ----------------------
     signal shift_res : integer := 0;
     ----------------------
@@ -84,16 +85,17 @@ architecture fast_hfloat of multiply_add is
         sign_vector := (mpy_a.sign & mpy_b.sign & add_a.sign);
         CASE sign_vector is
             -- add
-            WHEN "000" => add_when_0_neg_when_1 := '0';
-            WHEN "110" => add_when_0_neg_when_1 := '0';
-            WHEN "101" => add_when_0_neg_when_1 := '0';
-            WHEN "011" => add_when_0_neg_when_1 := '0';
+            WHEN "000" 
+                |"110" 
+                |"101" 
+                |"011" => add_when_0_neg_when_1 := '0';
 
             -- sub
-            WHEN "111" => add_when_0_neg_when_1 := '1';
-            WHEN "100" => add_when_0_neg_when_1 := '1';
-            WHEN "010" => add_when_0_neg_when_1 := '1';
-            WHEN "001" => add_when_0_neg_when_1 := '1';
+            WHEN "111" 
+                |"100" 
+                |"010" 
+                |"001" => add_when_0_neg_when_1 := '1';
+
             WHEN others => --do nothing
         end CASE;
 
@@ -142,21 +144,21 @@ architecture fast_hfloat of multiply_add is
     begin
         CASE sign_pipe(pipe) is
             WHEN "111" => retval := '0' xor (exp_a + exp_b) >= exp_c;
-            if op_pipe_sub_when_1(pipe) = '1' then
-                retval := '1';
-            end if;
+                if op_pipe_sub_when_1(pipe) = '1' then
+                    retval := '1';
+                end if;
             WHEN "001" => retval := '0' xor (exp_a + exp_b) >= exp_c;
-            if op_pipe_sub_when_1(pipe) = '1' then
-                retval := '1';
-            end if;
+                if op_pipe_sub_when_1(pipe) = '1' then
+                    retval := '1';
+                end if;
             WHEN "010" => retval := '1' xor (exp_a + exp_b) >= exp_c;
-            if op_pipe_sub_when_1(pipe) = '1' then
-                retval := '0';
-            end if;
+                if op_pipe_sub_when_1(pipe) = '1' then
+                    retval := '0';
+                end if;
             WHEN "100" => retval := '1' xor (exp_a + exp_b) >= exp_c;
-            if op_pipe_sub_when_1(pipe) = '1' then
-                retval := '0';
-            end if;
+                if op_pipe_sub_when_1(pipe) = '1' then
+                    retval := '0';
+                end if;
             --
             WHEN "000" => retval := '0';
             WHEN "011" => retval := '1';
@@ -198,8 +200,23 @@ begin
                  ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift), hfloat_zero)
            );
 
+    res_extended <= 
+           (
+                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
+                 ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
+                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift-6, res_subtype)
+           )
+            when add_shift_pipeline(add_shift_pipeline'left) = '0'
+            else
+           (
+                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
+                 ,exponent => result_exponent_pipe(result_exponent_pipe'left) + const_shift
+                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift-6), res_subtype)
+           );
+
+
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
-    mpya_out.result   <= to_std_logic(normalize(res));
+    mpya_out.result   <= to_std_logic(normalize(res_extended))(32+3 downto 0+3);
 
     -------------------------------------------
     pipelines : process(clock) is

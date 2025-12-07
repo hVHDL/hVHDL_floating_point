@@ -202,6 +202,7 @@ begin
                 WHEN 26  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 0.0); --010
 
                 WHEN 27  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 0.0); --010
+                WHEN 28  *10 => multiply_add(mpya_in , 18.970327 , 1.16203521 , -22.041984); --010
                 --TODO, check with negative zero
 
             --         multiply_add(mpya_in 
