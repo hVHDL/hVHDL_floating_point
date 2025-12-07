@@ -106,14 +106,7 @@ architecture fast_hfloat of multiply_add is
     type sign_array is array (natural range <>) of std_logic_vector(2 downto 0);
 
     ------------------
-    impure function get_result_sign(sign_pipe : sign_array ; high_bit : STD_LOGIC) return std_logic is
-        /* result sign determination
-            exp(a) + exp(b) > exp(c) => a xor b
-            exp(a) + exp(b) < exp(c) => sign(c)
-            exp(a) + exp(b) = exp(c) => a xor b xnor result(high)
-        */
-
-        -- variable sign_vector : std_logic_vector(2 downto 0);
+    impure function get_result_sign(sign_pipe : sign_array ; high_bit : STD_LOGIC ; op_pipe_sub_when_1 : STD_LOGIC_VECTOR) return std_logic is
 
         ---------
         variable retval : std_logic;
@@ -188,14 +181,14 @@ begin
     -- use res with mantissa + 3 length
     extended_result <= 
            (
-                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
+                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
                  ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift-extra_shift_bits*2, res_subtype)
            )
             when add_shift_pipeline(add_shift_pipeline'left) = '0'
             else
            (
-                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
+                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left) + const_shift
                  ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift-extra_shift_bits*2), res_subtype)
            );
