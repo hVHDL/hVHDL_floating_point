@@ -27,6 +27,8 @@ architecture fast_hfloat of multiply_add is
     signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal test_mpy : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
 
+    signal test_mpy1 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+    signal test_mpy2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     ----------------------
     ----------------------
     function to_hfloat( s : std_logic_vector) return hfloat_record is
@@ -47,6 +49,8 @@ architecture fast_hfloat of multiply_add is
     signal exp_c_pipe : exp_array(2 downto 0) := (others => (others => '0'));
     ----------------------
     signal mpy_shifter  : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
+    signal mpy_a_buf    : hfloat_zero.mantissa'subtype                       := (others => '0');
+    signal mpy_b_buf    : hfloat_zero.mantissa'subtype                       := (others => '0');
     signal add_a_buf    : hfloat_zero.mantissa'subtype                       := (others => '0');
     ----------------------
     signal shift_res : integer := 0;
@@ -179,19 +183,28 @@ architecture fast_hfloat of multiply_add is
 begin
 
     -- use res with mantissa + 3 length
-    extended_result <= 
-           (
-                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
-                 ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
-                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift-extra_shift_bits*2, res_subtype)
-           )
-            when add_shift_pipeline(add_shift_pipeline'left) = '0'
+    process(all) is
+    begin
+        -- if rising_edge(clock)
+        -- then
+            if add_shift_pipeline(add_shift_pipeline'left) = '0'
+            then
+                extended_result <= 
+                       (
+                             sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
+                             ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
+                             ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift-extra_shift_bits*2, res_subtype)
+                       );
             else
-           (
-                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
-                 ,exponent => result_exponent_pipe(result_exponent_pipe'left) + const_shift
-                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift-extra_shift_bits*2), res_subtype)
-           );
+                extended_result <= 
+                       (
+                             sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
+                             ,exponent => result_exponent_pipe(result_exponent_pipe'left) + const_shift
+                             ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift-extra_shift_bits*2), res_subtype)
+                       );
+           end if;
+       -- end if;
+   end process;
 
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
@@ -219,6 +232,20 @@ begin
 
         end if;
     end process;
+
+    test_mpy1 <= 
+                resize(mpy_shifter , mpy_result2'length/2) 
+                 * resize(add_a_buf , mpy_result2'length/2);
+                 -- + 
+                 -- resize(mpy_a_buf   , mpy_result2'length/2)
+                 -- * resize(mpy_b_buf , mpy_result2'length/2);
+
+    test_mpy2 <= 
+                -- resize(mpy_shifter , mpy_result2'length/2) 
+                --  * resize(add_a_buf , mpy_result2'length/2) ;
+                 -- - 
+                 resize(mpy_a_buf   , mpy_result2'length/2)
+                 * resize(mpy_b_buf , mpy_result2'length/2);
 
     -------------------------------------------
     process(clock) is
@@ -274,19 +301,30 @@ begin
             ---
             -- p1
             mpy_shifter <= shift_left(resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length),0);
+            mpy_a_buf   <= to_hfloat(mpya_in.mpy_a).mantissa;
+            mpy_b_buf   <= to_hfloat(mpya_in.mpy_b).mantissa;
             add_a_buf   <= to_hfloat(mpya_in.add_a).mantissa;
-            mpy_result  <= resize(to_hfloat(mpya_in.mpy_a).mantissa * to_hfloat(mpya_in.mpy_b).mantissa , mpy_result2'length);
+
+            mpy_result  <= resize(to_hfloat(mpya_in.mpy_a).mantissa,mpy_result2'length/2) 
+                           * resize(to_hfloat(mpya_in.mpy_b).mantissa , mpy_result2'length/2);
 
             ---
             -- p2
-            test_mpy       <= resize(mpy_shifter * add_a_buf , mpy_result2'length);
+            -- test_mpy       <= resize(mpy_shifter * add_a_buf , mpy_result2'length);
             mpy_result_buf <= mpy_result;
             if op_pipe_sub_when_1(0) = '0'
             then
-                mpy_result2 <= resize(mpy_shifter * add_a_buf , mpy_result2'length) + mpy_result;
+                -- mpy_result2 <= resize(mpy_shifter * add_a_buf , mpy_result2'length) + resize(mpy_a_buf * mpy_b_buf, mpy_result2'length);
+                mpy_result2 <= test_mpy1 + test_mpy2;
+                -- mpy_result2 <= test_mpy1;
+                -- mpy_result2 <= resize(mpy_shifter * add_a_buf , mpy_result2'length) - mpy_result;
             else
-                mpy_result2 <= (resize(mpy_shifter * add_a_buf , mpy_result2'length) - mpy_result);
+                -- mpy_result2 <= resize(mpy_shifter * add_a_buf , mpy_result2'length) - resize(mpy_a_buf * mpy_b_buf, mpy_result2'length);
+                mpy_result2 <= test_mpy1 - test_mpy2;
+                -- mpy_result2 <= test_mpy2;
+                -- mpy_result2 <= resize(mpy_shifter * add_a_buf , mpy_result2'length) - mpy_result;
             end if;
+            -- mpy_result2 <= test_mpy;
             ---
         end if; -- rising edge
     end process;
