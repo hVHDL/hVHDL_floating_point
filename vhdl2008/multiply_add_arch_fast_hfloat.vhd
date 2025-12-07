@@ -5,6 +5,8 @@ architecture fast_hfloat of multiply_add is
     use work.float_adder_pkg.all;
     use work.float_multiplier_pkg.all;
 
+    constant extra_shift_bits : natural := 3;
+
     constant g_exponent_length : natural := g_floatref.exponent'length;
     constant g_mantissa_length : natural := g_floatref.mantissa'length;
 
@@ -206,19 +208,19 @@ begin
            (
                  sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
-                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift-6, res_subtype)
+                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift-extra_shift_bits*2, res_subtype)
            )
             when add_shift_pipeline(add_shift_pipeline'left) = '0'
             else
            (
                  sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left) + const_shift
-                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift-6), res_subtype)
+                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift-extra_shift_bits*2), res_subtype)
            );
 
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
-    mpya_out.result   <= (to_std_logic(normalize(res_extended))(mpya_out.result'high+3 downto 0+3));
+    mpya_out.result   <= (to_std_logic(normalize(res_extended))(mpya_out.result'high+extra_shift_bits downto 0+extra_shift_bits));
 
     -------------------------------------------
     pipelines : process(clock) is
