@@ -20,6 +20,8 @@ architecture fast_hfloat of multiply_add is
             , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))
             , mantissa => (g_mantissa_length+2 downto 0 => (g_mantissa_length+2 downto 0 => '0')));
 
+    signal extended_result : res_subtype'subtype := res_subtype;
+
     constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => hfloat_zero);
     signal normalizer : init_normalizer'subtype := init_normalizer;
 
@@ -49,8 +51,6 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     signal mpy_shifter  : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
     signal add_a_buf    : hfloat_zero.mantissa'subtype                       := (others => '0');
-    signal res          : hfloat_zero'subtype                                := hfloat_zero;
-    signal res_extended : res_subtype'subtype                                := res_subtype;
     ----------------------
     signal shift_res : integer := 0;
     ----------------------
@@ -186,25 +186,10 @@ architecture fast_hfloat of multiply_add is
     signal refb   :  hfloat_zero'subtype := hfloat_zero;
     signal refadd :  hfloat_zero'subtype := hfloat_zero;
 
-    signal result : STD_LOGIC_VECTOR(26 downto 0);
-
 begin
 
     -- use res with mantissa + 3 length
-    res <= (
-                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
-                 ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
-                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift, hfloat_zero)
-           )
-            when add_shift_pipeline(add_shift_pipeline'left) = '0'
-            else
-           (
-                 sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
-                 ,exponent => result_exponent_pipe(result_exponent_pipe'left) + const_shift
-                 ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(1) + const_shift), hfloat_zero)
-           );
-
-    res_extended <= 
+    extended_result <= 
            (
                  sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left))
                  ,exponent => result_exponent_pipe(result_exponent_pipe'left)+const_shift
@@ -220,7 +205,7 @@ begin
 
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
-    mpya_out.result   <= (to_std_logic(normalize(res_extended))(mpya_out.result'high+extra_shift_bits downto 0+extra_shift_bits));
+    mpya_out.result   <= to_std_logic(normalize(extended_result))(mpya_out.result'high+extra_shift_bits downto 0+extra_shift_bits);
 
     -------------------------------------------
     pipelines : process(clock) is
