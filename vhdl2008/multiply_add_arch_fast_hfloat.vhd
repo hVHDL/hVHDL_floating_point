@@ -1,6 +1,16 @@
 architecture fast_hfloat of multiply_add is
 
-    use work.normalizer_generic_pkg.all;
+    ----------------------
+    use work.fast_hfloat_pkg.get_result_slice;
+    ----------------------
+    use work.fast_hfloat_pkg.get_shift_width;
+    ----------------------
+    use work.fast_hfloat_pkg.get_shift;
+    ----------------------
+    use work.fast_hfloat_pkg.max;
+    ----------------------
+    use work.normalizer_generic_pkg.normalize;
+    ----------------------
 
     constant extra_shift_bits : natural := 3;
 
@@ -20,21 +30,12 @@ architecture fast_hfloat of multiply_add is
     signal extended_result : res_subtype'subtype := res_subtype;
     signal extended_result_buf : res_subtype'subtype := res_subtype;
 
-    constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => hfloat_zero);
-
     signal mpy_result  : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal mpy_result3 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
 
     signal test_mpy1 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal test_mpy2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
-    signal test_mpy3 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
-    ----------------------
-    ----------------------
-    function to_hfloat( s : std_logic_vector) return hfloat_record is
-    begin
-        return to_hfloat(s, hfloat_zero);
-    end to_hfloat;
     ----------------------
     ----------------------
     signal ready_pipeline     : std_logic_vector(1 downto 0) := (others => '0');
@@ -58,14 +59,6 @@ architecture fast_hfloat of multiply_add is
     constant const_shift : integer := 1; -- TODO, check this
     ----------------------
     signal op_pipe_sub_when_1 : std_logic_vector(2 downto 0) := (others => '0');
-    ----------------------
-    use work.fast_hfloat_pkg.get_result_slice;
-    ----------------------
-    use work.fast_hfloat_pkg.get_shift_width;
-    ----------------------
-    use work.fast_hfloat_pkg.get_shift;
-    ----------------------
-    use work.fast_hfloat_pkg.max;
     ----------------------
 
     ------------------
@@ -176,10 +169,10 @@ architecture fast_hfloat of multiply_add is
 
     ------------------
     signal sign_pipe : sign_array(2 downto 0) := (others => (others => '0'));
-    --debug signals, remove when no longer needed
-    signal refa   :  hfloat_zero'subtype := hfloat_zero;
-    signal refb   :  hfloat_zero'subtype := hfloat_zero;
-    signal refadd :  hfloat_zero'subtype := hfloat_zero;
+
+    signal mpy_a : hfloat_zero'subtype := hfloat_zero;
+    signal mpy_b : hfloat_zero'subtype := hfloat_zero;
+    signal add_a : hfloat_zero'subtype := hfloat_zero;
 
     impure function get_fma_result return hfloat_record is
         variable retval : extended_result'subtype;
@@ -203,19 +196,18 @@ architecture fast_hfloat of multiply_add is
         return retval;
     end function;
 
-    attribute multstyle : string;
-    attribute multstyle of mpy_result  : signal is "dsp";
-    attribute multstyle of mpy_result3 : signal is "dsp";
-    -- result <= a * b; -- implement this multiply in logic
-
 begin
+    mpy_a <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
+    mpy_b <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
+    add_a <= to_hfloat(mpya_in.add_a, hfloat_zero);
+
+    test_mpy1 <= resize(mpy_shifter * add_a_buf, test_mpy1);
+    test_mpy2 <= resize(mpy_a_buf   * mpy_b_buf, test_mpy2);
 
     mpy_shifter <= resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length);
-    mpy_a_buf   <= resize(to_hfloat(mpya_in.mpy_a).mantissa, mpy_a_buf);
-    mpy_b_buf   <= resize(to_hfloat(mpya_in.mpy_b).mantissa, mpy_b_buf);
-    add_a_buf   <= resize(to_hfloat(mpya_in.add_a).mantissa, add_a_buf);
-
-
+    mpy_a_buf   <= resize(mpy_a.mantissa, mpy_a_buf);
+    mpy_b_buf   <= resize(mpy_b.mantissa, mpy_b_buf);
+    add_a_buf   <= resize(add_a.mantissa, add_a_buf);
 
     -- use res with mantissa + 3 length
     process(all) is
@@ -228,9 +220,6 @@ begin
         end if;
 
     end process;
-
-    test_mpy1 <= resize(mpy_shifter * add_a_buf, test_mpy1);
-    test_mpy2 <= resize(mpy_a_buf   * mpy_b_buf, test_mpy2);
 
     output_buffer : process(clock) is
     begin
@@ -254,18 +243,18 @@ begin
         then
             sign_pipe <= sign_pipe(sign_pipe'left-1 downto 0) &
                     STD_LOGIC_VECTOR'(
-                        to_hfloat(mpya_in.mpy_a).sign
-                        & to_hfloat(mpya_in.mpy_b).sign
-                        & to_hfloat(mpya_in.add_a).sign) ;
+                        mpy_a.sign
+                        & mpy_b.sign
+                        & add_a.sign) ;
 
             exp_a_pipe <= exp_a_pipe(exp_a_pipe'left-1 downto 0) 
-                          & to_hfloat(mpya_in.mpy_a).exponent;
+                          & mpy_a.exponent;
 
             exp_b_pipe <= exp_b_pipe(exp_b_pipe'left-1 downto 0) 
-                          & to_hfloat(mpya_in.mpy_b).exponent;
+                          & mpy_b.exponent;
 
             exp_c_pipe <= exp_c_pipe(exp_c_pipe'left-1 downto 0) 
-                          & to_hfloat(mpya_in.add_a).exponent;
+                          & add_a.exponent;
 
             ready_pipeline       <= ready_pipeline       ( ready_pipeline'left-1       downto 0) & mpya_in.is_requested;
             result_exponent_pipe <= result_exponent_pipe ( result_exponent_pipe'left-1 downto 0) & hfloat_zero.exponent;
@@ -275,39 +264,35 @@ begin
                 op_pipe_sub_when_1 ( op_pipe_sub_when_1'left-1 downto 0) 
                 &
                 get_operation(
-                    to_hfloat(mpya_in.mpy_a)
-                    ,to_hfloat(mpya_in.mpy_b)
-                    ,to_hfloat(mpya_in.add_a))
+                    mpy_a
+                    ,mpy_b
+                    ,add_a)
             ;
 
-
-            refa   <= to_hfloat(mpya_in.mpy_a);
-            refb   <= to_hfloat(mpya_in.mpy_b);
-            refadd <= to_hfloat(mpya_in.add_a);
             ---
             shift_res  <= get_shift_width(
-                           to_hfloat(mpya_in.mpy_a).exponent
-                          ,to_hfloat(mpya_in.mpy_b).exponent
-                          ,to_hfloat(mpya_in.add_a).exponent
-                          ,to_hfloat(mpya_in.add_a).mantissa
+                           mpy_a.exponent
+                          ,mpy_b.exponent
+                          ,add_a.exponent
+                          ,add_a.mantissa
                       ) - hfloat_zero.mantissa'length;
             ---
             if get_shift_width(
-                to_hfloat(mpya_in.mpy_a).exponent 
-                ,to_hfloat(mpya_in.mpy_b).exponent
-                ,to_hfloat(mpya_in.add_a).exponent
-                ,to_hfloat(mpya_in.add_a).mantissa)
+                mpy_a.exponent 
+                ,mpy_b.exponent
+                ,add_a.exponent
+                ,add_a.mantissa)
                 <  hfloat_zero.mantissa'length
             then
                 result_exponent_pipe(0) <= 
-                               to_hfloat(mpya_in.mpy_a).exponent 
-                             + to_hfloat(mpya_in.mpy_b).exponent;
+                               mpy_a.exponent 
+                             + mpy_b.exponent;
             else
-                result_exponent_pipe(0) <= to_hfloat(mpya_in.add_a).exponent;
+                result_exponent_pipe(0) <= add_a.exponent;
                 shift_pipeline(0)    <=
-                               to_hfloat(mpya_in.add_a).exponent
-                             - to_hfloat(mpya_in.mpy_a).exponent 
-                             - to_hfloat(mpya_in.mpy_b).exponent;
+                               add_a.exponent
+                             - mpy_a.exponent 
+                             - mpy_b.exponent;
 
                 add_shift_pipeline(0) <= '1';
             end if;
