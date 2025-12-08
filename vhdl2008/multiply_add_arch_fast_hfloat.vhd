@@ -21,7 +21,6 @@ architecture fast_hfloat of multiply_add is
     signal extended_result_buf : res_subtype'subtype := res_subtype;
 
     constant init_normalizer : normalizer_record := normalizer_typeref(2, floatref => hfloat_zero);
-    signal normalizer : init_normalizer'subtype := init_normalizer;
 
     signal mpy_result  : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
@@ -49,10 +48,10 @@ architecture fast_hfloat of multiply_add is
     signal exp_b_pipe : exp_array(2 downto 0) := (others => (others => '0'));
     signal exp_c_pipe : exp_array(2 downto 0) := (others => (others => '0'));
     ----------------------
-    signal mpy_shifter  : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
-    signal mpy_a_buf    : unsigned(hfloat_zero.mantissa'length*1-1 downto 0) := (others => '0');
+    signal mpy_a_buf    : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
+    signal add_a_buf    : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
     signal mpy_b_buf    : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
-    signal add_a_buf    : unsigned(hfloat_zero.mantissa'length-1 downto 0) := (others => '0');
+    signal mpy_shifter  : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
     ----------------------
     signal shift_res : integer := 0;
     ----------------------
@@ -182,57 +181,71 @@ architecture fast_hfloat of multiply_add is
     signal refb   :  hfloat_zero'subtype := hfloat_zero;
     signal refadd :  hfloat_zero'subtype := hfloat_zero;
 
+    impure function get_fma_result return hfloat_record is
+        variable retval : extended_result'subtype;
+    begin
+        if add_shift_pipeline(pipe) = '0'
+        then
+            retval := 
+                   (
+                         sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
+                         ,exponent => result_exponent_pipe(pipe)+const_shift
+                         ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift-extra_shift_bits*2, res_subtype)
+                   );
+        else
+            retval := 
+                   (
+                         sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
+                         ,exponent => result_exponent_pipe(pipe) + const_shift
+                         ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(pipe) + const_shift-extra_shift_bits*2), res_subtype)
+                   );
+        end if;
+        return retval;
+    end function;
+
+    attribute multstyle : string;
+    attribute multstyle of mpy_result  : signal is "dsp";
+    attribute multstyle of mpy_result3 : signal is "dsp";
+    -- result <= a * b; -- implement this multiply in logic
+
 begin
 
-    -- use res with mantissa + 3 length
-    process(all) is
-    begin
-            if op_pipe_sub_when_1(0) = '0' then
-                mpy_result2 <= mpy_result;
-            else
-                mpy_result2 <= mpy_result3;
-            end if;
-
-        if rising_edge(clock)
-        then
-            if add_shift_pipeline(pipe) = '0'
-            then
-                extended_result <= 
-                       (
-                             sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
-                             ,exponent => result_exponent_pipe(pipe)+const_shift
-                             ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift-extra_shift_bits*2, res_subtype)
-                       );
-            else
-                extended_result <= 
-                       (
-                             sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
-                             ,exponent => result_exponent_pipe(pipe) + const_shift
-                             ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(pipe) + const_shift-extra_shift_bits*2), res_subtype)
-                       );
-           end if;
-       end if;
-    end process;
-
-    mpy_shifter <= shift_left(resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length),0);
+    mpy_shifter <= resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length);
     mpy_a_buf   <= resize(to_hfloat(mpya_in.mpy_a).mantissa, mpy_a_buf);
     mpy_b_buf   <= resize(to_hfloat(mpya_in.mpy_b).mantissa, mpy_b_buf);
     add_a_buf   <= resize(to_hfloat(mpya_in.add_a).mantissa, add_a_buf);
 
-    test_mpy1 <= mpy_shifter * add_a_buf;
-    test_mpy2 <= mpy_a_buf   * mpy_b_buf;
+
+
+    -- use res with mantissa + 3 length
+    process(all) is
+    begin
+
+        if op_pipe_sub_when_1(0) = '0' then
+            mpy_result2 <= mpy_result;
+        else
+            mpy_result2 <= mpy_result3;
+        end if;
+
+    end process;
+
+    test_mpy1 <= resize(mpy_shifter * add_a_buf, test_mpy1);
+    test_mpy2 <= resize(mpy_a_buf   * mpy_b_buf, test_mpy2);
 
     output_buffer : process(clock) is
     begin
        if rising_edge(clock) then
             mpy_result  <= test_mpy1 + test_mpy2;
             mpy_result3 <= test_mpy1 - test_mpy2;
+
+            extended_result     <= get_fma_result;
             extended_result_buf <= extended_result;
         end if;
     end process;
 
     mpya_out.is_ready <= ready_pipeline(ready_pipeline'left);
     mpya_out.result   <= to_std_logic(normalize(extended_result))(mpya_out.result'high+extra_shift_bits downto 0+extra_shift_bits);
+
 
     -------------------------------------------
     pipelines : process(clock) is
@@ -253,15 +266,6 @@ begin
 
             exp_c_pipe <= exp_c_pipe(exp_c_pipe'left-1 downto 0) 
                           & to_hfloat(mpya_in.add_a).exponent;
-
-        end if;
-    end process;
-
-    process(clock) is
-    begin
-        if rising_edge(clock) 
-        then
-            create_normalizer(normalizer);
 
             ready_pipeline       <= ready_pipeline       ( ready_pipeline'left-1       downto 0) & mpya_in.is_requested;
             result_exponent_pipe <= result_exponent_pipe ( result_exponent_pipe'left-1 downto 0) & hfloat_zero.exponent;
@@ -307,8 +311,6 @@ begin
 
                 add_shift_pipeline(0) <= '1';
             end if;
-            ---
-            ---
         end if; -- rising edge
     end process;
     -------------------------------------------

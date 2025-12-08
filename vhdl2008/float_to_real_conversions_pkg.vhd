@@ -191,7 +191,7 @@ package body float_to_real_conversions_pkg is
     begin
 
         retval := normalize((sign   => get_sign(real_number),
-                        exponent => get_exponent(real_number),
+                        exponent => get_exponent(real_number, exponent_length),
                         mantissa => get_mantissa(real_number , mantissa_length)));
 
         if retval.mantissa = hfloat_ref.mantissa

@@ -60,18 +60,16 @@ package body fast_hfloat_pkg is
 
     function get_shift(a : std_logic_vector; b : std_logic_vector ; c : std_logic_vector ; floatref : hfloat_record) return unsigned is
 
-        constant retval : unsigned(floatref.mantissa'length * 3-1 downto 0) := (0 => '1', others => '0');
+        variable retval : unsigned(floatref.mantissa'length * 2-1 downto 0) := (others => '0');
 
     begin
-
-        return shift_left(retval
-                   ,get_shift_width(
+        retval(get_shift_width(
                        to_hfloat(a,floatref).exponent 
                        , to_hfloat(b,floatref).exponent
                        , to_hfloat(c,floatref).exponent
                        , floatref.mantissa
-                      )
-                 );
+                      )) := '1';
+        return retval;
 
     end get_shift;
     ---------------------

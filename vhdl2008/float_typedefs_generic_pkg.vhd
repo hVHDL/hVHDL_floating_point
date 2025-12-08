@@ -356,7 +356,7 @@ package body float_typedefs_generic_pkg is
     function to_hfloat (a : float32; hfloatref : hfloat_record) return hfloat_record is
         variable retval : hfloatref'subtype := (
         sign => a(a'high)
-        , exponent => signed(a(7 downto 0))-126
+        , exponent => resize(signed(a(7 downto 0))-126, hfloatref.exponent'length)
         ,mantissa => (others => '0'));
     begin
         for i in a(-1 downto -23)'range loop
