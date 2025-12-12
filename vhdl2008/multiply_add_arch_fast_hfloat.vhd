@@ -1,3 +1,66 @@
+---------------------
+LIBRARY ieee  ; 
+    USE ieee.std_logic_1164.all  ; 
+    USE ieee.NUMERIC_STD.all  ; 
+
+entity hw_mult_axb is
+    generic(is_clocked : boolean := false);
+    port(
+        clock : in std_logic := '0'
+        ;a    : in unsigned
+        ;b   : in unsigned
+        ;res : out unsigned
+    );
+end hw_mult_axb;
+
+architecture rtl of hw_mult_axb is
+
+begin
+
+    clock_gen :
+    if is_clocked generate
+        process(clock) is
+        begin
+            if rising_edge(clock) then
+                res <= resize(a * b, res'length);
+            end if;
+        end process;
+    end generate;
+    unclocked : 
+
+    if not is_clocked generate
+        res <= resize(a * b, res'length);
+    end generate;
+
+
+end rtl;
+        
+---------------------
+LIBRARY ieee  ; 
+    USE ieee.std_logic_1164.all  ; 
+    USE ieee.NUMERIC_STD.all  ; 
+
+entity hw_mult_axb_addsub_c is
+    port(
+        a           : in unsigned
+        ;b          : in unsigned
+        ;c          : in unsigned
+        ;sub_when_1 : in std_logic
+
+        ;res        : out unsigned
+    );
+end hw_mult_axb_addsub_c;
+
+architecture rtl of hw_mult_axb_addsub_c is
+
+begin
+
+    res <= resize(a * b, res'length) + c when sub_when_1 = '0' else
+           resize(a * b, res'length) - c ;
+
+end rtl;
+        
+---------------------
 architecture fast_hfloat of multiply_add is
 
     ----------------------
@@ -11,6 +74,7 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     use work.normalizer_generic_pkg.normalize;
     ----------------------
+    use work.normalizer_generic_pkg.all;
 
     constant extra_shift_bits : natural := 3;
 
@@ -26,6 +90,10 @@ architecture fast_hfloat of multiply_add is
             sign       => '0'
             , exponent => (g_exponent_length-1 downto 0 => (g_exponent_length-1 downto 0 => '0'))
             , mantissa => (g_mantissa_length-1+extra_shift_bits downto 0 => (g_mantissa_length-1+extra_shift_bits downto 0 => '0')));
+
+    constant norm_subtype : normalizer_record := normalizer_typeref(floatref => res_subtype);
+
+    signal normalizer : norm_subtype'subtype := norm_subtype;
 
     signal extended_result : res_subtype'subtype := res_subtype;
     signal extended_result_buf : res_subtype'subtype := res_subtype;
@@ -197,35 +265,45 @@ architecture fast_hfloat of multiply_add is
     end function;
 
 begin
+
     mpy_a <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
     mpy_b <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
     add_a <= to_hfloat(mpya_in.add_a, hfloat_zero);
 
-    test_mpy1 <= resize(mpy_shifter * add_a_buf, test_mpy1);
-    test_mpy2 <= resize(mpy_a_buf   * mpy_b_buf, test_mpy2);
+    shifter : entity work.hw_mult_axb
+    port map(a => mpy_shifter, b => add_a_buf, res => test_mpy1);
+
+    mantissa_mult : entity work.hw_mult_axb
+    port map(clock => clock, a => mpy_a_buf, b => mpy_b_buf, res => test_mpy2);
+
+    -- test_mpy1 <= resize(mpy_shifter * add_a_buf, test_mpy1);
+    -- test_mpy2 <= resize(mpy_a_buf   * mpy_b_buf, test_mpy2);
 
     mpy_shifter <= resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length);
     mpy_a_buf   <= resize(mpy_a.mantissa, mpy_a_buf);
     mpy_b_buf   <= resize(mpy_b.mantissa, mpy_b_buf);
     add_a_buf   <= resize(add_a.mantissa, add_a_buf);
 
-    -- use res with mantissa + 3 length
-    process(all) is
-    begin
-
-        if op_pipe_sub_when_1(0) = '0' then
-            mpy_result2 <= mpy_result;
-        else
-            mpy_result2 <= mpy_result3;
-        end if;
-
-    end process;
-
+    ------------
     output_buffer : process(clock) is
     begin
        if rising_edge(clock) then
-            mpy_result  <= test_mpy1 + test_mpy2;
-            mpy_result3 <= test_mpy1 - test_mpy2;
+            -- mpy_result  <= test_mpy1 + test_mpy2;
+            -- mpy_result3 <= test_mpy1 - test_mpy2;
+           if 
+
+                get_operation(
+                    mpy_a
+                    ,mpy_b
+                    ,add_a) = '0'
+
+
+
+           then
+               mpy_result2 <= test_mpy1 + test_mpy2;
+           else
+               mpy_result2 <= test_mpy1 - test_mpy2;
+           end if;
 
             extended_result     <= get_fma_result;
             extended_result_buf <= extended_result;
