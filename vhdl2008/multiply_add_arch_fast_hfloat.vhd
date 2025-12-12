@@ -95,7 +95,7 @@ architecture fast_hfloat of multiply_add is
 
     signal normalizer : norm_subtype'subtype := norm_subtype;
 
-    signal extended_result : res_subtype'subtype := res_subtype;
+    signal extended_result     : res_subtype'subtype := res_subtype;
     signal extended_result_buf : res_subtype'subtype := res_subtype;
 
     signal mpy_result  : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
@@ -106,16 +106,19 @@ architecture fast_hfloat of multiply_add is
     signal test_mpy2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     ----------------------
     ----------------------
-    signal ready_pipeline     : std_logic_vector(1 downto 0) := (others => '0');
-    signal add_shift_pipeline : std_logic_vector(1 downto 0) := (others => '0');
+    -- pipelines
+    ----------------------
+    ----------------------
+    constant pipe_depth : natural := 1;
+
+    signal ready_pipeline     : std_logic_vector(pipe_depth downto 0) := (others => '0');
+    signal add_shift_pipeline : std_logic_vector(pipe_depth downto 0) := (others => '0');
     ----------------------
     type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
-    signal result_exponent_pipe : exp_array(1 downto 0) := (others => (others => '0'));
-    signal shift_pipeline       : exp_array(1 downto 0) := (others => (others => '0'));
-
-    signal exp_a_pipe : exp_array(2 downto 0) := (others => (others => '0'));
-    signal exp_b_pipe : exp_array(2 downto 0) := (others => (others => '0'));
-    signal exp_c_pipe : exp_array(2 downto 0) := (others => (others => '0'));
+    signal result_exponent_pipe : exp_array(pipe_depth downto 0) := (others => (others => '0'));
+    signal shift_pipeline       : exp_array(pipe_depth downto 0) := (others => (others => '0'));
+    ----------------------
+    signal op_pipe_sub_when_1 : std_logic_vector(pipe_depth downto 0) := (others => '0');
     ----------------------
     signal mpy_a_buf    : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
     signal add_a_buf    : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
@@ -126,10 +129,6 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     constant const_shift : integer := 1; -- TODO, check this
     ----------------------
-    signal op_pipe_sub_when_1 : std_logic_vector(2 downto 0) := (others => '0');
-    ----------------------
-
-    ------------------
     function get_operation (mpy_a,mpy_b, add_a : hfloat_zero'subtype) return std_logic is
         variable add_when_0_neg_when_1 : std_logic;
         variable sign_vector : std_logic_vector(2 downto 0);
@@ -179,44 +178,13 @@ architecture fast_hfloat of multiply_add is
         variable retval : std_logic;
 
         ---------
-        function "xor"(left : std_logic ; right : boolean) return std_logic 
-        is
-            variable retval : std_logic;
-        begin
-            if right then
-                retval := '1';
-            else
-                retval := '0';
-            end if;
-
-            return retval xor left;
-        end function;
-
-        ---------
-        ---------
-        constant exp_a : hfloat_zero.exponent'subtype := exp_a_pipe(pipe);
-        constant exp_b : hfloat_zero.exponent'subtype := exp_b_pipe(pipe);
-        constant exp_c : hfloat_zero.exponent'subtype := exp_c_pipe(pipe);
-        ---------
 
     begin
         CASE sign_pipe(pipe) is
-            WHEN "111" => retval := '0' xor (exp_a + exp_b) >= exp_c;
-                if op_pipe_sub_when_1(pipe) = '1' then
-                    retval := '1';
-                end if;
-            WHEN "001" => retval := '0' xor (exp_a + exp_b) >= exp_c;
-                if op_pipe_sub_when_1(pipe) = '1' then
-                    retval := '1';
-                end if;
-            WHEN "010" => retval := '1' xor (exp_a + exp_b) >= exp_c;
-                if op_pipe_sub_when_1(pipe) = '1' then
-                    retval := '0';
-                end if;
-            WHEN "100" => retval := '1' xor (exp_a + exp_b) >= exp_c;
-                if op_pipe_sub_when_1(pipe) = '1' then
-                    retval := '0';
-                end if;
+            WHEN "111" => retval := op_pipe_sub_when_1(pipe);
+            WHEN "001" => retval := op_pipe_sub_when_1(pipe);
+            WHEN "010" => retval := not op_pipe_sub_when_1(pipe);
+            WHEN "100" => retval := not op_pipe_sub_when_1(pipe);
             --
             WHEN "000" => retval := '0';
             WHEN "011" => retval := '1';
@@ -236,12 +204,13 @@ architecture fast_hfloat of multiply_add is
     end function;
 
     ------------------
-    signal sign_pipe : sign_array(2 downto 0) := (others => (others => '0'));
+    signal sign_pipe : sign_array(1 downto 0) := (others => (others => '0'));
 
     signal mpy_a : hfloat_zero'subtype := hfloat_zero;
     signal mpy_b : hfloat_zero'subtype := hfloat_zero;
     signal add_a : hfloat_zero'subtype := hfloat_zero;
 
+    ------------------
     impure function get_fma_result return hfloat_record is
         variable retval : extended_result'subtype;
     begin
@@ -263,6 +232,7 @@ architecture fast_hfloat of multiply_add is
         end if;
         return retval;
     end function;
+    ------------------
 
 begin
 
@@ -276,9 +246,6 @@ begin
     mantissa_mult : entity work.hw_mult_axb
     port map(clock => clock, a => mpy_a_buf, b => mpy_b_buf, res => test_mpy2);
 
-    -- test_mpy1 <= resize(mpy_shifter * add_a_buf, test_mpy1);
-    -- test_mpy2 <= resize(mpy_a_buf   * mpy_b_buf, test_mpy2);
-
     mpy_shifter <= resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length);
     mpy_a_buf   <= resize(mpy_a.mantissa, mpy_a_buf);
     mpy_b_buf   <= resize(mpy_b.mantissa, mpy_b_buf);
@@ -290,15 +257,7 @@ begin
        if rising_edge(clock) then
             -- mpy_result  <= test_mpy1 + test_mpy2;
             -- mpy_result3 <= test_mpy1 - test_mpy2;
-           if 
-
-                get_operation(
-                    mpy_a
-                    ,mpy_b
-                    ,add_a) = '0'
-
-
-
+           if get_operation( mpy_a ,mpy_b ,add_a) = '0'
            then
                mpy_result2 <= test_mpy1 + test_mpy2;
            else
@@ -325,27 +284,21 @@ begin
                         & mpy_b.sign
                         & add_a.sign) ;
 
-            exp_a_pipe <= exp_a_pipe(exp_a_pipe'left-1 downto 0) 
-                          & mpy_a.exponent;
+            ready_pipeline(0)       <= mpya_in.is_requested;
+            result_exponent_pipe(0) <= hfloat_zero.exponent;
+            shift_pipeline(0)       <= hfloat_zero.exponent;
+            add_shift_pipeline(0)   <= '0';
+            op_pipe_sub_when_1(0)   <= get_operation( mpy_a ,mpy_b ,add_a) ;
 
-            exp_b_pipe <= exp_b_pipe(exp_b_pipe'left-1 downto 0) 
-                          & mpy_b.exponent;
-
-            exp_c_pipe <= exp_c_pipe(exp_c_pipe'left-1 downto 0) 
-                          & add_a.exponent;
-
-            ready_pipeline       <= ready_pipeline       ( ready_pipeline'left-1       downto 0) & mpya_in.is_requested;
-            result_exponent_pipe <= result_exponent_pipe ( result_exponent_pipe'left-1 downto 0) & hfloat_zero.exponent;
-            shift_pipeline       <= shift_pipeline       ( shift_pipeline'left-1       downto 0) & hfloat_zero.exponent;
-            add_shift_pipeline   <= add_shift_pipeline   ( add_shift_pipeline'left-1   downto 0) & '0';
-            op_pipe_sub_when_1 <= 
-                op_pipe_sub_when_1 ( op_pipe_sub_when_1'left-1 downto 0) 
-                &
-                get_operation(
-                    mpy_a
-                    ,mpy_b
-                    ,add_a)
-            ;
+            for i in op_pipe_sub_when_1'range loop
+                if i > 0 then
+                    op_pipe_sub_when_1(i)   <= op_pipe_sub_when_1(i-1);
+                    add_shift_pipeline(i)   <= add_shift_pipeline(i-1);
+                    shift_pipeline(i)       <= shift_pipeline(i-1);
+                    result_exponent_pipe(i) <= result_exponent_pipe(i-1);
+                    ready_pipeline(i)       <= ready_pipeline(i-1);
+                end if;
+            end loop;
 
             ---
             shift_res  <= get_shift_width(
