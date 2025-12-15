@@ -15,6 +15,9 @@ package fast_hfloat_pkg is
     function max(a,b : signed) return signed;
     function shift(a : unsigned; b : integer) return unsigned;
 
+    type sign_array is array (natural range <>) of std_logic_vector(2 downto 0);
+    function get_result_sign(pipe : natural ; sign_pipe : sign_array ; high_bit : STD_LOGIC ; op_pipe_sub_when_1 : STD_LOGIC_VECTOR) return std_logic;
+
 end package;
 
 package body fast_hfloat_pkg is 
@@ -109,5 +112,26 @@ package body fast_hfloat_pkg is
         return retval;
     end shift;
     ----------------------------
+    function get_result_sign(pipe : natural ; sign_pipe : sign_array ; high_bit : STD_LOGIC ; op_pipe_sub_when_1 : STD_LOGIC_VECTOR) return std_logic is
+        ---------
+        variable retval : std_logic;
+        ---------
+    begin
+        CASE sign_pipe(pipe) is
+            WHEN "111" => retval := op_pipe_sub_when_1(pipe);
+            WHEN "001" => retval := op_pipe_sub_when_1(pipe);
+            WHEN "010" => retval := not op_pipe_sub_when_1(pipe);
+            WHEN "100" => retval := not op_pipe_sub_when_1(pipe);
+            --
+            WHEN "000" => retval := '0';
+            WHEN "011" => retval := '1';
+            WHEN "101" => retval := '1';
+            WHEN "110" => retval := '0';
+            WHEN others => --do nothing
+        end CASE;
+
+        return retval xor high_bit;
+    end function;
+
     ----------------------------
 end package body;

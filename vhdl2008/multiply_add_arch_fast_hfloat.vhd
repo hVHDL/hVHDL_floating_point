@@ -167,35 +167,9 @@ architecture fast_hfloat of multiply_add is
     end get_operation;
 
     ------------------
-    type sign_array is array (natural range <>) of std_logic_vector(2 downto 0);
-
     ------------------
     constant pipe : natural := 0;
     ------------------
-    impure function get_result_sign(sign_pipe : sign_array ; high_bit : STD_LOGIC ; op_pipe_sub_when_1 : STD_LOGIC_VECTOR) return std_logic is
-
-        ---------
-        variable retval : std_logic;
-
-        ---------
-
-    begin
-        CASE sign_pipe(pipe) is
-            WHEN "111" => retval := op_pipe_sub_when_1(pipe);
-            WHEN "001" => retval := op_pipe_sub_when_1(pipe);
-            WHEN "010" => retval := not op_pipe_sub_when_1(pipe);
-            WHEN "100" => retval := not op_pipe_sub_when_1(pipe);
-            --
-            WHEN "000" => retval := '0';
-            WHEN "011" => retval := '1';
-            WHEN "101" => retval := '1';
-            WHEN "110" => retval := '0';
-            WHEN others => --do nothing
-        end CASE;
-
-        return retval xor high_bit;
-    end function;
-
     ------------------
     function "xor" (left : std_logic ; right : unsigned) return unsigned is
         constant expanded_left : unsigned(right'range) := (others => left);
@@ -204,6 +178,9 @@ architecture fast_hfloat of multiply_add is
     end function;
 
     ------------------
+    use work.fast_hfloat_pkg.sign_array;
+    use work.fast_hfloat_pkg.get_result_sign;
+
     signal sign_pipe : sign_array(1 downto 0) := (others => (others => '0'));
 
     signal mpy_a : hfloat_zero'subtype := hfloat_zero;
@@ -213,19 +190,20 @@ architecture fast_hfloat of multiply_add is
     ------------------
     impure function get_fma_result return hfloat_record is
         variable retval : extended_result'subtype;
+
     begin
         if add_shift_pipeline(pipe) = '0'
         then
             retval := 
                    (
-                         sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
+                         sign      => get_result_sign(pipe, sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
                          ,exponent => result_exponent_pipe(pipe)+const_shift
                          ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift-extra_shift_bits*2, res_subtype)
                    );
         else
             retval := 
                    (
-                         sign      => get_result_sign(sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
+                         sign      => get_result_sign(pipe, sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
                          ,exponent => result_exponent_pipe(pipe) + const_shift
                          ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipeline(pipe) + const_shift-extra_shift_bits*2), res_subtype)
                    );
@@ -278,28 +256,13 @@ begin
     begin
         if rising_edge(clock) 
         then
-            sign_pipe <= sign_pipe(sign_pipe'left-1 downto 0) &
-                    STD_LOGIC_VECTOR'(
-                        mpy_a.sign
-                        & mpy_b.sign
-                        & add_a.sign) ;
 
+            sign_pipe(0)            <= mpy_a.sign & mpy_b.sign & add_a.sign;
             ready_pipeline(0)       <= mpya_in.is_requested;
             result_exponent_pipe(0) <= hfloat_zero.exponent;
             shift_pipeline(0)       <= hfloat_zero.exponent;
             add_shift_pipeline(0)   <= '0';
             op_pipe_sub_when_1(0)   <= get_operation( mpy_a ,mpy_b ,add_a) ;
-
-            for i in op_pipe_sub_when_1'range loop
-                if i > 0 then
-                    op_pipe_sub_when_1(i)   <= op_pipe_sub_when_1(i-1);
-                    add_shift_pipeline(i)   <= add_shift_pipeline(i-1);
-                    shift_pipeline(i)       <= shift_pipeline(i-1);
-                    result_exponent_pipe(i) <= result_exponent_pipe(i-1);
-                    ready_pipeline(i)       <= ready_pipeline(i-1);
-                end if;
-            end loop;
-
             ---
             shift_res  <= get_shift_width(
                            mpy_a.exponent
@@ -327,6 +290,18 @@ begin
 
                 add_shift_pipeline(0) <= '1';
             end if;
+
+            for i in op_pipe_sub_when_1'range loop
+                if i > 0 then
+                    op_pipe_sub_when_1(i)   <= op_pipe_sub_when_1(i-1);
+                    add_shift_pipeline(i)   <= add_shift_pipeline(i-1);
+                    shift_pipeline(i)       <= shift_pipeline(i-1);
+                    result_exponent_pipe(i) <= result_exponent_pipe(i-1);
+                    ready_pipeline(i)       <= ready_pipeline(i-1);
+                    sign_pipe(i)            <= sign_pipe(i-1);
+                end if;
+            end loop;
+
         end if; -- rising edge
     end process;
     -------------------------------------------
