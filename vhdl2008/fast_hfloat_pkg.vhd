@@ -14,6 +14,7 @@ package fast_hfloat_pkg is
     function max (a, b : integer) return integer;
     function max(a,b : signed) return signed;
     function shift(a : unsigned; b : integer) return unsigned;
+    function get_operation (mpy_a,mpy_b, add_a : hfloat_record) return std_logic;
 
     type sign_array is array (natural range <>) of std_logic_vector(2 downto 0);
     function get_result_sign(pipe : natural ; sign_pipe : sign_array ; high_bit : STD_LOGIC ; op_pipe_sub_when_1 : STD_LOGIC_VECTOR) return std_logic;
@@ -28,17 +29,17 @@ package body fast_hfloat_pkg is
 
     begin
         shiftwidth := to_integer(c - a - b);
+
         if shiftwidth > (mantissa'length)*2
         then
             shiftwidth := (mantissa'length)*2;
         end if;
+
         if shiftwidth < -(mantissa'length)
         then
             shiftwidth := -(mantissa'length);
         end if;
-        -- if shiftwidth < 0 then
-        --     shiftwidth := shiftwidth + 1;
-        -- end if;
+
         return shiftwidth + mantissa'length;
 
     end get_shift_width;
@@ -134,4 +135,41 @@ package body fast_hfloat_pkg is
     end function;
 
     ----------------------------
+    function get_operation (mpy_a,mpy_b, add_a : hfloat_record) return std_logic is
+        variable add_when_0_neg_when_1 : std_logic;
+        variable sign_vector : std_logic_vector(2 downto 0);
+        /*
+        sign propagation to operation
+        ++|+ => +
+        --|+ => +
+        -+|- => +
+        +-|- => +
+
+        --|- => -
+        -+|+ => -
+        +-|+ => -
+        ++|- => -
+        */
+    begin
+        sign_vector := (mpy_a.sign & mpy_b.sign & add_a.sign);
+        CASE sign_vector is
+            -- add
+            WHEN "000" 
+                |"110" 
+                |"101" 
+                |"011" => add_when_0_neg_when_1 := '0';
+
+            -- sub
+            WHEN "111" 
+                |"100" 
+                |"010" 
+                |"001" => add_when_0_neg_when_1 := '1';
+
+            WHEN others => --do nothing
+        end CASE;
+
+        return add_when_0_neg_when_1;
+
+    end get_operation;
+    -----------------------------
 end package body;

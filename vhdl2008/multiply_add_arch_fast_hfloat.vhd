@@ -98,9 +98,7 @@ architecture fast_hfloat of multiply_add is
     signal extended_result     : res_subtype'subtype := res_subtype;
     signal extended_result_buf : res_subtype'subtype := res_subtype;
 
-    signal mpy_result  : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
-    signal mpy_result3 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
 
     signal test_mpy1 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
     signal test_mpy2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
@@ -129,45 +127,6 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     constant const_shift : integer := 1; -- TODO, check this
     ----------------------
-    function get_operation (mpy_a,mpy_b, add_a : hfloat_zero'subtype) return std_logic is
-        variable add_when_0_neg_when_1 : std_logic;
-        variable sign_vector : std_logic_vector(2 downto 0);
-        /*
-        sign propagation to operation
-        ++|+ => +
-        --|+ => +
-        -+|- => +
-        +-|- => +
-
-        --|- => -
-        -+|+ => -
-        +-|+ => -
-        ++|- => -
-        */
-    begin
-        sign_vector := (mpy_a.sign & mpy_b.sign & add_a.sign);
-        CASE sign_vector is
-            -- add
-            WHEN "000" 
-                |"110" 
-                |"101" 
-                |"011" => add_when_0_neg_when_1 := '0';
-
-            -- sub
-            WHEN "111" 
-                |"100" 
-                |"010" 
-                |"001" => add_when_0_neg_when_1 := '1';
-
-            WHEN others => --do nothing
-        end CASE;
-
-        return add_when_0_neg_when_1;
-
-    end get_operation;
-
-    ------------------
-    ------------------
     constant pipe : natural := 0;
     ------------------
     ------------------
@@ -212,6 +171,7 @@ architecture fast_hfloat of multiply_add is
     end function;
     ------------------
 
+    use work.fast_hfloat_pkg.get_operation;
 begin
 
     mpy_a <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
