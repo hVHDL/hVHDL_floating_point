@@ -54,6 +54,10 @@ entity hw_mult_axb_addsub_c is
 end hw_mult_axb_addsub_c;
 
 architecture rtl of hw_mult_axb_addsub_c is
+    signal a_buf : a'subtype;
+    signal b_buf : b'subtype;
+    signal c_buf : c'subtype;
+    signal sub_buf : sub_when_1'subtype;
 
 begin
 
@@ -70,10 +74,14 @@ begin
         begin
             if rising_edge(clock)
             then
-                if sub_when_1 = '0' then
-                    res <= resize(a * b, res'length) + c;
+                a_buf <= a;
+                b_buf <= b;
+                c_buf <= c;
+                sub_buf <= sub_when_1;
+                if sub_buf = '0' then
+                    res <= resize(a_buf * b_buf, res'length) + c_buf;
                 else
-                    res <= resize(a * b, res'length) - c;
+                    res <= resize(a_buf * b_buf, res'length) - c_buf;
                 end if;
             end if;
         end process;
@@ -118,6 +126,7 @@ architecture fast_hfloat of multiply_add is
 
     signal extended_result     : res_subtype'subtype := res_subtype;
     signal extended_result_buf : res_subtype'subtype := res_subtype;
+    signal extended_result_buf2 : res_subtype'subtype := res_subtype;
 
     signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
 
@@ -128,9 +137,9 @@ architecture fast_hfloat of multiply_add is
     -- pipelines
     ----------------------
     ----------------------
-    constant pipe_depth : natural := 1;
+    constant pipe_depth : natural := 2;
 
-    signal ready_pipe     : std_logic_vector(pipe_depth downto 0) := (others => '0');
+    signal ready_pipe     : std_logic_vector(pipe_depth+3 downto 0) := (others => '0');
     signal add_shift_pipe : std_logic_vector(pipe_depth downto 0) := (others => '0');
     ----------------------
     type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
@@ -138,6 +147,11 @@ architecture fast_hfloat of multiply_add is
     signal shift_pipe           : exp_array(pipe_depth downto 0) := (others => (others => '0'));
     ----------------------
     signal op_pipe_sub_when_1 : std_logic_vector(pipe_depth downto 0) := (others => '0');
+    ----------------------
+    use work.fast_hfloat_pkg.sign_array;
+    signal sign_pipe : sign_array(2 downto 0) := (others => (others => '0'));
+    ----------------------
+    -- end pipelines
     ----------------------
     signal mpy_a_buf    : unsigned(hfloat_zero.mantissa'length*1-1 downto 0) := (others => '0');
     signal add_a_buf    : unsigned(hfloat_zero.mantissa'length*1-1 downto 0) := (others => '0');
@@ -148,7 +162,7 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     constant const_shift : integer := 1; -- TODO, check this
     ----------------------
-    constant pipe : natural := 0;
+    constant pipe : natural := 2;
     ------------------
     ------------------
     function "xor" (left : std_logic ; right : unsigned) return unsigned is
@@ -158,24 +172,9 @@ architecture fast_hfloat of multiply_add is
     end function;
 
     ------------------
-    use work.fast_hfloat_pkg.sign_array;
     use work.fast_hfloat_pkg.get_result_sign;
 
     -------------
-    type fma_pipeline_record is record
-        sign_pipe : sign_array;
-    end record;
-
-    constant init_pipelines : fma_pipeline_record :=
-    (
-        sign_pipe => (1 downto 0 => (others => '0'))
-    );
-
-    signal self : init_pipelines'subtype := init_pipelines;
-    -------------
-
-    signal sign_pipe : sign_array(1 downto 0) := (others => (others => '0'));
-
     signal mpy_a : hfloat_zero'subtype := hfloat_zero;
     signal mpy_b : hfloat_zero'subtype := hfloat_zero;
     signal add_a : hfloat_zero'subtype := hfloat_zero;
@@ -206,62 +205,72 @@ architecture fast_hfloat of multiply_add is
     ------------------
 
     use work.fast_hfloat_pkg.get_operation;
+    signal op_buf : std_logic := '0';
+
 begin
 
+    ------------
+    -- p0
     mpy_a <= to_hfloat(mpya_in.mpy_a, hfloat_zero);
     mpy_b <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
     add_a <= to_hfloat(mpya_in.add_a, hfloat_zero);
 
+    mpy_a_buf   <= resize(mpy_a.mantissa, mpy_a_buf);
+    mpy_b_buf   <= resize(mpy_b.mantissa, mpy_b_buf);
+
+    ------------
+    -- p1
     mantissa_mult : entity work.hw_mult_axb
-    -- generic map(is_clocked => true)
+    generic map(is_clocked => true)
     port map( clock => clock
     , a   => mpy_a_buf
     , b   => mpy_b_buf
     , res => test_mpy2);
 
-    shifter : entity work.hw_mult_axb_addsub_c
-    port map( a           => mpy_shifter
-             , b          => add_a_buf
-             , c          => (test_mpy1'range => '0')
-             , sub_when_1 => get_operation( mpy_a ,mpy_b ,add_a)
-             , res        => test_mpy1);
-
-    mpy_a_buf   <= resize(mpy_a.mantissa, mpy_a_buf);
-    mpy_b_buf   <= resize(mpy_b.mantissa, mpy_b_buf);
-
-    add_a_buf   <= resize(add_a.mantissa, add_a_buf);
-    mpy_shifter <= resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length);
-
-    ------------
-    output_buffer : process(clock) is
+    process(clock) is
     begin
-       if rising_edge(clock) then
-
-
-           if get_operation( mpy_a ,mpy_b ,add_a) = '0'
-           then
-               mpy_result2 <= test_mpy1 + test_mpy2;
-           else
-               mpy_result2 <= test_mpy1 - test_mpy2;
-           end if;
-
-            extended_result     <= get_fma_result;
-            extended_result_buf <= extended_result;
+        if rising_edge(clock) then
+            mpy_shifter <= resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length);
+            add_a_buf   <= resize(add_a.mantissa, add_a_buf);
+            op_buf      <= get_operation( mpy_a ,mpy_b ,add_a);
         end if;
     end process;
 
+    ------------
+    -- p2
+    shifter : entity work.hw_mult_axb_addsub_c
+    generic map(is_clocked => true)
+    port map(
+            clock => clock
+             , a          => mpy_shifter
+             , b          => add_a_buf
+             , c          => test_mpy2
+             , sub_when_1 => op_buf
+             , res        => mpy_result2);
+
+    ------------
+    -- p3
+    output_buffer : process(clock) is
+    begin
+       if rising_edge(clock) then
+            extended_result      <= get_fma_result;
+            extended_result_buf  <= normalize(extended_result);
+            -- extended_result_buf2 <= normalize(extended_result_buf , 37/3);
+        end if;
+    end process;
+
+    mpya_out.result   <= to_std_logic((extended_result_buf))(mpya_out.result'high+extra_shift_bits downto 0+extra_shift_bits);
     mpya_out.is_ready <= ready_pipe(ready_pipe'left);
-    mpya_out.result   <= to_std_logic(normalize(extended_result))(mpya_out.result'high+extra_shift_bits downto 0+extra_shift_bits);
 
-
+    -------------------------------------------
     -------------------------------------------
     pipelines : process(clock) is
     begin
         if rising_edge(clock) 
         then
 
+            ready_pipe              <= ready_pipe(ready_pipe'left-1 downto 0) & mpya_in.is_requested;
             sign_pipe(0)            <= mpy_a.sign & mpy_b.sign & add_a.sign;
-            ready_pipe(0)           <= mpya_in.is_requested;
             result_exponent_pipe(0) <= hfloat_zero.exponent;
             shift_pipe(0)           <= hfloat_zero.exponent;
             add_shift_pipe(0)       <= '0';
@@ -300,7 +309,6 @@ begin
                     add_shift_pipe(i)       <= add_shift_pipe(i-1);
                     shift_pipe(i)           <= shift_pipe(i-1);
                     result_exponent_pipe(i) <= result_exponent_pipe(i-1);
-                    ready_pipe(i)           <= ready_pipe(i-1);
                     sign_pipe(i)            <= sign_pipe(i-1);
                 end if;
             end loop;

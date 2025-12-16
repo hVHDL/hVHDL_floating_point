@@ -60,10 +60,10 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     signal ref_b   : real := 0.0;
     signal ref_add : real := 0.0;
 
-    signal ref_pipeline     : real_vector(2 downto 0) := (others => 0.0);
-    signal ref_a_pipeline   : real_vector(3 downto 0) := (others => 0.0);
-    signal ref_b_pipeline   : real_vector(3 downto 0) := (others => 0.0);
-    signal ref_add_pipeline : real_vector(3 downto 0) := (others => 0.0);
+    signal ref_pipeline     : real_vector(5 downto 0) := (others => 0.0);
+    signal ref_a_pipeline   : real_vector(5 downto 0) := (others => 0.0);
+    signal ref_b_pipeline   : real_vector(5 downto 0) := (others => 0.0);
+    signal ref_add_pipeline : real_vector(5 downto 0) := (others => 0.0);
 
     use work.float_typedefs_generic_pkg.to_ieee_float32;
 
@@ -256,7 +256,7 @@ begin
                 real_mpya_result    <= to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
                 float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
 
-                v_rel_error := (to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero)) - ref_pipeline(1))/ref_pipeline(1);
+                v_rel_error := (to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero)) - ref_pipeline(4))/ref_pipeline(4);
                 rel_error   <= v_rel_error;
                 total_count <= total_count + 1.0;
                 if abs(v_rel_error) > 1.0e-5 then
