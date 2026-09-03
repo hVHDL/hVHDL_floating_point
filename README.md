@@ -69,3 +69,89 @@ https://hardwaredescriptions.com/floating-point-in-vhdl/
 
 The floating point alu is also documented in
 https://hardwaredescriptions.com/high-level-floating-point-alu-in-synthesizable-vhdl/
+
+## Agilex hard-float multiply-add
+
+`multiply_add` (`vhdl2008/multiply_add_entity.vhd`) is a fused `a*b + c` for
+FP32. The `agilex` architecture (`vhdl2008/altera/multiply_add_arch_agilex.vhd`)
+maps it onto the Altera **Native Floating-Point DSP** hard block, instantiated
+as a component called `native_fp32`:
+
+```vhdl
+use work.multiply_add_pkg.all;
+constant ref     : mpya_subtype_record := create_mpya_typeref;      -- fp32
+signal   mpya_in : ref.mpya_in'subtype  := ref.mpya_in;
+signal   mpya_out: ref.mpya_out'subtype := ref.mpya_out;
+...
+u_fma : entity work.multiply_add(agilex)
+    port map (clock => clk, mpya_in => mpya_in, mpya_out => mpya_out);
+...
+multiply_add(mpya_in, a, b, c);                 -- a,b,c : std_logic_vector(31 downto 0)
+result <= get_mpya_result(mpya_out);            -- valid after the pipeline latency
+```
+
+### Latency: 3 clock cycles
+
+The behavioural model `vhdl2008/altera/sim_native_fp32.vhd` (used for simulation
+only) has a **3 cycle** input→result latency, and `ready_pipeline` in the
+`agilex` architecture asserts `mpya_out.is_ready` **3 cycles** after
+`is_requested`. For the synthesised design to behave the same, the real
+`native_fp32` IP must be generated with the matching **3 cycle** pipeline:
+
+| register            | setting  |
+|---------------------|----------|
+| `fp32_mult_a` / `fp32_mult_b` / `fp32_adder_a` input registers | **enabled** |
+| `adder_input`        | **enabled** |
+| output register     | **enabled** |
+| `mult_pipeline`, `mult_2nd_pipeline` | disabled |
+| `fp32_adder_a_chainin_pl`, `..._chainin_2nd_pl`, `adder_pl` | disabled |
+| all `accum*`         | disabled |
+
+The IP's own default for `fp32_mult_add` mode is a deeper (~5 cycle) pipeline,
+so these registers have to be turned off explicitly. Leaving `adder_input`
+off as well gives a 2 cycle IP, which then does **not** match the model or
+`ready_pipeline`.
+
+### Generating the IP in an Agilex Quartus Prime Pro project
+
+The IP variation must be named `native_fp32` (matching the component in
+`multiply_add_arch_agilex.vhd`) and use the plain `fp32_adder_a` port
+(`use_chainin=false`).
+
+Command line (`ip-deploy` lives in `<quartus>/sopc_builder/bin`):
+
+```
+ip-deploy --component-name=agilex_native_floating_point_dsp \
+  --output-name=native_fp32 --output-directory=ip/native_fp32 \
+  --family="Agilex 3" --part=<device> \
+  --component-parameter=operation_mode=fp32_mult_add \
+  --component-parameter=use_chainin=false \
+  --component-parameter=fp32_mult_a_clken=0 \
+  --component-parameter=fp32_mult_b_clken=0 \
+  --component-parameter=fp32_adder_a_clken=0 \
+  --component-parameter=adder_input_clken=0 \
+  --component-parameter=output_clken=0 \
+  --component-parameter=mult_pipeline_clken=no_reg \
+  --component-parameter=mult_2nd_pipeline_clken=no_reg \
+  --component-parameter=fp32_adder_a_chainin_pl_clken=no_reg \
+  --component-parameter=fp32_adder_a_chainin_2nd_pl_clken=no_reg
+```
+
+(`*_clken = 0` means "registered, clocked by clk[0]"; `no_reg` removes the
+register.) Or in Platform Designer: add *Native Floating-Point DSP Agilex FPGA
+IP*, set the operation mode to `fp32_mult_add`, turn chain-in off, and match the
+table above under *Registers*.
+
+`quartus_syn` does **not** regenerate IP HDL, so after creating/editing the
+`.ip` run:
+
+```
+qsys-generate ip/native_fp32/native_fp32.ip --synthesis=VHDL --part=<device>
+```
+
+Then add the generated `native_fp32.qip` and
+`vhdl2008/altera/multiply_add_arch_agilex.vhd` to the project (and **not**
+`sim_native_fp32.vhd`, which is simulation-only).
+
+Verified on an Arrow AXC3000 (Agilex 3 `A3CY100BM16AE7S`): measured hardware
+latency = 3 core-clock edges, matching `sim_native_fp32.vhd`.
