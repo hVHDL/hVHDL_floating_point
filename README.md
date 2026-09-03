@@ -155,3 +155,49 @@ Then add the generated `native_fp32.qip` and
 
 Verified on an Arrow AXC3000 (Agilex 3 `A3CY100BM16AE7S`): measured hardware
 latency = 3 core-clock edges, matching `sim_native_fp32.vhd`.
+
+## Float ↔ integer conversion on Quartus Prime Pro
+
+`vhdl2008/denormalizer_generic_pkg.vhd` (`convert_float_to_integer` /
+`request_scaling` / `create_denormalizer`, used for float → fixed-point) **does
+not synthesise correctly on Quartus Prime Pro 25.3**. It simulates fine (nvc),
+but on hardware the mantissa shift is silently dropped and `get_integer` returns
+the raw, un-scaled mantissa — e.g. `1.0` at radix 10 gives `2**23` instead of
+`1024`.
+
+Cause: these procedures derive the mantissa width (and the pipeline-stage count)
+from a subtype attribute of the `self` formal parameter —
+
+```vhdl
+constant mantissa_length : natural := self.denormalizer_pipeline(0).mantissa'length;
+```
+
+Quartus evaluates that as `0` for a formal of *unconstrained record* type, even
+when the actual bound to `self` is a fully constrained signal built with
+`denormalizer_typeref`. `mantissa_length = 0` makes `target_scale` negative, so
+`denormalize_float` clamps every shift to 0.
+
+Tested on an AXC3000 and **none** of these work around it (all synthesise clean,
+all give `1.0 → 2**23`):
+
+- changing `self` from `out` to `inout`
+- using the attribute inline instead of assigning it to a local `constant`
+- passing a constrained `hfloat_record` signal (rather than a function-call
+  result) as the value to convert — the failing attribute is on `self`, not on
+  the input
+
+### What does work
+
+The **non-generic** `denormalizer_pkg`
+(`denormalizer/denormalizer_pkg.vhd` + `float_type_definitions_pkg` +
+a `denormalizer/denormalizer_configuration/denormalizer_with_N_stage_pipe_pkg.vhd`
+for the pipeline depth). There `mantissa_length` is a package constant from
+`float_type_definitions_pkg` and the record subtype is fixed, so nothing is read
+off `self`. Verified on AXC3000 hardware: `1.0 → 1024`, `0.5 → 512`,
+`0.1 → 102`, `2**-10 → 1`, `-0.5 → -512` at radix 10, `+5.9 ns` slack @ 100 MHz
+with a 2-stage pipe.  It takes a `float_record`, so an IEEE-754 fp32 needs a
+small `fp32 → float_record` helper first.
+
+To make `denormalizer_generic_pkg` synthesisable the width must not come from
+`self`: pass `mantissa_length` as an argument, carry it in the record (populated
+by `denormalizer_typeref`), or make the package generic over it.
