@@ -138,14 +138,16 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     constant pipe_depth : natural := 2;
 
-    -- narrow control pipes keep their reset value: not on the critical path,
-    -- and it keeps to_integer(shift_pipe) metavalue-free at sim time 0
+    -- narrow control pipes keep their reset value (small, not usually the
+    -- critical path).  shift_pipe is the exception - it feeds the result
+    -- slice offset and does land on the critical path at 120 MHz, so it has
+    -- no power-up value and get_fma_result guards its to_integer with to_01.
     signal ready_pipe     : std_logic_vector(pipe_depth+2 downto 0) := (others => '0');
     signal add_shift_pipe : std_logic_vector(pipe_depth downto 0) := (others => '0');
     ----------------------
     type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
     signal result_exponent_pipe : exp_array(pipe_depth downto 0) := (others => (others => '0'));
-    signal shift_pipe           : exp_array(pipe_depth downto 0) := (others => (others => '0'));
+    signal shift_pipe           : exp_array(pipe_depth downto 0);
     ----------------------
     signal op_pipe_sub_when_1 : std_logic_vector(pipe_depth downto 0) := (others => '0');
     ----------------------
@@ -198,7 +200,9 @@ architecture fast_hfloat of multiply_add is
         then
             v_off := const_shift - extra_shift_bits*2;
         else
-            v_off := to_integer(shift_pipe(pipe)) + const_shift - extra_shift_bits*2;
+            -- to_01: shift_pipe has no power-up value (retiming), so map any
+            -- metavalue to 0 rather than let to_integer warn at sim time 0
+            v_off := to_integer(to_01(shift_pipe(pipe))) + const_shift - extra_shift_bits*2;
         end if;
 
         v_mant := get_result_slice(v_mag, v_off, res_subtype);
