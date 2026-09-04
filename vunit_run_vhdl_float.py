@@ -36,6 +36,11 @@ generic_lib.add_source_files(ROOT / "vhdl2008/fast_hfloat_pkg.vhd")
 generic_lib.add_source_files(ROOT / "vhdl2008/altera/multiply_add_arch_agilex.vhd")
 generic_lib.add_source_files(ROOT / "vhdl2008/altera/sim_native_fp32.vhd")
 
+# float_divide needs hVHDL_fixed_point (source/hVHDL_fixed_point submodule)
+# purely for its piecewise-linear 1/x lookup table
+generic_lib.add_source_files(ROOT / "source/hVHDL_fixed_point/lut_interpolation/lut_reciprocal_pkg.vhd")
+generic_lib.add_source_files(ROOT / "vhdl2008/float_divide.vhd")
+
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/normalizer_tb.vhd")
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/mult_add_entity_tb.vhd")
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/fast_multiply_add_tb.vhd")
@@ -45,6 +50,7 @@ generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/fast_multiply_add_v2_t
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/mult_add_entity_agilex_tb.vhd")
 
 generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/type_conversions_tb.vhd")
+generic_lib.add_source_files(ROOT / "testbenches/vhdl2008/float_divide_tb.vhd")
 
 if args.dump_arrays:
     VU.set_sim_option("nvc.sim_flags", ["-w", "--dump-arrays"])
