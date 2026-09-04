@@ -295,10 +295,17 @@ begin
                              + mpy_b.exponent;
             else
                 result_exponent_pipe(0) <= add_a.exponent;
+                -- = add_a.exponent - mpy_a.exponent - mpy_b.exponent, but routed
+                -- through get_shift_width so it is saturated (and overflow-safe
+                -- for a zero operand) the same way the alignment shift is.
                 shift_pipe(0)    <=
-                               add_a.exponent
-                             - mpy_a.exponent 
-                             - mpy_b.exponent;
+                    to_signed(get_shift_width(
+                                   mpy_a.exponent
+                                  ,mpy_b.exponent
+                                  ,add_a.exponent
+                                  ,add_a.mantissa)
+                              - hfloat_zero.mantissa'length
+                             ,shift_pipe(0)'length);
 
                 add_shift_pipe(0) <= '1';
             end if;

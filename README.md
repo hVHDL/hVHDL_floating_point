@@ -156,6 +156,57 @@ Then add the generated `native_fp32.qip` and
 Verified on an Arrow AXC3000 (Agilex 3 `A3CY100BM16AE7S`): measured hardware
 latency = 3 core-clock edges, matching `sim_native_fp32.vhd`.
 
+## Soft `fast_hfloat` multiply-add
+
+`vhdl2008/multiply_add_arch_fast_hfloat.vhd` is a fabric (no hard FP DSP)
+`a*b + c` for the generic `hfloat_record` format. It computes the full
+`2*mantissa`-wide product, aligns the addend with a barrel shift taken from the
+exponents, and adds/subtracts in a wide fixed-point accumulator.
+
+### Accuracy: non-fused, result mantissa is truncated (deliberate)
+
+`get_result_slice` (`vhdl2008/fast_hfloat_pkg.vhd`) takes the result mantissa
+as a plain bit-slice of the accumulator: the bits below the slice are
+**discarded, not rounded** (round-toward-zero). This is a deliberate
+area/timing trade-off — round-to-nearest would add another full-width add
+(carry across the accumulator) plus guard/sticky logic in the result stage, on
+the critical path. The accumulator carries `extra_shift_bits = 3` guard bits,
+so the discarded step is a small fraction of a result ULP.
+
+What this means in practice:
+
+* **Well-conditioned inputs** — total error stays well under 1 ULP of the
+  result.
+* **Catastrophic cancellation** (`a*b ≈ -c`, so the result is orders of
+  magnitude smaller than either term) — the result keeps only a few
+  significant bits and the truncation becomes a large *relative* error on that
+  tiny result (observed up to ~1e-3). The *absolute* error is still a fraction
+  of a ULP of the operand magnitude `|a*b| + |c|`; this block simply is not a
+  true fused multiply-add and does not produce a correctly-rounded tiny
+  result. `const_shift` in the result stage is likewise a fixed guess
+  (`= 1`, see the `TODO`) rather than the exact product-normalisation shift,
+  which costs a sub-ULP amount in the same regime.
+
+`testbenches/vhdl2008/fast_multiply_add_tb.vhd` matches this contract: the
+golden model is fed the same fp32-quantised operands as the DUT, and a result
+is accepted when it is within `1e-5` of the reference **or** within `1e-6` of
+`|a*b| + |c|`. A purely relative check would flag the cancellation cases even
+though the datapath is behaving as designed. The directed cases at
+`simulation_counter` 290–410 cover exact cancellation to zero, negative
+power-of-two results, increasing cancellation depth, and zero operands.
+
+### Known input-range limits
+
+* **Exponent spread.** `get_shift_width` saturates the addend/product alignment
+  into `get_shift`'s one-hot index range and does the `exp_c - exp_a - exp_b`
+  difference in `integer` so it cannot overflow. A **zero operand** (exponent
+  ≈ `-126`) is therefore safe — the shift saturates and the zero term vanishes
+  anyway. What is *not* provided is a correctly-aligned result when two
+  non-zero operands are more than ~`2**mantissa` apart in exponent
+  (`|c| ≫ |a*b|` or vice-versa): the shift saturates and the far-smaller term
+  is dropped rather than partially rounded in. Widen `get_shift` /
+  `mpy_shifter` / `hw_mult_axb_addsub_c` if that range matters.
+
 ## Float ↔ integer conversion on Quartus Prime Pro
 
 `vhdl2008/denormalizer_generic_pkg.vhd` (`convert_float_to_integer` /

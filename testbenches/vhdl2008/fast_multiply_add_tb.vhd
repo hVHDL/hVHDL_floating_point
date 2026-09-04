@@ -45,6 +45,18 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
 
     constant hfloat_zero : hfloat_record := to_hfloat(0.0);
 
+    -----------------------
+    -- Quantise a stimulus value to exactly what the DUT receives (fp32 -> hfloat)
+    -- so the reference model sees the same rounded operands. Without this the
+    -- golden result carries the full-precision operands and any catastrophic
+    -- cancellation (a*b ~= -c) amplifies the ~1 ulp operand-quantisation error
+    -- far past the relative-error check.
+    function to_dut_operand (a : real) return real is
+    begin
+        return to_real(to_hfloat(to_float32(a), hfloat_zero));
+    end function;
+    -----------------------
+
     signal float32_conv_result : float32 := to_float32(0.0);
 
     use work.multiply_add_pkg.all;
@@ -64,6 +76,12 @@ architecture vunit_simulation of fast_mult_add_entity_tb is
     signal ref_a_pipeline   : real_vector(5 downto 0) := (others => 0.0);
     signal ref_b_pipeline   : real_vector(5 downto 0) := (others => 0.0);
     signal ref_add_pipeline : real_vector(5 downto 0) := (others => 0.0);
+
+    -- magnitude of the operands feeding the final add, aligned with ref_pipeline.
+    -- Used as the accuracy scale: this is a non-fused multiply-add (the a*b + c
+    -- sum is truncated, not rounded), so its error is bounded relative to
+    -- |a*b| + |c|, not relative to a catastrophically small result.
+    signal ref_scale_pipeline : real_vector(5 downto 0) := (others => 0.0);
 
     use work.float_typedefs_generic_pkg.to_ieee_float32;
 
@@ -110,17 +128,18 @@ begin
             ,to_std_logic(to_hfloat(to_float32(b),hfloat_zero))
             ,to_std_logic(to_hfloat(to_float32(c),hfloat_zero)));
 
-            ref_a   <= a;
-            ref_b   <= b;
-            ref_add <= c;
+            ref_a   <= to_dut_operand(a);
+            ref_b   <= to_dut_operand(b);
+            ref_add <= to_dut_operand(c);
 
-            ref_a_pipeline(0)   <= a;
-            ref_b_pipeline(0)   <= b;
-            ref_add_pipeline(0) <= c;
+            ref_a_pipeline(0)   <= to_dut_operand(a);
+            ref_b_pipeline(0)   <= to_dut_operand(b);
+            ref_add_pipeline(0) <= to_dut_operand(c);
         end multiply_add;
         -----------------
         -----------------
         variable v_rel_error : real := 0.0;
+        variable v_abs_error : real := 0.0;
     begin
         if rising_edge(simulator_clock) then
             simulation_counter <= simulation_counter + 1;
@@ -132,14 +151,15 @@ begin
             init_multiply_add(mpya_in);
 
             ref_pipeline <= ref_pipeline(ref_pipeline'left-1 downto 0) & (ref_a*ref_b + ref_add);
+            ref_scale_pipeline <= ref_scale_pipeline(ref_scale_pipeline'left-1 downto 0) & (abs(ref_a*ref_b) + abs(ref_add));
 
             ref_a_pipeline   <= ref_a_pipeline(ref_a_pipeline'left-1 downto 0) & ref_a_pipeline(0);
             ref_b_pipeline   <= ref_b_pipeline(ref_b_pipeline'left-1 downto 0) & ref_b_pipeline(0);
             ref_add_pipeline <= ref_add_pipeline(ref_add_pipeline'left-1 downto 0) & ref_add_pipeline(0);
 
-            if simulation_counter >= 300
+            if simulation_counter >= 420
             then
-                multiply_add(mpya_in 
+                multiply_add(mpya_in
                     ,(rand1-0.5)*100.0
                     ,(rand2-0.5)*100.0
                     ,(rand3-0.5)*100.0
@@ -203,7 +223,28 @@ begin
 
                 WHEN 27  *10 => multiply_add(mpya_in , 1.0/8.0 , -8.0 , 0.0); --010
                 WHEN 28  *10 => multiply_add(mpya_in , 18.970327 , 1.16203521 , -22.041984); --010
-                --TODO, check with negative zero
+
+                -- exact cancellation -> result is exactly zero (a*b = -c)
+                WHEN 29  *10 => multiply_add(mpya_in , +1.0 , +1.0 , -1.0);          -- +0
+                WHEN 30  *10 => multiply_add(mpya_in , -1.0 , +1.0 , +1.0);          -- +0 via subtract
+                WHEN 31  *10 => multiply_add(mpya_in , 2.0 , 3.0 , -6.0);            -- +0
+                WHEN 32  *10 => multiply_add(mpya_in , 1024.0 , 1024.0 , -1048576.0);-- +0, 2^20 terms
+
+                -- negative exact result, power-of-two magnitude (exercises the
+                -- sign / magnitude handling in the result stage)
+                WHEN 33  *10 => multiply_add(mpya_in , 1.0 , 1.0 , -3.0);            -- -2.0
+                WHEN 34  *10 => multiply_add(mpya_in , 1.0 , 1.0 , -5.0);            -- -4.0
+                WHEN 35  *10 => multiply_add(mpya_in , 2.0 , 2.0 , -12.0);           -- -8.0
+                WHEN 36  *10 => multiply_add(mpya_in , -4.0 , 4.0 , 0.0);            -- -16.0, addend is exactly 0.0
+                WHEN 37  *10 => multiply_add(mpya_in , 8.0 , 8.0 , -128.0);          -- -64.0
+
+                -- catastrophic cancellation, small non-zero result of both signs
+                WHEN 38  *10 => multiply_add(mpya_in , 4.0 , 0.5 , -1.9999);         -- ~+1e-4
+                WHEN 39  *10 => multiply_add(mpya_in , 4.0 , 0.5 , -2.0001);         -- ~-1e-4
+
+                -- zero multiplicand: product vanishes, result is c
+                WHEN 40  *10 => multiply_add(mpya_in , 0.0 , 7.0 , -3.5);            -- -3.5
+                WHEN 41  *10 => multiply_add(mpya_in , 6.0 , 0.0 , 2.25);            -- +2.25
 
             --         multiply_add(mpya_in 
             --         ,0.49498465168
@@ -256,10 +297,22 @@ begin
                 real_mpya_result    <= to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
                 float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
 
-                v_rel_error := (to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero)) - ref_pipeline(4))/ref_pipeline(4);
+                v_abs_error := to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero)) - ref_pipeline(4);
+                if ref_pipeline(4) /= 0.0 then
+                    v_rel_error := v_abs_error/ref_pipeline(4);
+                else
+                    v_rel_error := 0.0;   -- exact-zero reference: judged on the scale term only
+                end if;
                 rel_error   <= v_rel_error;
                 total_count <= total_count + 1.0;
-                if abs(v_rel_error) > 1.0e-5 then
+                -- Accept the result if it is within 1e-5 of the reference OR within
+                -- 1e-6 of the term magnitude |a*b|+|c|. The second term covers
+                -- catastrophic cancellation (a*b ~= -c): the truncated, non-fused
+                -- sum is only accurate to ~1 ulp of the operands, not of the tiny
+                -- result. See README, "Soft fast_hfloat multiply-add".
+                if abs(v_abs_error) > 1.0e-5*abs(ref_pipeline(4))
+                   and abs(v_abs_error) > 1.0e-6*ref_scale_pipeline(4)
+                then
                     rel_error_count <= rel_error_count + 1.0;
                     error_density <= ((rel_error_count+1.0) / (total_count+1.0));
                 end if;

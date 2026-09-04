@@ -25,14 +25,18 @@ package body fast_hfloat_pkg is
 
     function get_shift_width(a, b, c : signed ; mantissa : unsigned) return integer is
 
-        variable shiftwidth : integer;
+        -- Difference of exponents in `integer`, not exponent-wide `signed`: a
+        -- zero operand carries a large-magnitude exponent, so `c - a - b` would
+        -- overflow an 8-bit signed and wrap to a bogus shift. Saturating into
+        -- get_shift()'s index range is enough - a term whose alignment lands
+        -- past these rails is either wholly inside the accumulator or shifted
+        -- out, and a zero operand adds nothing regardless of the shift.
+        variable shiftwidth : integer := to_integer(c) - to_integer(a) - to_integer(b);
 
     begin
-        shiftwidth := to_integer(c - a - b);
-
-        if shiftwidth > (mantissa'length)*2
+        if shiftwidth > mantissa'length - 1
         then
-            shiftwidth := (mantissa'length)*2;
+            shiftwidth := mantissa'length - 1;
         end if;
 
         if shiftwidth < -(mantissa'length)
@@ -40,7 +44,7 @@ package body fast_hfloat_pkg is
             shiftwidth := -(mantissa'length);
         end if;
 
-        return shiftwidth + mantissa'length;
+        return shiftwidth + mantissa'length;   -- 0 .. 2*mantissa-1, a valid get_shift index
 
     end get_shift_width;
 
