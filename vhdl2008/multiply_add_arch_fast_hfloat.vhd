@@ -7,9 +7,9 @@ entity hw_mult_axb is
     generic(is_clocked : boolean := false);
     port(
         clock : in std_logic := '0'
-        ;a    : in unsigned
-        ;b   : in unsigned
-        ;res : out unsigned
+        ;a    : in signed
+        ;b   : in signed
+        ;res : out signed
     );
 end hw_mult_axb;
 
@@ -40,16 +40,17 @@ LIBRARY ieee  ;
     USE ieee.std_logic_1164.all  ; 
     USE ieee.NUMERIC_STD.all  ; 
 
+-- Signed multiply-add: res = a*b + c.  The add/sub choice is handled by the
+-- caller pre-negating the 24-bit multiplicand, so this is a plain MAC and
+-- maps straight onto the DSP accumulate path.
 entity hw_mult_axb_addsub_c is
     generic(is_clocked : boolean := false);
     port(
         clock : in std_logic := '0'
-        ;a           : in unsigned
-        ;b          : in unsigned
-        ;c          : in unsigned
-        ;sub_when_1 : in std_logic
-
-        ;res        : out unsigned
+        ;a   : in signed
+        ;b   : in signed
+        ;c   : in signed
+        ;res : out signed
     );
 end hw_mult_axb_addsub_c;
 
@@ -57,15 +58,12 @@ architecture rtl of hw_mult_axb_addsub_c is
     signal a_buf : a'subtype;
     signal b_buf : b'subtype;
     signal c_buf : c'subtype;
-    signal sub_buf : sub_when_1'subtype;
 
 begin
 
-    
     unclocked :
     if not is_clocked generate
-        res <= resize(a * b, res'length) + c when sub_when_1 = '0' else
-               resize(a * b, res'length) - c ;
+        res <= resize(a * b, res'length) + c;
     end generate;
 
     clocked :
@@ -77,12 +75,7 @@ begin
                 a_buf <= a;
                 b_buf <= b;
                 c_buf <= c;
-                sub_buf <= sub_when_1;
-                if sub_buf = '0' then
-                    res <= resize(a_buf * b_buf, res'length) + c_buf;
-                else
-                    res <= resize(a_buf * b_buf, res'length) - c_buf;
-                end if;
+                res <= resize(a_buf * b_buf, res'length) + c_buf;
             end if;
         end process;
     end generate;
@@ -98,6 +91,8 @@ architecture fast_hfloat of multiply_add is
     use work.fast_hfloat_pkg.get_shift_width;
     ----------------------
     use work.fast_hfloat_pkg.get_shift;
+    ----------------------
+    use work.fast_hfloat_pkg.get_sticky;
     ----------------------
     use work.fast_hfloat_pkg.c_align_guard;
     ----------------------
@@ -130,10 +125,10 @@ architecture fast_hfloat of multiply_add is
     signal extended_result_buf : res_subtype'subtype := res_subtype;
     signal extended_result_buf2 : res_subtype'subtype := res_subtype;
 
-    signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*2 + c_align_guard - 1 downto 0) := (others => '0');
-
-    signal test_mpy1 : unsigned(hfloat_zero.mantissa'length*2 + c_align_guard - 1 downto 0) := (others => '0');
-    signal test_mpy2 : unsigned(hfloat_zero.mantissa'length*2 + c_align_guard - 1 downto 0) := (others => '0');
+    -- signed: the mantissa product is pre-negated for subtraction, so
+    -- mpy_result2 can be negative near cancellation.  One extra bit for sign.
+    signal mpy_result2 : signed(hfloat_zero.mantissa'length*2 + c_align_guard downto 0) := (others => '0');
+    signal test_mpy2   : signed(hfloat_zero.mantissa'length*2 + c_align_guard - 1 downto 0) := (others => '0');
     ----------------------
     ----------------------
     -- pipelines
@@ -155,10 +150,13 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     -- end pipelines
     ----------------------
-    signal mpy_a_buf    : unsigned(hfloat_zero.mantissa'length*1-1 downto 0) := (others => '0');
-    signal add_a_buf    : unsigned(hfloat_zero.mantissa'length*1-1 downto 0) := (others => '0');
-    signal mpy_b_buf    : unsigned(hfloat_zero.mantissa'length*1-1 downto 0) := (others => '0');
+    -- mpy_b_buf is pre-negated (two's complement) when the effective operation
+    -- is a subtract, so the mantissa multiply carries the sign
+    signal mpy_a_buf    : signed(hfloat_zero.mantissa'length downto 0) := (others => '0');
+    signal mpy_b_buf    : signed(hfloat_zero.mantissa'length downto 0) := (others => '0');
+    signal add_a_buf    : signed(hfloat_zero.mantissa'length downto 0) := (others => '0');
     signal mpy_shifter  : unsigned(hfloat_zero.mantissa'length + c_align_guard - 1 downto 0) := (others => '0');
+    signal op_p0        : std_logic := '0';
     ----------------------
     signal shift_res : integer := 0;
     ----------------------
@@ -184,32 +182,42 @@ architecture fast_hfloat of multiply_add is
     ------------------
     impure function get_fma_result return hfloat_record is
         variable retval : extended_result'subtype;
-
+        variable v_mag  : unsigned(mpy_result2'range);
+        variable v_off  : integer;
+        variable v_mant : extended_result.mantissa'subtype;
     begin
+        -- approximate magnitude (bitwise negate, off by one LSB) of the
+        -- possibly-negative signed multiply-add result
+        v_mag := mpy_result2(mpy_result2'left) xor unsigned(mpy_result2);
+
         if add_shift_pipe(pipe) = '0'
         then
-            retval := 
-                   (
-                         sign      => get_result_sign(pipe, sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
-                         ,exponent => result_exponent_pipe(pipe)+const_shift
-                         ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, const_shift-extra_shift_bits*2, res_subtype)
-                   );
+            v_off := const_shift - extra_shift_bits*2;
         else
-            retval := 
-                   (
-                         sign      => get_result_sign(pipe, sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
-                         ,exponent => result_exponent_pipe(pipe) + const_shift
-                         ,mantissa => get_result_slice(mpy_result2(mpy_result2'left) xor mpy_result2, to_integer(shift_pipe(pipe) + const_shift-extra_shift_bits*2), res_subtype)
-                   );
+            v_off := to_integer(shift_pipe(pipe)) + const_shift - extra_shift_bits*2;
         end if;
+
+        v_mant := get_result_slice(v_mag, v_off, res_subtype);
+        v_mant(v_mant'right) := v_mant(v_mant'right) or get_sticky(v_mag, v_off, res_subtype);
+
+        retval := (
+              sign      => get_result_sign(pipe, sign_pipe, mpy_result2(mpy_result2'left), op_pipe_sub_when_1)
+              ,exponent => result_exponent_pipe(pipe) + const_shift
+              ,mantissa => v_mant
+        );
         return retval;
     end function;
     ------------------
 
     use work.fast_hfloat_pkg.get_operation;
-    signal op_buf : std_logic := '0';
+
+    -- signed one-hot shift vector (intermediate signal: nvc rejects a type
+    -- conversion as the actual for an unconstrained port)
+    signal shifter_a : signed(mpy_shifter'length downto 0) := (others => '0');
 
 begin
+
+    shifter_a <= signed('0' & mpy_shifter);
 
     ------------
     -- p0
@@ -217,8 +225,10 @@ begin
     mpy_b <= to_hfloat(mpya_in.mpy_b, hfloat_zero);
     add_a <= to_hfloat(mpya_in.add_a, hfloat_zero);
 
-    mpy_a_buf   <= resize(mpy_a.mantissa, mpy_a_buf);
-    mpy_b_buf   <= resize(mpy_b.mantissa, mpy_b_buf);
+    op_p0     <= get_operation(mpy_a, mpy_b, add_a);
+    mpy_a_buf <= signed(resize(mpy_a.mantissa, mpy_a_buf'length));
+    mpy_b_buf <= -signed(resize(mpy_b.mantissa, mpy_b_buf'length)) when op_p0 = '1'
+                 else signed(resize(mpy_b.mantissa, mpy_b_buf'length));
 
     ------------
     -- p1
@@ -233,22 +243,20 @@ begin
     begin
         if rising_edge(clock) then
             mpy_shifter <= resize(get_shift(mpya_in.mpy_a, mpya_in.mpy_b, mpya_in.add_a, hfloat_zero), mpy_shifter'length);
-            add_a_buf   <= resize(add_a.mantissa, add_a_buf);
-            op_buf      <= get_operation( mpy_a ,mpy_b ,add_a);
+            add_a_buf   <= signed(resize(add_a.mantissa, add_a_buf'length));
         end if;
     end process;
 
     ------------
-    -- p2
+    -- p2  -- res = (shifted addend) + (signed mantissa product)
     shifter : entity work.hw_mult_axb_addsub_c
     generic map(is_clocked => true)
     port map(
             clock => clock
-             , a          => mpy_shifter
-             , b          => add_a_buf
-             , c          => test_mpy2
-             , sub_when_1 => op_buf
-             , res        => mpy_result2);
+             , a   => shifter_a   -- one-hot shift vector, always positive
+             , b   => add_a_buf   -- addend mantissa, always positive
+             , c   => test_mpy2   -- mantissa product, negative when subtracting
+             , res => mpy_result2);
 
     ------------
     -- p3
@@ -297,10 +305,13 @@ begin
                              + mpy_b.exponent;
             else
                 result_exponent_pipe(0) <= add_a.exponent;
-                shift_pipe(0)    <=
-                               add_a.exponent
-                             - mpy_a.exponent 
-                             - mpy_b.exponent;
+                -- clamp to match get_shift_width: past the guard the product is
+                -- dropped, so the slice offset must saturate with the shifter
+                if (add_a.exponent - mpy_a.exponent - mpy_b.exponent) > c_align_guard - 1 then
+                    shift_pipe(0) <= to_signed(c_align_guard - 1, shift_pipe(0)'length);
+                else
+                    shift_pipe(0) <= add_a.exponent - mpy_a.exponent - mpy_b.exponent;
+                end if;
 
                 add_shift_pipe(0) <= '1';
             end if;

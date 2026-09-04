@@ -19,6 +19,8 @@ package fast_hfloat_pkg is
     constant c_align_guard : natural := 12;
 
     function get_result_slice (a : unsigned; offset : integer ; hfloatref : hfloat_record) return unsigned;
+    -- OR of the bits that get_result_slice drops off the bottom of the window
+    function get_sticky (a : unsigned; offset : integer ; hfloatref : hfloat_record) return std_logic;
     function get_shift_width(a, b, c : signed ; mantissa : unsigned) return integer;
     function get_shift(a : std_logic_vector; b : std_logic_vector ; c : std_logic_vector ; floatref : hfloat_record) return unsigned;
     function max (a, b : integer) return integer;
@@ -72,6 +74,33 @@ package body fast_hfloat_pkg is
 
         return a(2*m-1 + safe_offset downto m + safe_offset);
     end get_result_slice;
+
+    ----------------------------
+    function get_sticky (a : unsigned; offset : integer ; hfloatref : hfloat_record) return std_logic is
+        constant m           : natural := hfloatref.mantissa'length;
+        variable safe_offset : integer := offset;
+        variable s           : std_logic := '0';
+    begin
+        if safe_offset > a'high - (2*m - 1)
+        then
+            safe_offset := a'high - (2*m - 1);
+        end if;
+
+        if safe_offset < -m
+        then
+            safe_offset := -m;
+        end if;
+
+        -- constant loop bounds (Efinity rejects a variable bound); mask per bit
+        for i in a'range loop
+            if i < m + safe_offset
+            then
+                s := s or a(i);
+            end if;
+        end loop;
+
+        return s;
+    end get_sticky;
 
     function get_shift(a : std_logic_vector; b : std_logic_vector ; c : std_logic_vector ; floatref : hfloat_record) return unsigned is
 
