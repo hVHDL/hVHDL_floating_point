@@ -55,11 +55,28 @@ Also includes float to real and real to float conversion functions for simple co
 float_number <= to_float(3.14);
 
 
-run all test benches with vunit+ghdl+gtkwave using
+## Repository layout
+
+| path | contents |
+|------|----------|
+| `vhdl1993/` | the object-style API used above: word-length-specific packages (`float_word_length_*_bit_pkg`), `float_alu`, `float_to_integer_converter`, `normalizer`/`denormalizer` with a fixed pipeline depth baked into the package name. Legacy, kept building via its own vunit runner, not part of the main suite. |
+| `vhdl2008/` | generic, `hfloat_record`-based rewrite: `multiply_add` (fused `a*b + c`; `hfloat` / `fast_hfloat` / `agilex` architectures - see below), `normalizer_generic_pkg`, `denormalizer_generic_pkg`, `float_to_real_conversions_pkg`. This is the actively developed half, e.g. what [`hfloat_test`](https://github.com/johonkanen/float_fpga_hw_test) builds on real Titanium/Agilex hardware. |
+| `testbenches/vhdl2008/` | vunit testbenches for `vhdl2008/`. |
+| `vhdl1993/testbenches/` | vunit testbenches for `vhdl1993/`. |
+
+Run the active suite (vhdl2008, nvc):
 
 ```
-python vunit_run_float.py -p 8 --gtkwave-fmt ghw
+python vunit_run_vhdl_float.py -p 8
 ```
+
+Run the legacy suite (vhdl1993) standalone:
+
+```
+python vhdl1993/vunit_run_vhdl_float.py -p 8
+```
+
+Add `--gtkwave-fmt ghw` to either if you want waves out of a ghdl run and have gtkwave on `PATH`.
 
 An iir low pass filter has been tested on an example project for the hVHDL project and can be found here
 https://hvhdl.readthedocs.io/en/latest/hvhdl_example_project/hvhdl_example_project.html#floating-point-filter-implementation
@@ -70,12 +87,41 @@ https://hardwaredescriptions.com/floating-point-in-vhdl/
 The floating point alu is also documented in
 https://hardwaredescriptions.com/high-level-floating-point-alu-in-synthesizable-vhdl/
 
+## Soft multiply-add: `multiply_add(hfloat)` / `multiply_add(fast_hfloat)`
+
+`multiply_add` (`vhdl2008/multiply_add_entity.vhd`) is a fused `a*b + c` over
+the generic `hfloat_record` (sign, exponent, explicit-leading-1 mantissa - no
+hidden bit, no subnormals/inf/NaN, truncated rather than correctly rounded).
+Two soft architectures trade logic for latency:
+
+| architecture | latency (core-clock edges) | notes |
+|---|---:|---|
+| `hfloat` (`multiply_add_arch_hfloat.vhd`) | 8 | sign-magnitude adder + one barrel-shift denormaliser; the reference implementation |
+| `fast_hfloat` (`multiply_add_arch_fast_hfloat.vhd`) | 4 | aligns the addend by multiplying it with a one-hot vector (alignment rides the DSP instead of a barrel shifter), fuses magnitude-recovery / slice / normalise into a single stage |
+
+`fast_hfloat`'s alignment range is bounded by `fast_hfloat_pkg.c_align_guard`
+(default `12`): operands whose magnitudes differ by more than `c_align_guard`
+bits have the smaller one truncated instead of fully summed. At the default,
+`fast_hfloat` matches `hfloat` to within `1e-3` relative on a wide random
+sweep; `c_align_guard = 20` matches to within `1e-5` (`hfloat`'s own noise
+floor) at the cost of a wider datapath.
+
+On Agilex, `fast_hfloat`'s pipeline registers carry **no power-up value** -
+an ALM register with an initial value can't be moved by the Hyper-Retimer,
+which otherwise pins the whole architecture's Fmax. Verified end to end on
+[`hfloat_test`](https://github.com/johonkanen/float_fpga_hw_test) at a
+120 MHz core clock:
+
+| board | toolchain | Fmax | bit-exact vs `hfloat` on hardware? |
+|---|---|---:|---|
+| Titanium Ti60F225 | Efinity 2026.1 | ~180 MHz | yes |
+| Agilex 3 (AXC3000) | Quartus Prime Pro 25.3 / 26.1.1 | ~141 MHz | yes |
+
 ## Agilex hard-float multiply-add
 
-`multiply_add` (`vhdl2008/multiply_add_entity.vhd`) is a fused `a*b + c` for
-FP32. The `agilex` architecture (`vhdl2008/altera/multiply_add_arch_agilex.vhd`)
-maps it onto the Altera **Native Floating-Point DSP** hard block, instantiated
-as a component called `native_fp32`:
+The `agilex` architecture (`vhdl2008/altera/multiply_add_arch_agilex.vhd`)
+maps the same `multiply_add` entity onto the Altera **Native Floating-Point
+DSP** hard block, instantiated as a component called `native_fp32`:
 
 ```vhdl
 use work.multiply_add_pkg.all;
