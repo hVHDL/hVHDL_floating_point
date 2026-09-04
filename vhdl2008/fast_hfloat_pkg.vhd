@@ -8,6 +8,16 @@ LIBRARY ieee  ;
 
 package fast_hfloat_pkg is
 
+    -- Alignment window guard.  Bounds how far the smaller FMA operand may be
+    -- shifted relative to the larger one before it is treated as a round/
+    -- sticky contribution (< 2**-c_align_guard relative).  It sizes the
+    -- one-hot shift vector and the multiply-add datapath:
+    --   one-hot / mpy_shifter width = mantissa + c_align_guard
+    --   product / mpy_result2 width = 2*mantissa + c_align_guard
+    -- c_align_guard = 2*mantissa reproduces the original (oversized) widths;
+    -- smaller values trade addend-dominated dynamic range for less logic.
+    constant c_align_guard : natural := 12;
+
     function get_result_slice (a : unsigned; offset : integer ; hfloatref : hfloat_record) return unsigned;
     function get_shift_width(a, b, c : signed ; mantissa : unsigned) return integer;
     function get_shift(a : std_logic_vector; b : std_logic_vector ; c : std_logic_vector ; floatref : hfloat_record) return unsigned;
@@ -30,9 +40,9 @@ package body fast_hfloat_pkg is
     begin
         shiftwidth := to_integer(c - a - b);
 
-        if shiftwidth > (mantissa'length)*2
+        if shiftwidth > c_align_guard - 1
         then
-            shiftwidth := (mantissa'length)*2;
+            shiftwidth := c_align_guard - 1;
         end if;
 
         if shiftwidth < -(mantissa'length)
@@ -46,25 +56,26 @@ package body fast_hfloat_pkg is
 
     ----------------------------
     function get_result_slice (a : unsigned; offset : integer ; hfloatref : hfloat_record) return unsigned is
-        variable safe_offset : integer := 0;
+        constant m           : natural := hfloatref.mantissa'length;
+        variable safe_offset : integer := offset;
     begin
-        safe_offset := offset;
-        if safe_offset > hfloatref.mantissa'length
+        -- clamp so the [2m-1+off : m+off] window stays inside a's range
+        if safe_offset > a'high - (2*m - 1)
         then
-            safe_offset := hfloatref.mantissa'length;
+            safe_offset := a'high - (2*m - 1);
         end if;
 
-        if safe_offset < -hfloatref.mantissa'length
+        if safe_offset < -m
         then
-            safe_offset := -hfloatref.mantissa'length;
+            safe_offset := -m;
         end if;
 
-        return (a(hfloatref.mantissa'length*2-1+(safe_offset) downto hfloatref.mantissa'length+(safe_offset)));
+        return a(2*m-1 + safe_offset downto m + safe_offset);
     end get_result_slice;
 
     function get_shift(a : std_logic_vector; b : std_logic_vector ; c : std_logic_vector ; floatref : hfloat_record) return unsigned is
 
-        variable retval : unsigned(floatref.mantissa'length * 2-1 downto 0) := (others => '0');
+        variable retval : unsigned(floatref.mantissa'length + c_align_guard - 1 downto 0) := (others => '0');
 
     begin
         retval(get_shift_width(

@@ -99,6 +99,8 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     use work.fast_hfloat_pkg.get_shift;
     ----------------------
+    use work.fast_hfloat_pkg.c_align_guard;
+    ----------------------
     use work.fast_hfloat_pkg.max;
     ----------------------
     use work.normalizer_generic_pkg.normalize;
@@ -128,10 +130,10 @@ architecture fast_hfloat of multiply_add is
     signal extended_result_buf : res_subtype'subtype := res_subtype;
     signal extended_result_buf2 : res_subtype'subtype := res_subtype;
 
-    signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+    signal mpy_result2 : unsigned(hfloat_zero.mantissa'length*2 + c_align_guard - 1 downto 0) := (others => '0');
 
-    signal test_mpy1 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
-    signal test_mpy2 : unsigned(hfloat_zero.mantissa'length*3-1 downto 0) := (others => '0');
+    signal test_mpy1 : unsigned(hfloat_zero.mantissa'length*2 + c_align_guard - 1 downto 0) := (others => '0');
+    signal test_mpy2 : unsigned(hfloat_zero.mantissa'length*2 + c_align_guard - 1 downto 0) := (others => '0');
     ----------------------
     ----------------------
     -- pipelines
@@ -156,7 +158,7 @@ architecture fast_hfloat of multiply_add is
     signal mpy_a_buf    : unsigned(hfloat_zero.mantissa'length*1-1 downto 0) := (others => '0');
     signal add_a_buf    : unsigned(hfloat_zero.mantissa'length*1-1 downto 0) := (others => '0');
     signal mpy_b_buf    : unsigned(hfloat_zero.mantissa'length*1-1 downto 0) := (others => '0');
-    signal mpy_shifter  : unsigned(hfloat_zero.mantissa'length*2-1 downto 0) := (others => '0');
+    signal mpy_shifter  : unsigned(hfloat_zero.mantissa'length + c_align_guard - 1 downto 0) := (others => '0');
     ----------------------
     signal shift_res : integer := 0;
     ----------------------
