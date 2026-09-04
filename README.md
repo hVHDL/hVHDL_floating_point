@@ -60,7 +60,8 @@ float_number <= to_float(3.14);
 | path | contents |
 |------|----------|
 | `vhdl1993/` | the object-style API used above: word-length-specific packages (`float_word_length_*_bit_pkg`), `float_alu`, `float_to_integer_converter`, `normalizer`/`denormalizer` with a fixed pipeline depth baked into the package name. Legacy, kept building via its own vunit runner, not part of the main suite. |
-| `vhdl2008/` | generic, `hfloat_record`-based rewrite: `multiply_add` (fused `a*b + c`; `hfloat` / `fast_hfloat` / `agilex` architectures - see below), `normalizer_generic_pkg`, `denormalizer_generic_pkg`, `float_to_real_conversions_pkg`, `float_to_fixed` (`float_to_fixed_pkg` + entity - `trunc(x * 2**radix)`, sidesteps the Quartus Pro 25.3 denormalizer bug below by reading its width off a generic). This is the actively developed half, e.g. what [`hfloat_test`](https://github.com/johonkanen/float_fpga_hw_test) builds on real Titanium/Agilex hardware. |
+| `vhdl2008/` | generic, `hfloat_record`-based rewrite: `multiply_add` (fused `a*b + c`; `hfloat` / `fast_hfloat` / `agilex` architectures - see below), `normalizer_generic_pkg`, `denormalizer_generic_pkg`, `float_to_real_conversions_pkg`, `float_to_fixed` (`float_to_fixed_pkg` + entity - `trunc(x * 2**radix)`, sidesteps the Quartus Pro 25.3 denormalizer bug below by reading its width off a generic), `float_divide` (`float_divide_pkg` + entity - `a/b` via the `hVHDL_fixed_point` reciprocal lut, see below). This is the actively developed half, e.g. what [`hfloat_test`](https://github.com/johonkanen/float_fpga_hw_test) builds on real Titanium/Agilex hardware. |
+| `source/hVHDL_fixed_point` | submodule, pulled in solely for `float_divide`'s `lut_interpolation/lut_reciprocal_pkg.vhd`. |
 | `testbenches/vhdl2008/` | vunit testbenches for `vhdl2008/`. |
 | `vhdl1993/testbenches/` | vunit testbenches for `vhdl1993/`. |
 
@@ -210,6 +211,36 @@ Then add the generated `native_fp32.qip` and
 
 Verified on an Arrow AXC3000 (Agilex 3 `A3CY100BM16AE7S`): measured hardware
 latency = 3 core-clock edges, matching `sim_native_fp32.vhd`.
+
+## Division: `float_divide`
+
+`float_divide` (`vhdl2008/float_divide.vhd`) computes `a/b` over `hfloat_record`
+using the piecewise-linear 1/x lookup table from the `hVHDL_fixed_point`
+submodule (`lut_interpolation/lut_reciprocal_pkg.vhd`): `b`'s mantissa already
+sits in that lut's `[0.5,1)` input domain, so its top 16 fraction bits feed the
+lut directly, `mantissa_a * lut(1/mantissa_b)` approximates the quotient's
+mantissa, and one conditional 1-bit renormalisation (the same trick the `+`
+operator uses) recovers a normalised `[0.5,1)` result. 4 clock-edge latency,
+`multiply_add`-style API:
+
+```vhdl
+constant div_ref : float_divide_typeref := create_float_divide_typeref(hfloat32_ref);
+signal   div_in  : div_ref.divide_in'subtype  := div_ref.divide_in;
+signal   div_out : div_ref.divide_out'subtype := div_ref.divide_out;
+...
+u_div : entity work.float_divide        -- floatref defaults to hfloat32_ref
+    port map (clock => clk, divide_in => div_in, divide_out => div_out);
+...
+request_divide(div_in, a, b);            -- a, b : hfloat native serialisation
+result <= get_divide_result(div_out);    -- valid 4 clock edges later
+```
+
+Accuracy is bounded by the lut: only the top 16 bits of `b`'s mantissa are
+used, so this is not full precision for wider mantissas. On a wide random
+sweep (`testbenches/vhdl2008/float_divide_tb.vhd`) and on both Titanium and
+Agilex hardware (`hfloat_test` register 40-42), it matches real division to
+within `~1e-4` relative. `b = 0` is not handled, matching `multiply_add` /
+`float_to_fixed`'s no-subnormals/inf/NaN philosophy.
 
 ## Float ↔ integer conversion on Quartus Prime Pro
 
