@@ -152,12 +152,17 @@ package body float_to_real_conversions_pkg is
         variable retval : unsigned(mantissa_length-1 downto 0);
     begin
         real_exp := get_exponent(number);
-        if real_exp = 0.0
-        then
-            real_mantissa := abs(number)*2.0**mantissa_length;
-        else
-            real_mantissa := (abs(number) / 2.0**real_exp)*2.0**(mantissa_length-1);
-        end if;
+        -- number/2**real_exp lands in [2**-0.5, 2**0.5) (real_exp rounds
+        -- log2 to the nearest integer, not floor), and this format's
+        -- mantissa is that ratio halved into [0.5, 1) - matching the "+1"
+        -- get_exponent(...) return signed adds to land the exponent
+        -- field on the same convention.  This one formula covers
+        -- real_exp = 0 too (dividing by 2**0.0 is exact); no special
+        -- case needed, and the previous one used the wrong scale
+        -- (mantissa_length instead of mantissa_length-1), reporting
+        -- 2x the correct magnitude for any number whose mantissa landed
+        -- in that branch.
+        real_mantissa := (abs(number) / 2.0**real_exp)*2.0**(mantissa_length-1);
 
         for i in retval'range loop
             if real_mantissa >= 2.0**i then
