@@ -119,16 +119,18 @@ architecture fast_hfloat of multiply_add is
 
     constant norm_subtype : normalizer_record := normalizer_typeref(floatref => res_subtype);
 
-    signal normalizer : norm_subtype'subtype := norm_subtype;
+    signal normalizer : norm_subtype'subtype;
 
-    signal extended_result     : res_subtype'subtype := res_subtype;
-    signal extended_result_buf : res_subtype'subtype := res_subtype;
-    signal extended_result_buf2 : res_subtype'subtype := res_subtype;
+    -- no power-up values on the datapath pipeline: an Agilex ALM register
+    -- with a power-up value cannot be moved by the Hyper-Retimer
+    signal extended_result     : res_subtype'subtype;
+    signal extended_result_buf : res_subtype'subtype;
+    signal extended_result_buf2 : res_subtype'subtype;
 
     -- signed: the mantissa product is pre-negated for subtraction, so
     -- mpy_result2 can be negative near cancellation.  One extra bit for sign.
-    signal mpy_result2 : signed(hfloat_zero.mantissa'length*2 + c_align_guard downto 0) := (others => '0');
-    signal test_mpy2   : signed(hfloat_zero.mantissa'length*2 + c_align_guard - 1 downto 0) := (others => '0');
+    signal mpy_result2 : signed(hfloat_zero.mantissa'length*2 + c_align_guard downto 0);
+    signal test_mpy2   : signed(hfloat_zero.mantissa'length*2 + c_align_guard - 1 downto 0);
     ----------------------
     ----------------------
     -- pipelines
@@ -136,6 +138,8 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     constant pipe_depth : natural := 2;
 
+    -- narrow control pipes keep their reset value: not on the critical path,
+    -- and it keeps to_integer(shift_pipe) metavalue-free at sim time 0
     signal ready_pipe     : std_logic_vector(pipe_depth+2 downto 0) := (others => '0');
     signal add_shift_pipe : std_logic_vector(pipe_depth downto 0) := (others => '0');
     ----------------------
@@ -152,11 +156,11 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     -- mpy_b_buf is pre-negated (two's complement) when the effective operation
     -- is a subtract, so the mantissa multiply carries the sign
-    signal mpy_a_buf    : signed(hfloat_zero.mantissa'length downto 0) := (others => '0');
-    signal mpy_b_buf    : signed(hfloat_zero.mantissa'length downto 0) := (others => '0');
-    signal add_a_buf    : signed(hfloat_zero.mantissa'length downto 0) := (others => '0');
-    signal mpy_shifter  : unsigned(hfloat_zero.mantissa'length + c_align_guard - 1 downto 0) := (others => '0');
-    signal op_p0        : std_logic := '0';
+    signal mpy_a_buf    : signed(hfloat_zero.mantissa'length downto 0);
+    signal mpy_b_buf    : signed(hfloat_zero.mantissa'length downto 0);
+    signal add_a_buf    : signed(hfloat_zero.mantissa'length downto 0);
+    signal mpy_shifter  : unsigned(hfloat_zero.mantissa'length + c_align_guard - 1 downto 0);
+    signal op_p0        : std_logic;
     ----------------------
     signal shift_res : integer := 0;
     ----------------------
