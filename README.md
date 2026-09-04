@@ -106,6 +106,15 @@ bits have the smaller one truncated instead of fully summed. At the default,
 sweep; `c_align_guard = 20` matches to within `1e-5` (`hfloat`'s own noise
 floor) at the cost of a wider datapath.
 
+This truncate-not-round tradeoff shows up as an apparent relative-error
+blowup whenever `a*b` nearly cancels `c` (e.g. `a*b ≈ 22`, `c ≈ -22`,
+result `≈ 0.0022`): the absolute error stays a tiny, constant fraction
+of the *inputs'* magnitude, but dividing it by the near-zero cancelled
+result inflates the relative error past `c_align_guard`'s guarantee even
+though nothing is actually wrong. `fast_multiply_add_tb.vhd` scales its
+accuracy check by `max(|expected|, |a*b|, |c|)` rather than `|expected|`
+alone, precisely to avoid mistaking this for a bug.
+
 On Agilex, `fast_hfloat`'s pipeline registers carry **no power-up value** -
 an ALM register with an initial value can't be moved by the Hyper-Retimer,
 which otherwise pins the whole architecture's Fmax. Verified end to end on
