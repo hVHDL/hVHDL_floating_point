@@ -60,7 +60,7 @@ float_number <= to_float(3.14);
 | path | contents |
 |------|----------|
 | `vhdl1993/` | the object-style API used above: word-length-specific packages (`float_word_length_*_bit_pkg`), `float_alu`, `float_to_integer_converter`, `normalizer`/`denormalizer` with a fixed pipeline depth baked into the package name. Legacy, kept building via its own vunit runner, not part of the main suite. |
-| `vhdl2008/` | generic, `hfloat_record`-based rewrite: `multiply_add` (fused `a*b + c`; `hfloat` / `fast_hfloat` / `agilex` architectures - see below), `normalizer_generic_pkg`, `denormalizer_generic_pkg`, `float_to_real_conversions_pkg`. This is the actively developed half, e.g. what [`hfloat_test`](https://github.com/johonkanen/float_fpga_hw_test) builds on real Titanium/Agilex hardware. |
+| `vhdl2008/` | generic, `hfloat_record`-based rewrite: `multiply_add` (fused `a*b + c`; `hfloat` / `fast_hfloat` / `agilex` architectures - see below), `normalizer_generic_pkg`, `denormalizer_generic_pkg`, `float_to_real_conversions_pkg`, `float_to_fixed` (`float_to_fixed_pkg` + entity - `trunc(x * 2**radix)`, sidesteps the Quartus Pro 25.3 denormalizer bug below by reading its width off a generic). This is the actively developed half, e.g. what [`hfloat_test`](https://github.com/johonkanen/float_fpga_hw_test) builds on real Titanium/Agilex hardware. |
 | `testbenches/vhdl2008/` | vunit testbenches for `vhdl2008/`. |
 | `vhdl1993/testbenches/` | vunit testbenches for `vhdl1993/`. |
 
