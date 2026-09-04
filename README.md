@@ -189,8 +189,8 @@ all give `1.0 → 2**23`):
 ### What does work
 
 The **non-generic** `denormalizer_pkg`
-(`denormalizer/denormalizer_pkg.vhd` + `float_type_definitions_pkg` +
-a `denormalizer/denormalizer_configuration/denormalizer_with_N_stage_pipe_pkg.vhd`
+(`vhdl1993/denormalizer/denormalizer_pkg.vhd` + `float_type_definitions_pkg` +
+a `vhdl1993/denormalizer/denormalizer_configuration/denormalizer_with_N_stage_pipe_pkg.vhd`
 for the pipeline depth). There `mantissa_length` is a package constant from
 `float_type_definitions_pkg` and the record subtype is fixed, so nothing is read
 off `self`. Verified on AXC3000 hardware: `1.0 → 1024`, `0.5 → 512`,
