@@ -256,7 +256,7 @@ begin
                 real_mpya_result    <= to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
                 float32_conv_result <= to_ieee_float32(to_hfloat(get_mpya_result(mpya_out), hfloat_zero));
 
-                v_rel_error := (to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero)) - ref_pipeline(4))/ref_pipeline(4);
+                v_rel_error := (to_real(to_hfloat(get_mpya_result(mpya_out), hfloat_zero)) - ref_pipeline(3))/ref_pipeline(3);
                 rel_error   <= v_rel_error;
                 total_count <= total_count + 1.0;
                 if abs(v_rel_error) > 1.0e-5 then

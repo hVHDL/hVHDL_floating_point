@@ -136,7 +136,7 @@ architecture fast_hfloat of multiply_add is
     ----------------------
     constant pipe_depth : natural := 2;
 
-    signal ready_pipe     : std_logic_vector(pipe_depth+3 downto 0) := (others => '0');
+    signal ready_pipe     : std_logic_vector(pipe_depth+2 downto 0) := (others => '0');
     signal add_shift_pipe : std_logic_vector(pipe_depth downto 0) := (others => '0');
     ----------------------
     type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
@@ -259,13 +259,11 @@ begin
              , res => mpy_result2);
 
     ------------
-    -- p3
+    -- p3  -- fused: magnitude/slice/sticky and leading-zero normalise in one stage
     output_buffer : process(clock) is
     begin
        if rising_edge(clock) then
-            extended_result      <= get_fma_result;
-            extended_result_buf  <= normalize(extended_result);
-            -- extended_result_buf2 <= normalize(extended_result_buf , 37/3);
+            extended_result_buf <= normalize(get_fma_result);
         end if;
     end process;
 
