@@ -142,7 +142,9 @@ architecture fast_hfloat of multiply_add is
     -- critical path).  shift_pipe is the exception - it feeds the result
     -- slice offset and does land on the critical path at 120 MHz, so it has
     -- no power-up value and get_fma_result guards its to_integer with to_01.
-    signal ready_pipe     : std_logic_vector(pipe_depth+2 downto 0) := (others => '0');
+    -- one bit per clock edge from operands to extended_result_buf
+    -- (p0..p3), so is_ready asserts with the result, not one edge after
+    signal ready_pipe     : std_logic_vector(pipe_depth+1 downto 0) := (others => '0');
     signal add_shift_pipe : std_logic_vector(pipe_depth downto 0) := (others => '0');
     ----------------------
     type exp_array is array (natural range <>) of hfloat_zero.exponent'subtype;
