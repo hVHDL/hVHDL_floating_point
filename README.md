@@ -60,7 +60,7 @@ float_number <= to_float(3.14);
 | path | contents |
 |------|----------|
 | `vhdl1993/` | the object-style API used above: word-length-specific packages (`float_word_length_*_bit_pkg`), `float_alu`, `float_to_integer_converter`, `normalizer`/`denormalizer` with a fixed pipeline depth baked into the package name. Legacy, kept building via its own vunit runner, not part of the main suite. |
-| `vhdl2008/` | generic, `hfloat_record`-based rewrite: `multiply_add` (fused `a*b + c`; `hfloat` / `fast_hfloat` / `agilex` architectures - see below), `normalizer_generic_pkg`, `denormalizer_generic_pkg`, `float_to_real_conversions_pkg`, `float_to_fixed` (`float_to_fixed_pkg` + entity - `trunc(x * 2**radix)`, sidesteps the Quartus Pro 25.3 denormalizer bug below by reading its width off a generic), `float_divide` (`float_divide_pkg` + entity - `a/b` via the `hVHDL_fixed_point` reciprocal lut, see below). This is the actively developed half, e.g. what [`hfloat_test`](https://github.com/johonkanen/float_fpga_hw_test) builds on real Titanium/Agilex hardware. |
+| `vhdl2008/` | generic, `hfloat_record`-based rewrite: `multiply_add` (fused `a*b + c`; `hfloat` / `fast_hfloat` / `agilex` architectures - see below), `normalizer_generic_pkg`, `denormalizer_generic_pkg`, `float_to_real_conversions_pkg`, `float_to_fixed` (`float_to_fixed_pkg` + entity - `trunc(x * 2**radix)`, sidesteps the Quartus Pro 25.3 denormalizer bug below by reading its width off a generic), `float_divide` (`float_divide_pkg` + entity - `a/b` via the `hVHDL_fixed_point` reciprocal lut, see below), `float_lut_sine_pkg` (fp32 quarter wave lut sine on the agilex multiply-add, see below). This is the actively developed half, e.g. what [`hfloat_test`](https://github.com/johonkanen/float_fpga_hw_test) builds on real Titanium/Agilex hardware. |
 | `source/hVHDL_fixed_point` | submodule, pulled in solely for `float_divide`'s `lut_interpolation/lut_reciprocal_pkg.vhd`. |
 | `testbenches/vhdl2008/` | vunit testbenches for `vhdl2008/`. |
 | `vhdl1993/testbenches/` | vunit testbenches for `vhdl1993/`. |
@@ -241,6 +241,54 @@ sweep (`testbenches/vhdl2008/float_divide_tb.vhd`) and on both Titanium and
 Agilex hardware (`hfloat_test` register 40-42), it matches real division to
 within `~1e-4` relative. `b = 0` is not handled, matching `multiply_add` /
 `float_to_fixed`'s no-subnormals/inf/NaN philosophy.
+
+## Sine: `float_lut_sine_pkg`
+
+`vhdl2008/float_lut_sine_pkg.vhd` is the fp32 counterpart of
+`hVHDL_fixed_point`'s `lut_interpolation/lut_sine_pkg.vhd`: the same quarter
+wave table (256 points a quarter, mirrored by the angle's quadrant bit, negated
+by its half bit) and the same linear interpolation as one multiply-add - here
+on `multiply_add(agilex)`, whose operands are IEEE binary32. The angle is a
+32 bit unsigned fraction of a turn (`2**32` = `2*pi`).
+
+The interpolation `point + slope * fraction` needs the fraction as a float. It
+is not normalised: the fraction bits go into the mantissa of a float with
+1.0's exponent, which is `1.0 + fraction` exactly, and the table holds
+`point - slope` instead of the point:
+
+```
+sine = slope * (1.0 + fraction) + (point - slope)
+```
+
+The negative half wave flips both table values' sign bits before the
+multiply-add, so its result is the sine with nothing done afterwards.
+
+```vhdl
+use work.multiply_add_pkg.all;
+use work.float_lut_sine_pkg.all;
+...
+request_sine(mpya_in, angle);                 -- angle : unsigned(31 downto 0)
+...
+if mpya_is_ready(mpya_out) then
+    sine <= get_mpya_result(mpya_out);        -- fp32, 3 clocks later
+end if;
+```
+
+`get_sine_operands(angle)` gives the three operands for other uses (e.g. to
+register them first); `get_sine_from_quarter_wave_lut(angle)` is the same sum
+in real arithmetic, a model for testbenches; `to_float32_slv` / `to_real`
+convert reals and binary32 bits (normal numbers only).
+
+Accuracy (`testbenches/vhdl2008/float_lut_sine_tb.vhd`, 20000 angles over the
+turn and the quadrant edges): the table model is within `4.73e-6` of `sin`,
+the interpolation's bound `(pi/2/256)**2/8`; the multiply-add through the
+native fp32 model within `3e-8` of the table model.
+
+Used in [`tube_power_control_fpga`](https://github.com/johonkanen/tube_power_control_fpga)'s
+signal generator (`niosv_zephyr/hw/siggen/`), which also turns the fp32
+results into int16 on the same multiply-add: `x * scale + 1.5 * 2**23` has
+2**23's exponent, so its mantissa's low bits are `round(x * scale)` in two's
+complement - a float to integer conversion without the denormaliser below.
 
 ## Float ↔ integer conversion on Quartus Prime Pro
 
