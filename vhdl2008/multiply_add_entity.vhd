@@ -113,9 +113,8 @@ package body multiply_add_pkg is
     procedure init_multiply_add(signal self_in : out multiply_add_in_record) 
     is
     begin
-        self_in.mpy_a <= self_in.mpy_a;
-        self_in.mpy_b <= self_in.mpy_b;
-        self_in.add_a <= self_in.add_a;
+        -- the operands hold their values (an out parameter cannot be read:
+        -- Quartus Pro 26.3 rejects self_in.mpy_a <= self_in.mpy_a)
         self_in.is_requested <= '0';
     end procedure;
 
